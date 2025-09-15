@@ -181,6 +181,7 @@
 - [rental-app-main/src/components/admin/ReturnAccessoriesChecklist.tsx](#rentalappmainsrccomponentsadminReturnAccessoriesChecklisttsx)
 - [rental-app-main/src/components/admin/ReturnFinancials.tsx](#rentalappmainsrccomponentsadminReturnFinancialstsx)
 - [rental-app-main/src/components/admin/ReturnRentalDialog.tsx](#rentalappmainsrccomponentsadminReturnRentalDialogtsx)
+- [rental-app-main/src/components/admin/UserBalanceHistoryDialog.tsx](#rentalappmainsrccomponentsadminUserBalanceHistoryDialogtsx)
 - [rental-app-main/src/components/admin/UserCreateDialog.tsx](#rentalappmainsrccomponentsadminUserCreateDialogtsx)
 - [rental-app-main/src/components/admin/UserEditDialog.tsx](#rentalappmainsrccomponentsadminUserEditDialogtsx)
 - [rental-app-main/src/components/admin/UserPaymentDialog.tsx](#rentalappmainsrccomponentsadminUserPaymentDialogtsx)
@@ -551,6 +552,7 @@
         │   │   ├── 📄 `ReturnAccessoriesChecklist.tsx`
         │   │   ├── 📄 `ReturnFinancials.tsx`
         │   │   ├── 📄 `ReturnRentalDialog.tsx`
+        │   │   ├── 📄 `UserBalanceHistoryDialog.tsx`
         │   │   ├── 📄 `UserCreateDialog.tsx`
         │   │   ├── 📄 `UserEditDialog.tsx`
         │   │   ├── 📄 `UserPaymentDialog.tsx`
@@ -50521,6 +50523,56 @@ export default function ReturnRentalDialog({ rental, open, onClose }: Props) {
 ```
 
 
+## <a name="rentalappmainsrccomponentsadminUserBalanceHistoryDialogtsx"></a>`rental-app-main/src/components/admin/UserBalanceHistoryDialog.tsx`
+
+```tsx
+// path: rental-app-main/src/components/admin/UserBalanceHistoryDialog.tsx
+
+// path: rental-app-main/src/components/admin/UserBalanceHistoryDialog.tsx
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import BalanceHistoryTable from "@/components/profile/BalanceHistoryTable";
+import type { UserOut } from "@/types/user";
+
+interface Props {
+    user: UserOut | null;
+    open: boolean;
+    onClose: () => void;
+}
+
+/**
+ * Диалоговое окно для отображения истории баланса конкретного пользователя в админ-панели.
+ */
+export function UserBalanceHistoryDialog({ user, open, onClose }: Props) {
+    if (!user) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>История баланса: {user.full_name}</DialogTitle>
+                    <DialogDescription>
+                        Просмотр всех транзакций для пользователя {user.email}.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <BalanceHistoryTable userId={user.id} isAdminView={true} />
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
+```
+
+
 ## <a name="rentalappmainsrccomponentsadminUserCreateDialogtsx"></a>`rental-app-main/src/components/admin/UserCreateDialog.tsx`
 
 ```tsx
@@ -50874,8 +50926,10 @@ export function UserEditDialog({ user, open, onClose }: Props) {
 ```tsx
 // path: rental-app-main/src/components/admin/UserPaymentDialog.tsx
 
-// src/components/admin/UserPaymentDialog.tsx
+// path: rental-app-main/src/components/admin/UserPaymentDialog.tsx
 
+import { useState, useEffect } from "react"; // ✅ ИЗМЕНЕНИЕ: Добавлен импорт useState и useEffect
+import { toast } from "sonner";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userPaymentSchema, type UserPaymentSchema } from "@/lib/validationSchemas";
@@ -50895,6 +50949,9 @@ import {
     DialogFooter,
     DialogDescription,
 } from "@/components/ui/dialog";
+// ✅ ИЗМЕНЕНИЕ: Импортируем новый компонент и иконку
+import { UserBalanceHistoryDialog } from "./UserBalanceHistoryDialog"; 
+import { History } from "lucide-react";
 
 const PAYMENT_METHODS = ["Наличные", "Карта", "Перевод"];
 
@@ -50902,22 +50959,41 @@ interface Props {
     user: UserOut | null;
     open: boolean;
     onClose: () => void;
+    onUserUpdated?: (updatedUser: UserOut) => void;
 }
 
-export function UserPaymentDialog({ user, open, onClose }: Props) {
+export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props) {
     const paymentMutation = useAddUserPayment();
+    // ✅ ИЗМЕНЕНИЕ: Добавляем состояние для управления диалогом истории
+    const [isHistoryOpen, setHistoryOpen] = useState(false);
+    // ✅ ИЗМЕНЕНИЕ: Добавляем состояние для отслеживания текущего баланса
+    const [currentUser, setCurrentUser] = useState<UserOut | null>(user); 
+
     const { register, handleSubmit, formState: { errors, isValid }, reset, control } = useForm<UserPaymentSchema>({
         resolver: zodResolver(userPaymentSchema),
         mode: "onChange",
     });
 
+    // ✅ ИЗМЕНЕНИЕ: Обновляем currentUser при изменении пропа user
+    useEffect(() => {
+        setCurrentUser(user);
+    }, [user]);
+
     const onSubmit = (data: UserPaymentSchema) => {
         if (!user) return;
 
         paymentMutation.mutate({ userId: user.id, data }, {
-            onSuccess: () => {
+            onSuccess: (updatedUser) => {
                 reset();
-                onClose();
+                // Обновляем локальное состояние с новыми данными пользователя
+                setCurrentUser(updatedUser);
+                // Уведомляем родительский компонент об обновлении пользователя
+                if (onUserUpdated) {
+                    onUserUpdated(updatedUser);
+                }
+                // Показываем уведомление о успешном пополнении
+                toast.success(`Баланс пополнен на ${data.amount.toLocaleString('ru-RU')} ₽. Новый баланс: ${updatedUser.balance?.toLocaleString('ru-RU')} ₽`);
+                // НЕ закрываем диалог автоматически - пользователь сам решит когда закончить
             },
         });
     };
@@ -50930,65 +51006,93 @@ export function UserPaymentDialog({ user, open, onClose }: Props) {
 
     if (!user) return null;
 
-    // ИЗМЕНЕНИЕ: Добавляем ?? 0 для безопасного доступа к балансу
-    const currentBalance = user.balance ?? 0;
+    // ✅ ИЗМЕНЕНИЕ: Используем currentUser для отображения актуального баланса
+    const displayUser = currentUser || user;
+    const currentBalance = displayUser.balance ?? 0;
+    const balanceColor = currentBalance < 0 ? 'text-red-600' : 'text-green-700';
 
     return (
-        <Dialog open={open} onOpenChange={handleDialogClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Пополнение баланса</DialogTitle>
-                    <DialogDescription>
-                        Вы пополняете баланс для <strong>{user.full_name}</strong>.
-                        Текущий баланс:
-                        <span className={`font-bold ${currentBalance < 0 ? 'text-red-600' : 'text-green-700'}`}>
-                            {' '}{currentBalance.toLocaleString('ru-RU')} ₽
-                        </span>
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <Label htmlFor="payment-amount">Сумма (₽) *</Label>
-                            <Input id="payment-amount" type="number" step="0.01" {...register("amount")} placeholder="1000" />
-                            {errors.amount && <p className="text-xs text-red-600 mt-1">{errors.amount.message}</p>}
+        <>
+            <Dialog open={open} onOpenChange={handleDialogClose}>
+                <DialogContent>
+                    <DialogHeader>
+                        {/* ✅ ИЗМЕНЕНИЕ: Заголовок переименован в "Финансы" */}
+                        <DialogTitle>Финансы</DialogTitle>
+                        <DialogDescription>
+                            Вы управляете финансами пользователя <strong>{displayUser.full_name}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/* ✅ ИЗМЕНЕНИЕ: Добавлена кнопка "История платежей" */}
+                    <div className="pt-2">
+                        <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+                            <History className="w-4 h-4 mr-2" />
+                            История баланса
+                        </Button>
+                    </div>
+
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
+                        {/* ✅ ИЗМЕНЕНИЕ: Текст "Пополнение баланса" перемещен сюда */}
+                        <div className="space-y-2 pt-4 border-t">
+                            <Label className="font-semibold">Пополнение баланса</Label>
+                             <p className="text-sm text-muted-foreground">
+                                Текущий баланс:
+                                <span className={`font-bold ml-2 ${balanceColor}`}>
+                                    {currentBalance.toLocaleString('ru-RU')} ₽
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="payment-amount">Сумма (₽) *</Label>
+                                <Input id="payment-amount" type="number" step="0.01" {...register("amount")} placeholder="1000" />
+                                {errors.amount && <p className="text-xs text-red-600 mt-1">{errors.amount.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="payment-method">Метод оплаты *</Label>
+                                <Controller
+                                    name="payment_method"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <SelectTrigger id="payment-method">
+                                                <SelectValue placeholder="Выберите метод" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {PAYMENT_METHODS.map(method => (
+                                                    <SelectItem key={method} value={method}>{method}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.payment_method && <p className="text-xs text-red-600 mt-1">{errors.payment_method.message}</p>}
+                            </div>
                         </div>
                         <div>
-                            <Label htmlFor="payment-method">Метод оплаты *</Label>
-                            <Controller
-                                name="payment_method"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <SelectTrigger id="payment-method">
-                                            <SelectValue placeholder="Выберите метод" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {PAYMENT_METHODS.map(method => (
-                                                <SelectItem key={method} value={method}>{method}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.payment_method && <p className="text-xs text-red-600 mt-1">{errors.payment_method.message}</p>}
+                            <Label htmlFor="payment-description">Описание (необязательно)</Label>
+                            <Textarea id="payment-description" {...register("description")} placeholder="Например, оплата залога за аренду #123" />
                         </div>
-                    </div>
-                    <div>
-                        <Label htmlFor="payment-description">Описание (необязательно)</Label>
-                        <Textarea id="payment-description" {...register("description")} placeholder="Например, оплата залога за аренду #123" />
-                    </div>
-                    <DialogFooter className="pt-4">
-                        <Button type="button" variant="ghost" onClick={handleDialogClose} disabled={paymentMutation.isPending}>
-                            Отмена
-                        </Button>
-                        <Button type="submit" disabled={!isValid || paymentMutation.isPending}>
-                            {paymentMutation.isPending ? "Пополнение..." : "Пополнить баланс"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                        <DialogFooter className="pt-4">
+                            <Button type="button" variant="ghost" onClick={handleDialogClose} disabled={paymentMutation.isPending}>
+                                Закрыть
+                            </Button>
+                            <Button type="submit" disabled={!isValid || paymentMutation.isPending}>
+                                {paymentMutation.isPending ? "Пополнение..." : "Пополнить баланс"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* ✅ ИЗМЕНЕНИЕ: Встроенный диалог истории платежей */}
+            <UserBalanceHistoryDialog 
+                user={displayUser} 
+                open={isHistoryOpen} 
+                onClose={() => setHistoryOpen(false)} 
+            />
+        </>
     );
 }
 
@@ -51021,6 +51125,7 @@ interface UserTableProps {
     onLoadMore: () => void;
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
+    onUserUpdated?: (updatedUser: UserOut) => void;
 }
 
 export default function UserTable({
@@ -51030,6 +51135,7 @@ export default function UserTable({
     onLoadMore,
     hasNextPage,
     isFetchingNextPage,
+    onUserUpdated,
 }: UserTableProps) {
     const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -51164,6 +51270,7 @@ export default function UserTable({
                 user={paymentUser}
                 open={!!paymentUser}
                 onClose={() => setPaymentUser(null)}
+                onUserUpdated={onUserUpdated}
             />
         </>
     );
@@ -62857,10 +62964,21 @@ export function useAddUserPayment() {
         mutationFn: async ({ userId, data }: { userId: number; data: UserPaymentRequest }) => {
             return await UserService.addUserPayment(userId, data);
         },
-        onSuccess: (updatedUser) => {
+        onSuccess: (updatedUser, { userId }) => {
+            // Инвалидируем кэш списка пользователей
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-            // Можно также точечно обновить кэш конкретного пользователя, если он где-то используется
-            toast.success(`Баланс пользователя ${updatedUser.full_name} успешно пополнен.`);
+            
+            // Инвалидируем кэш истории баланса для конкретного пользователя
+            void queryClient.invalidateQueries({ 
+                queryKey: ["balanceHistory", "admin", userId] 
+            });
+            
+            // Инвалидируем кэш истории баланса для текущего пользователя (если он пополняет свой баланс)
+            void queryClient.invalidateQueries({ 
+                queryKey: ["balanceHistory", "me"] 
+            });
+            
+            // Уведомление теперь показывается в компоненте с более детальной информацией
         },
         onError: (error: unknown) => {
             const apiError = error as { response?: { data?: { detail?: string } } };
@@ -66324,15 +66442,18 @@ export default function ReservePage() {
 import { useMemo } from "react";
 import { useCurrentUser } from "@/hooks/useProfile";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminNavigation from "@/components/admin/AdminNavigation";
 import UserTable from "@/components/admin/UserTable";
 import { Button } from "@/components/ui/button";
 import { Shield, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { UserOut } from "@/types/user";
 
 export default function UserManagementPage() {
     const { data: currentUser } = useCurrentUser();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     
     // Получаем данные пользователей с пагинацией
     const {
@@ -66352,6 +66473,12 @@ export default function UserManagementPage() {
 
     const isAdmin = currentUser?.role === "admin";
     const isManager = currentUser?.role === "manager" || isAdmin;
+
+    // Обработчик обновления пользователя
+    const handleUserUpdated = (updatedUser: UserOut) => {
+        // Принудительно обновляем кэш пользователей
+        void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    };
 
     // Если пользователь не имеет прав доступа
     if (!isManager) {
@@ -66404,6 +66531,7 @@ export default function UserManagementPage() {
                     onLoadMore={fetchNextPage}
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={isFetchingNextPage}
+                    onUserUpdated={handleUserUpdated}
                 />
             </div>
 
