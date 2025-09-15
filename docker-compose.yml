@@ -1,0 +1,62 @@
+# S_PROJECT_DOCKER/docker-compose.yml
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# docker-compose.yml (замените только этот сервис)
+
+  backend:
+    build:
+      context: ./RentalApp_FASTAPI
+      dockerfile: Dockerfile.backend
+    volumes:
+      - ./RentalApp_FASTAPI/api:/app/api
+      - ./RentalApp_FASTAPI/shared:/app/shared
+      - ./RentalApp_FASTAPI/config:/app/config
+      - ./RentalApp_FASTAPI/migrations:/app/migrations
+      - ./RentalApp_FASTAPI/alembic.ini:/app/alembic.ini
+    ports:
+      - "8000:8000"
+    # ИЗМЕНЕНИЕ ЗДЕСЬ: Добавляем все остальные переменные
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - DEFAULT_TELEGRAM_CHAT_ID=${DEFAULT_TELEGRAM_CHAT_ID}
+      - DEBUG=${DEBUG}
+      - YANDEX_EMAIL_SENDER=${YANDEX_EMAIL_SENDER}
+      - YANDEX_SMTP_PASSWORD=${YANDEX_SMTP_PASSWORD}
+      - DB_TYPE=${DB_TYPE}
+      - SECRET_KEY=${SECRET_KEY}
+      - TZ=Europe/Astrakhan
+    depends_on:
+      db:
+        condition: service_healthy
+        
+  frontend:
+    build:
+      context: ./rental-app-main
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:80"
+    volumes:
+      - ./rental-app-main/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
