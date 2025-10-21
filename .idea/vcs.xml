@@ -4,6 +4,5 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/RentalApp_FASTAPI" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/rental-app-main" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/rental-app-main/rental_app_main" vcs="Git" />
   </component>
 </project>
