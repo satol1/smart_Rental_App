@@ -1,0 +1,17 @@
+# docker-compose.override.yml
+# Переопределение для локальной разработки
+# Этот файл автоматически подхватывается docker-compose
+
+services:
+  frontend:
+    ports:
+      - "5173:80"  # Только HTTP для разработки
+    volumes:
+      - ./rental-app-main/nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - DOMAIN=localhost
+      - SSL_EMAIL=
+
+  backend:
+    environment:
+      - DEBUG=true
