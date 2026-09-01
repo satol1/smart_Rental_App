@@ -1,0 +1,59 @@
+# docker-compose.e2e.yml
+# Конфигурация Docker Compose для запуска E2E тестов
+
+networks:
+  e2e-test-network:
+    driver: bridge
+
+services:
+  e2e-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=e2e_user
+      - POSTGRES_PASSWORD=e2e_password
+      - POSTGRES_DB=e2e_db
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U e2e_user -d e2e_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data  # Используем tmpfs для быстрых тестов
+    networks:
+      - e2e-test-network
+
+  test-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://e2e_user:e2e_password@e2e-db:5432/e2e_db
+      - TEST_DATABASE_URL=postgresql+asyncpg://e2e_user:e2e_password@e2e-db:5432/e2e_db
+      - CSRF_SECRET_KEY=0123456789abcdef0123456789abcdef
+      - SECRET_KEY=abcdef0123456789abcdef0123456789
+      - DEBUG=true
+      - TZ=Europe/Astrakhan
+      - DISABLE_CSRF=true
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      e2e-db:
+        condition: service_healthy
+    networks:
+      - e2e-test-network
+    command: >
+      sh -c "
+        pip install -r requirements-test.txt &&
+        echo 'Ожидание готовности БД...' &&
+        sleep 10 &&
+        echo 'Проверка подключения к БД...' &&
+        python -c 'import asyncio; from sqlalchemy.ext.asyncio import create_async_engine; engine = create_async_engine(\"postgresql+asyncpg://e2e_user:e2e_password@e2e-db:5432/e2e_db\"); print(\"БД доступна\")' &&
+        echo 'Создание тестовой базы данных...' &&
+        python create_test_database.py &&
+        echo 'Запуск E2E тестов...' &&
+        pytest tests/ -m e2e -v --tb=short --cov=api --cov-report=term-missing
+      "

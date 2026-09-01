@@ -1,0 +1,23 @@
+# rental-app-main/Dockerfile.test
+# Dockerfile для запуска тестов фронтенда
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Копируем package.json для установки зависимостей
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm ci
+
+# Копируем конфигурацию тестов
+COPY vitest.config.ts ./
+COPY tsconfig*.json ./
+
+# Копируем исходный код (будет замонтирован через volume)
+# COPY . .
+
+# Команда по умолчанию (может быть переопределена)
+CMD ["npm", "run", "test:run"]
+

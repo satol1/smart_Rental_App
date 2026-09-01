@@ -1,0 +1,127 @@
+# api/services/promo_code/promo_code_business_logic.py
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from typing import Optional, List
+from datetime import datetime, timezone
+
+from api.models.promo_code import PromoCode, promo_code_usages
+from api.models.user import User
+from shared.schemas.promo_code_schema import PromoCodeValidateResponse
+from .promo_code_validator import PromoCodeValidator
+from .constants import MAX_COMBINED_DISCOUNT
+from .interfaces import IPromoCodeBusinessLogic
+
+
+class PromoCodeBusinessLogic(IPromoCodeBusinessLogic):
+    """Бизнес-логика для работы с промокодами"""
+    
+    def __init__(self, db: AsyncSession, validator: PromoCodeValidator, promo_code_repo: 'PromoCodeRepository'):
+        self.db = db
+        self.validator = validator
+        self.promo_code_repo = promo_code_repo
+    
+    async def validate_and_get_promo_code(
+        self, 
+        code: str, 
+        order_amount: float, 
+        equipment_ids: List[int], 
+        user: Optional[User]
+    ) -> PromoCode:
+        """
+        Валидирует промокод и возвращает его объект.
+        Основной метод для валидации промокодов.
+        """
+        return await self.validator.validate_complete(code, order_amount, equipment_ids, user)
+    
+    def create_validation_response(self, promo_code: PromoCode) -> PromoCodeValidateResponse:
+        """Создает ответ для валидации промокода"""
+        return PromoCodeValidateResponse(
+            code=promo_code.code,
+            discount_percentage=promo_code.discount_percentage,
+            message="Промокод успешно применен!"
+        )
+    
+    async def record_promo_code_usage(self, promo_code: PromoCode, user: Optional[User]) -> None:
+        """
+        Записывает использование промокода пользователем.
+        Увеличивает счетчик использований.
+        """
+        # Все операции с БД теперь внутри одного блока транзакции
+        async with self.db.begin_nested():
+            # Увеличиваем общий счетчик использований через репозиторий
+            await self.promo_code_repo.increment_usage_counter(promo_code.id)
+            
+            # Записываем использование пользователем, если он авторизован
+            if user:
+                # Проверяем, не записано ли уже использование через репозиторий
+                user_usage_count = await self.promo_code_repo.get_user_usage_count(user.id, promo_code.id)
+                
+                if user_usage_count == 0:
+                    # Добавляем запись об использовании через репозиторий
+                    await self.promo_code_repo.record_promo_code_usage(
+                        user.id, 
+                        promo_code.id, 
+                        datetime.now(timezone.utc)
+                    )
+        
+        # Явно коммитим транзакцию
+        await self.db.commit()
+    
+    def calculate_discount_amount(self, base_amount: float, promo_code: PromoCode) -> float:
+        """Рассчитывает сумму скидки по промокоду"""
+        return base_amount * (promo_code.discount_percentage / 100)
+    
+    def calculate_final_amount_with_promo(self, base_amount: float, promo_code: PromoCode) -> float:
+        """Рассчитывает финальную сумму с учетом скидки по промокоду"""
+        discount_amount = self.calculate_discount_amount(base_amount, promo_code)
+        return base_amount - discount_amount
+    
+    def validate_combined_discount(self, duration_discount: float, promo_discount: float) -> float:
+        """
+        Проверяет и корректирует комбинированную скидку.
+        Возвращает итоговый процент скидки.
+        """
+        total_discount = duration_discount + promo_discount
+        if total_discount > MAX_COMBINED_DISCOUNT:
+            return MAX_COMBINED_DISCOUNT
+        return total_discount
+    
+    def get_promo_code_statistics(self, promo_code: PromoCode) -> dict:
+        """Получает статистику использования промокода"""
+        total_uses = promo_code.times_used
+        max_uses = promo_code.max_uses
+        usage_percentage = (total_uses / max_uses * 100) if max_uses and max_uses > 0 else None
+        
+        return {
+            'total_uses': total_uses,
+            'max_uses': max_uses,
+            'usage_percentage': usage_percentage,
+            'is_fully_used': bool(max_uses and total_uses >= max_uses),
+            'remaining_uses': max_uses - total_uses if max_uses else None
+        }
+    
+    def is_promo_code_expired(self, promo_code: PromoCode) -> bool:
+        """Проверяет, истек ли срок действия промокода"""
+        if not promo_code.expires_at:
+            return False
+        
+        now_utc = datetime.now(timezone.utc)
+        return promo_code.expires_at < now_utc
+    
+    def is_promo_code_active(self, promo_code: PromoCode) -> bool:
+        """Проверяет, активен ли промокод (включая сроки действия)"""
+        if not promo_code.is_active:
+            return False
+        
+        now_utc = datetime.now(timezone.utc)
+        
+        # Проверка даты начала действия
+        if promo_code.valid_from and promo_code.valid_from > now_utc:
+            return False
+        
+        # Проверка даты окончания действия
+        if promo_code.expires_at and promo_code.expires_at < now_utc:
+            return False
+        
+        return True 

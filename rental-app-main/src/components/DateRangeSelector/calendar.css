@@ -1,0 +1,52 @@
+/* src/components/DateRangeSelector/calendar.css */
+
+/* Общие стили для дня, которые уже есть в index.css, но мы можем их дополнить */
+.calendar-day {
+    padding: 0.5rem;
+    border-radius: 0; /* Убираем скругление по умолчанию для средних дней */
+    color: #1f2937; /* Цвет текста по умолчанию */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Стили для дней внутри выбранного диапазона (дублируют index.css для надежности) */
+.range-middle {
+    background-color: #e0f2fe; /* Tailwind sky-100 */
+}
+
+/* Стили для начальной и конечной дат диапазона (дублируют index.css для надежности) */
+.range-start,
+.range-end {
+    background-color: #0284c7; /* Tailwind sky-600 */
+    color: white;
+    border-radius: 50%; /* Делаем их круглыми */
+}
+
+/* Убираем стандартное выделение для одиночных кликов в режиме диапазона */
+.day-selected:not([class*="range-"]) {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Стили для навигации и заголовков (дублируют index.css для надежности) */
+.calendar-caption {
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-transform: capitalize;
+    padding-bottom: 0.5rem;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar-head-cell {
+    font-weight: 500;
+    color: #4b5563; /* gray-600 */
+    font-size: 0.8rem;
+}
+
+.calendar-cell {
+    padding: 1px; /* Небольшой отступ между ячейками для визуального разделения */
+}

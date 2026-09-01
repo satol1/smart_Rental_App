@@ -1,0 +1,253 @@
+# api/repositories/reservation_filter_repository.py
+
+from typing import Optional, List, Tuple
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy import select, and_, or_, func, desc, asc
+from datetime import date
+
+from api.models.reservation import Reservation, ReservationAccessory
+from api.models.equipment import Equipment
+from api.models.user import User
+from shared.constants.order_status import OrderStatus
+from shared.services.period_service import PeriodService
+from .reservation_base_repository import ReservationBaseRepository
+
+
+class ReservationFilterRepository(ReservationBaseRepository):
+    """
+    Репозиторий для фильтрации и поиска резервов.
+    Содержит методы для пагинации, поиска и сортировки резервов.
+    """
+    
+    def __init__(self, db: AsyncSession, period_service: PeriodService):
+        super().__init__(db)
+        self.period_service = period_service
+
+    async def get_paginated_for_user(
+        self, 
+        user_id: int, 
+        skip: int, 
+        limit: int, 
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        sort: Optional[str] = None
+    ) -> Tuple[List[Reservation], int]:
+        """
+        Получение пагинированного списка резервов пользователя с фильтрацией и сортировкой.
+        
+        Args:
+            user_id: ID пользователя
+            skip: Количество записей для пропуска
+            limit: Максимальное количество записей
+            status: Фильтр по статусу
+            search: Поисковый запрос
+            sort: Параметр сортировки
+            
+        Returns:
+            Кортеж (список резервов, общее количество)
+        """
+        # Создаем базовый запрос
+        query = select(Reservation).filter(Reservation.user_id == user_id)
+        
+        # Применяем фильтрацию по статусу
+        query = self._apply_status_filter(query, status)
+        
+        # Применяем поиск по оборудованию
+        if search:
+            query = self._apply_equipment_search(query, search)
+        
+        # Добавляем необходимые JOIN'ы
+        query = query.options(
+            joinedload(Reservation.applied_promo_code),
+            joinedload(Reservation.accessory_links).joinedload(ReservationAccessory.accessory),
+            selectinload(Reservation.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
+            joinedload(Reservation.rental)
+        )
+        
+        # Применяем сортировку
+        query = self._apply_sorting(query, sort)
+        
+        # Получаем общее количество
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        total = count_result.scalar_one()
+        
+        # Применяем пагинацию
+        query = query.offset(skip).limit(limit)
+        
+        # Выполняем запрос
+        result = await self.db.execute(query)
+        reservations = result.unique().scalars().all()
+        
+        return reservations, total
+
+    async def get_paginated_for_admin(
+        self,
+        skip: int,
+        limit: int,
+        status: Optional[str] = None,
+        search_query: Optional[str] = None,
+        reservation_id: Optional[int] = None,
+        period_type: Optional[str] = None,
+        period_offset: int = 0
+    ) -> Tuple[List[Reservation], int]:
+        """
+        Получение пагинированного списка резервов для админ-панели с фильтрацией.
+        
+        Args:
+            skip: Количество записей для пропуска
+            limit: Максимальное количество записей
+            status: Фильтр по статусу
+            search_query: Поисковый запрос по пользователю
+            reservation_id: ID конкретного резерва
+            
+        Returns:
+            Кортеж (список резервов, общее количество)
+        """
+        # Создаем базовый запрос
+        query = select(Reservation).options(
+            joinedload(Reservation.user),
+            joinedload(Reservation.applied_promo_code),
+            joinedload(Reservation.accessory_links).joinedload(ReservationAccessory.accessory),
+            selectinload(Reservation.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
+            joinedload(Reservation.rental)
+        )
+        
+        # Применяем поиск по пользователю
+        if search_query:
+            query = self._apply_user_search(query, search_query)
+        
+        # Применяем фильтрацию по статусу
+        if status == OrderStatus.ACTIVE:
+            query = query.filter(
+                Reservation.status == OrderStatus.ACTIVE,
+                Reservation.end_date >= date.today()
+            )
+        elif status == OrderStatus.COMPLETED:
+            query = query.filter(
+                Reservation.status.in_([
+                    OrderStatus.FULFILLED, 
+                    OrderStatus.CANCELLED, 
+                    OrderStatus.OVERDUE
+                ])
+            )
+        elif status == OrderStatus.OVERDUE:
+            query = query.filter(
+                Reservation.status == OrderStatus.ACTIVE,
+                Reservation.end_date < date.today()
+            )
+        
+        # Добавляем фильтр по ID, если указан
+        if reservation_id:
+            query = query.filter(Reservation.id == reservation_id)
+        
+        # Применяем фильтрацию по периоду
+        if period_type:
+            try:
+                start_date, end_date = self.period_service.get_period_dates(period_type, period_offset)
+                # Фильтр: резерв пересекается с периодом (start_date <= period_end AND end_date >= period_start)
+                query = query.filter(
+                    and_(
+                        Reservation.start_date <= end_date,
+                        Reservation.end_date >= start_date
+                    )
+                )
+            except ValueError as e:
+                # Логируем ошибку, но продолжаем без фильтрации по периоду
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Ошибка в параметрах периода: {e}")
+        
+        # Получаем общее количество
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        total = count_result.scalar_one()
+        
+        # Применяем сортировку и пагинацию
+        query = query.order_by(Reservation.id.desc()).offset(skip).limit(limit)
+        
+        # Выполняем запрос
+        result = await self.db.execute(query)
+        reservations = result.unique().scalars().all()
+        
+        return reservations, total
+
+    def _apply_status_filter(self, query, status: Optional[str]):
+        """Применяет фильтрацию по статусу."""
+        if not status:
+            return query
+            
+        if status == OrderStatus.ACTIVE:
+            return query.filter(
+                Reservation.status == OrderStatus.ACTIVE,
+                Reservation.end_date >= date.today()
+            )
+        elif status == OrderStatus.COMPLETED:
+            return query.filter(
+                Reservation.status.in_([
+                    OrderStatus.FULFILLED, 
+                    OrderStatus.CANCELLED, 
+                    OrderStatus.OVERDUE
+                ])
+            )
+        elif status == OrderStatus.OVERDUE:
+            return query.filter(
+                Reservation.status == OrderStatus.ACTIVE,
+                Reservation.end_date < date.today()
+            )
+        else:
+            return query.filter(Reservation.status == status)
+
+    def _apply_equipment_search(self, query, search_term: str):
+        """Применяет поиск по оборудованию."""
+        search_pattern = f"%{search_term.lower()}%"
+        
+        # Применяем фильтр поиска через EXISTS подзапрос
+        equipment_subquery = select(Equipment.id).filter(
+            or_(
+                Equipment.name.ilike(search_pattern),
+                Equipment.brand.ilike(search_pattern),
+                Equipment.equipment_type.ilike(search_pattern)
+            )
+        )
+        
+        return query.filter(
+            Reservation.equipment.any(Equipment.id.in_(equipment_subquery))
+        )
+
+    def _apply_user_search(self, query, search_term: str):
+        """Применяет поиск по пользователю."""
+        search_pattern = f"%{search_term.lower()}%"
+        return query.join(Reservation.user).filter(
+            or_(
+                User.full_name.ilike(search_pattern),
+                User.email.ilike(search_pattern)
+            )
+        )
+
+    def _apply_sorting(self, query, sort: Optional[str]):
+        """Применяет сортировку."""
+        if not sort:
+            return query.order_by(Reservation.id.desc())
+            
+        if sort == "start_date_asc":
+            return query.order_by(Reservation.start_date.asc())
+        elif sort == "start_date_desc":
+            return query.order_by(Reservation.start_date.desc())
+        elif sort == "end_date_asc":
+            return query.order_by(Reservation.end_date.asc())
+        elif sort == "end_date_desc":
+            return query.order_by(Reservation.end_date.desc())
+        elif sort == "created_at_asc":
+            return query.order_by(Reservation.created_at.asc())
+        elif sort == "created_at_desc":
+            return query.order_by(Reservation.created_at.desc())
+        else:
+            return query.order_by(Reservation.id.desc())

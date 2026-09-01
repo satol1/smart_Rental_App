@@ -1,0 +1,17 @@
+{
+  "name": "Цифровой. Умная аренда техники",
+  "short_name": "Цифровая аренда",
+  "description": "Умный прокат фототехники и оборудования",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

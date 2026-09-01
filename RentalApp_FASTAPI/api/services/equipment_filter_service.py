@@ -1,0 +1,244 @@
+# api/services/equipment_filter_service.py
+
+from typing import List, Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import or_, and_
+from fastapi import HTTPException
+from datetime import date
+
+from api.models.equipment import Equipment
+from api.models.association import Association
+from api.repositories.equipment_repository import EquipmentRepository
+from api.repositories.brand_system_repository import BrandSystemRepository
+from api.services.availability.availability_service import AvailabilityService
+from shared.schemas.association_schema import AssociationSimple
+from shared.schemas.brand_system_schema import BrandSystemSimple
+
+
+class EquipmentFilterService:
+    """Сервис для фильтрации и поиска оборудования."""
+    
+    def __init__(self, db: AsyncSession, equipment_repo: EquipmentRepository, availability_service: AvailabilityService, brand_system_repo: BrandSystemRepository):
+        self.db = db
+        self.equipment_repo = equipment_repo
+        self.availability_service = availability_service
+        self.brand_system_repo = brand_system_repo
+    
+    async def get_paginated_equipment(
+        self,
+        skip: int,
+        limit: int,
+        query: Optional[str] = None,
+        type: Optional[str] = None,
+        brand_system_id: Optional[int] = None,
+        association_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        available_only: bool = False
+    ) -> tuple[List[Equipment], int]:
+        """
+        Возвращает отфильтрованный и пагинированный список оборудования и их общее количество.
+        """
+        # Валидация дат на уровне сервиса
+        self._validate_date_range(available_only, start_date, end_date)
+        
+        # Используем репозиторий для получения отфильтрованных данных
+        items, total, _ = await self.equipment_repo.get_filtered_paginated(
+            skip=skip,
+            limit=limit,
+            query=query,
+            type=type,
+            brand_system_id=brand_system_id,
+            association_id=association_id,
+            start_date=start_date,
+            end_date=end_date,
+            available_only=available_only
+        )
+        
+        # Валидируем поля оборудования
+        self._validate_equipment_fields(items)
+        
+        return items, total
+    
+    async def calculate_available_filters(
+        self,
+        query: Optional[str] = None,
+        type: Optional[str] = None,
+        brand_system_id: Optional[int] = None,
+        association_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        available_only: bool = False
+    ) -> dict:
+        """
+        Вычисляет доступные опции для фильтров на основе текущих примененных фильтров.
+        Реализует "умную" фильтрацию - показывает только те опции, которые релевантны
+        для текущего набора фильтров.
+        """
+        # Получаем базовые условия для всех запросов
+        base_conditions = self._get_base_filter_conditions(
+            query, start_date, end_date, available_only
+        )
+        
+        # Выполняем все запросы последовательно для избежания конфликтов сессий
+        available_types = await self._get_available_types(base_conditions, brand_system_id, association_id)
+        available_brands = await self._get_available_brands(base_conditions, type, association_id)
+        available_associations = await self._get_available_associations(base_conditions, type, brand_system_id)
+        
+        return {
+            "types": available_types,
+            "brands": available_brands,
+            "associations": available_associations
+        }
+    
+    def _validate_date_range(
+        self, 
+        available_only: bool, 
+        start_date: Optional[date], 
+        end_date: Optional[date]
+    ) -> None:
+        """Валидирует диапазон дат."""
+        if available_only and start_date and end_date:
+            if start_date >= end_date:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Дата начала должна быть раньше даты окончания."
+                )
+    
+    def _get_base_filter_conditions(
+        self,
+        query: Optional[str] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        available_only: bool = False
+    ) -> List:
+        """
+        Возвращает список базовых SQLAlchemy условий для фильтрации оборудования.
+        """
+        base_conditions = []
+        
+        # Применяем поисковый запрос
+        if query:
+            search_term = f"%{query.lower()}%"
+            base_conditions.append(
+                or_(
+                    Equipment.name.ilike(search_term),
+                    Equipment.brand.ilike(search_term),
+                    Equipment.equipment_type.ilike(search_term)
+                )
+            )
+        
+        # Применяем фильтр доступности
+        if available_only and start_date and end_date:
+            availability_filter = self.availability_service.get_sqlalchemy_filter_for_available_equipment(
+                start_date, end_date
+            )
+            base_conditions.append(availability_filter)
+        
+        return base_conditions
+    
+    async def _get_available_types(
+        self, 
+        base_conditions: List, 
+        brand_system_id: Optional[int], 
+        association_id: Optional[int]
+    ) -> List[str]:
+        """Получает доступные типы оборудования."""
+        type_conditions = base_conditions.copy()
+        
+        # Применяем фильтр по системе бренда
+        if brand_system_id:
+            brand_system_name = await self.brand_system_repo.get_name_by_id(brand_system_id)
+            if brand_system_name:
+                brand_system_filter = or_(
+                    Equipment.brand_systems.any(id=brand_system_id),
+                    Equipment.brand == brand_system_name
+                )
+                type_conditions.append(brand_system_filter)
+        
+        # Применяем фильтр по ассоциации
+        if association_id:
+            from sqlalchemy import exists
+            from api.models.association import association_equipment_association
+            association_filter = exists().where(
+                and_(
+                    Equipment.id == association_equipment_association.c.equipment_id,
+                    association_equipment_association.c.association_id == association_id
+                )
+            )
+            type_conditions.append(association_filter)
+        
+        return await self.equipment_repo.get_available_types(type_conditions)
+    
+    async def _get_available_brands(
+        self, 
+        base_conditions: List, 
+        type: Optional[str], 
+        association_id: Optional[int]
+    ) -> List[BrandSystemSimple]:
+        """Получает доступные системы брендов оборудования."""
+        brand_conditions = base_conditions.copy()
+        
+        # Применяем фильтр по типу
+        if type:
+            brand_conditions.append(Equipment.equipment_type == type)
+        
+        # Применяем фильтр по ассоциации
+        if association_id:
+            from sqlalchemy import exists
+            from api.models.association import association_equipment_association
+            association_filter = exists().where(
+                and_(
+                    Equipment.id == association_equipment_association.c.equipment_id,
+                    association_equipment_association.c.association_id == association_id
+                )
+            )
+            brand_conditions.append(association_filter)
+        
+        # Получаем ID оборудования, которое соответствует условиям
+        equipment_ids = await self.equipment_repo.get_equipment_ids_by_conditions(brand_conditions)
+        
+        # Получаем системы брендов для этого оборудования
+        brand_systems = await self.brand_system_repo.get_by_equipment_ids(equipment_ids)
+        
+        # Преобразуем в BrandSystemSimple
+        return [BrandSystemSimple(id=bs.id, name=bs.name) for bs in brand_systems]
+    
+    async def _get_available_associations(
+        self, 
+        base_conditions: List, 
+        type: Optional[str], 
+        brand_system_id: Optional[int]
+    ) -> List[AssociationSimple]:
+        """Получает доступные ассоциации оборудования."""
+        # КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем EXISTS вместо двойного JOIN
+        # Это решает проблему с медленными запросами к associations
+        
+        # Строим условия для фильтрации оборудования
+        equipment_conditions = []
+        
+        # Применяем фильтр по типу
+        if type:
+            equipment_conditions.append(Equipment.equipment_type == type)
+        
+        # Применяем фильтр по системе бренда
+        if brand_system_id:
+            brand_system_name = await self.brand_system_repo.get_name_by_id(brand_system_id)
+            if brand_system_name:
+                brand_system_filter = or_(
+                    Equipment.brand_systems.any(id=brand_system_id),
+                    Equipment.brand == brand_system_name
+                )
+                equipment_conditions.append(brand_system_filter)
+        
+        return await self.equipment_repo.get_available_associations(equipment_conditions)
+    
+    def _validate_equipment_fields(self, equipment_list: List[Equipment]) -> None:
+        """Валидирует и исправляет поля оборудования."""
+        for equipment in equipment_list:
+            if equipment.name is None:
+                equipment.name = "Неизвестное оборудование"
+            if equipment.daily_rate is None:
+                equipment.daily_rate = 0.0
+            if equipment.condition is None:
+                equipment.condition = "Великолепно"

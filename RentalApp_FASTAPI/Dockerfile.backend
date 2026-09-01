@@ -1,0 +1,33 @@
+# RentalApp_FASTAPI/Dockerfile.backend
+
+FROM python:3.11-slim
+WORKDIR /app
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Пути теперь относительны папки RentalApp_FASTAPI
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip -r requirements.txt
+
+# Установка тестовых зависимостей
+COPY requirements-test.txt requirements-test.txt
+RUN pip install --no-cache-dir -r requirements-test.txt
+
+COPY ./api ./api
+COPY ./shared ./shared
+COPY ./config ./config
+COPY ./migrations ./migrations
+COPY ./tests ./tests
+COPY ./scripts ./scripts
+COPY containers.py containers.py
+COPY alembic.ini alembic.ini
+COPY pytest.ini pytest.ini
+COPY create_admin.py create_admin.py
+COPY check_tables.py check_tables.py
+COPY create_test_database.py create_test_database.py
+# Скрипты запуска тестов больше не нужны в контейнере
+
+CMD ["uvicorn", "api.main_api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,69 @@
+# docker-compose.full-architecture-tests.yml
+# Конфигурация Docker Compose для полного тестирования новой архитектуры
+# Включает все типы тестов: unit, integration, API, e2e
+
+services:
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=test_db
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data  # Используем tmpfs для быстрых тестов
+
+  test-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://test_user:test_password@test-db:5432/test_db
+      - TEST_DATABASE_URL=postgresql+asyncpg://test_user:test_password@test-db:5432/test_db
+      - CSRF_SECRET_KEY=0123456789abcdef0123456789abcdef
+      - SECRET_KEY=abcdef0123456789abcdef0123456789
+      - DEBUG=true
+      - TZ=Europe/Astrakhan
+      - DISABLE_CSRF=true
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      test-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; import asyncpg; asyncio.run(asyncpg.connect('postgresql://test_user:test_password@test-db:5432/test_db').close())"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      sh -c "
+        echo 'Установка зависимостей...' &&
+        pip install -r requirements-test.txt &&
+        echo 'Ожидание готовности БД...' &&
+        sleep 5 &&
+        echo 'Применение миграций...' &&
+        alembic upgrade head &&
+        echo 'Запуск unit тестов...' &&
+        pytest tests/services/ tests/utils/ tests/models/ tests/repositories/ -v --tb=short --cov=api --cov-report=term-missing -m \"not slow\" && 
+        echo 'Запуск API тестов...' && 
+        pytest tests/api/ -v --tb=short -m \"not slow\" && 
+        echo 'Запуск интеграционных тестов...' && 
+        pytest tests/integration/ -v --tb=short -m integration && 
+        echo 'Запуск e2e тестов...' && 
+        pytest tests/e2e/ -v --tb=short -m e2e && 
+        echo 'Запуск critical тестов...' && 
+        pytest tests/critical/ -v --tb=short -m integration && 
+        echo 'Запуск остальных тестов...' && 
+        pytest tests/ -v --tb=short -m \"not integration and not e2e and not slow\" && 
+        echo 'Все тесты завершены успешно!'
+      "

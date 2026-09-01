@@ -85,3 +85,20 @@ create_*_bundle.py
 
 # GigaIDE
 .gigaide/
+
+# Бенчмарки pytest
+.benchmarks/
+
+# Сгенерированные дампы проекта (контекст для ИИ)
+smart_project_*.md
+smart_react_code.md
+
+# Артефакты тестов и сборки фронтенда
+test_output.txt
+test-results*.json
+dist/
+
+# Корневые остатки npm (реальный фронтенд — в rental-app-main/)
+/package.json
+/package-lock.json
+/node_modules/

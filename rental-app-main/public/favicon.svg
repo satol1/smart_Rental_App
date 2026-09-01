@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E5BBA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Фон -->
+  <rect width="32" height="32" rx="4" fill="white"/>
+  
+  <!-- Облачко речи (speech bubble) -->
+  <path d="M6 8 C6 6, 8 4, 12 4 L20 4 C24 4, 26 6, 26 10 L26 18 C26 20, 24 22, 20 22 L12 22 C10 22, 8 20, 8 18 L8 16 L4 16 L6 14 Z" 
+        fill="url(#blueGradient)" 
+        stroke="url(#blueGradient)" 
+        stroke-width="0.5"/>
+  
+  <!-- Внутренний круг (пленка) -->
+  <circle cx="16" cy="13" r="6" fill="url(#blueGradient)" stroke="white" stroke-width="0.3"/>
+  
+  <!-- Отверстия пленки -->
+  <g fill="white" opacity="0.9">
+    <!-- Верхние отверстия -->
+    <rect x="14" y="6" width="1" height="1.5" rx="0.2"/>
+    <rect x="15.5" y="6" width="1" height="1.5" rx="0.2"/>
+    <rect x="17" y="6" width="1" height="1.5" rx="0.2"/>
+    <!-- Нижние отверстия -->
+    <rect x="14" y="19.5" width="1" height="1.5" rx="0.2"/>
+    <rect x="15.5" y="19.5" width="1" height="1.5" rx="0.2"/>
+    <rect x="17" y="19.5" width="1" height="1.5" rx="0.2"/>
+    <!-- Левые отверстия -->
+    <rect x="6" y="11.5" width="1.5" height="1" rx="0.2"/>
+    <rect x="6" y="13" width="1.5" height="1" rx="0.2"/>
+    <rect x="6" y="14.5" width="1.5" height="1" rx="0.2"/>
+    <!-- Правые отверстия -->
+    <rect x="24.5" y="11.5" width="1.5" height="1" rx="0.2"/>
+    <rect x="24.5" y="13" width="1.5" height="1" rx="0.2"/>
+    <rect x="24.5" y="14.5" width="1.5" height="1" rx="0.2"/>
+  </g>
+  
+  <!-- Диафрагма камеры -->
+  <g transform="translate(16, 13)">
+    <!-- 6 лепестков диафрагмы -->
+    <path d="M0,-3 L1,-1 L1,1 L0,3 L-1,1 L-1,-1 Z" fill="white" opacity="0.95"/>
+    <path d="M3,0 L1,-1 L-1,-1 L-3,0 L-1,1 L1,1 Z" fill="white" opacity="0.95"/>
+    <path d="M0,3 L1,1 L1,-1 L0,-3 L-1,-1 L-1,1 Z" fill="white" opacity="0.95"/>
+    <path d="M-3,0 L-1,1 L1,1 L3,0 L1,-1 L-1,-1 Z" fill="white" opacity="0.95"/>
+    <path d="M0,-3 L1,-1 L1,1 L0,3 L-1,1 L-1,-1 Z" fill="white" opacity="0.95" transform="rotate(30)"/>
+    <path d="M0,-3 L1,-1 L1,1 L0,3 L-1,1 L-1,-1 Z" fill="white" opacity="0.95" transform="rotate(150)"/>
+  </g>
+  
+  <!-- Центральное отверстие -->
+  <circle cx="16" cy="13" r="1.5" fill="url(#blueGradient)"/>
+</svg>

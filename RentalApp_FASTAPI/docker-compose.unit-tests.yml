@@ -1,0 +1,64 @@
+# docker-compose.unit-tests.yml
+# Конфигурация Docker Compose для запуска юнит-тестов
+# Для быстрых юнит-тестов без БД используем SQLite, для тестов с БД - PostgreSQL
+
+networks:
+  test-network:
+    driver: bridge
+
+services:
+  unit-test-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=unit_test_user
+      - POSTGRES_PASSWORD=unit_test_password
+      - POSTGRES_DB=unit_test_db
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unit_test_user -d unit_test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data  # Используем tmpfs для быстрых тестов
+    networks:
+      - test-network
+
+  test-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      # Для юнит-тестов без БД используем SQLite, для тестов с БД - PostgreSQL
+      - DATABASE_URL=postgresql+asyncpg://unit_test_user:unit_test_password@unit-test-db:5432/unit_test_db
+      - TEST_DATABASE_URL=postgresql+asyncpg://unit_test_user:unit_test_password@unit-test-db:5432/unit_test_db
+      - CSRF_SECRET_KEY=0123456789abcdef0123456789abcdef
+      - SECRET_KEY=abcdef0123456789abcdef0123456789
+      - DEBUG=false
+      - TZ=Europe/Astrakhan
+      - DISABLE_CSRF=false
+      - PYTHONWARNINGS=ignore::DeprecationWarning
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      unit-test-db:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: >
+      sh -c "
+        pip install -r requirements-test.txt &&
+        echo 'Ожидание готовности БД...' &&
+        sleep 15 &&
+        echo 'Проверка подключения к БД...' &&
+        python -c 'import asyncio; from sqlalchemy.ext.asyncio import create_async_engine; engine = create_async_engine(\"postgresql+asyncpg://unit_test_user:unit_test_password@unit-test-db:5432/unit_test_db\"); print(\"БД доступна\")' &&
+        echo 'Создание тестовой базы данных...' &&
+        python create_test_database.py &&
+        echo 'Проверка таблиц...' &&
+        python check_tables.py &&
+        echo 'Запуск unit тестов...' &&
+        pytest tests/services/ -v --tb=short --cov=api --cov-report=term-missing
+      "

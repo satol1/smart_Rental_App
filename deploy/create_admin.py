@@ -39,6 +39,7 @@ async def create_admin_user():
             return
 
         # Создаем нового пользователя
+        # Для админов и менеджеров устанавливается статус VIP
         new_admin = User(
             full_name=ADMIN_FULL_NAME,
             email=ADMIN_EMAIL,
@@ -46,7 +47,7 @@ async def create_admin_user():
             phone=ADMIN_PHONE,
             role="admin",
             is_active=True,
-            status="Активный",
+            status="VIP",
             balance=0.0,
             notes="Создан автоматически при инициализации",
             privacy_policy_accepted=True,

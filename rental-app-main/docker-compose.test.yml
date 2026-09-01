@@ -1,0 +1,18 @@
+# rental-app-main/docker-compose.test.yml
+# Конфигурация для запуска тестов фронтенда в Docker
+
+services:
+  frontend-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run test:run
+    environment:
+      - CI=true
+    profiles:
+      - test
+
