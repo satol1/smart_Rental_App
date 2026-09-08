@@ -13,8 +13,8 @@ services:
       - POSTGRES_PASSWORD=integration_test_password
       - POSTGRES_DB=integration_test_db
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
-    ports:
-      - "5437:5432"
+    # Порт наружу не публикуется: pytest ходит по внутренней сети compose
+    # (публикация 543x на хосте приводила к конфликтам параллельных наборов)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U integration_test_user -d integration_test_db"]
       interval: 5s
@@ -26,6 +26,9 @@ services:
       - integration-test-network
 
   test-backend:
+    # pip install пишется в системные site-packages: у appuser нет прав.
+    # Тестовый контейнер — root допустим (прод-образ остаётся non-root).
+    user: root
     build:
       context: .
       dockerfile: Dockerfile.backend

@@ -14,8 +14,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
-    ports:
-      - "5433:5432"
+    # Порт 5432 НЕ публикуется наружу: доступ к БД только внутри compose-сети
+    # (бэкапы через `docker compose exec db pg_dump` не требуют внешнего порта)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 15s  # Увеличено для экономии ресурсов
@@ -49,12 +49,34 @@ services:
       -c max_parallel_workers=2
       -c max_parallel_maintenance_workers=1
 
+  # Redis: хранилище для rate limiting, token denylist, brute-force
+  # счётчиков и кэша агрегатов дашборда. Опционален для приложения:
+  # при недоступности бэкенд деградирует на in-memory хранилища.
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    # Порт 6379 НЕ публикуется наружу: доступ только внутри compose-сети
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'  # 15% от 1 vCore для Redis
+          memory: 128M  # 128 MB для Redis
+        reservations:
+          cpus: '0.05'  # Минимум 5% CPU
+          memory: 64M  # Минимум 64 MB RAM
+
   backend:
     build:
       context: ./RentalApp_FASTAPI
       dockerfile: Dockerfile.backend
-    volumes:
-      - ./RentalApp_FASTAPI:/app
+    # Без bind-mount: код попадает в образ сборкой (см. Dockerfile.backend)
     ports:
       - "8000:8000"
     environment:
@@ -67,7 +89,10 @@ services:
       - YANDEX_SMTP_PASSWORD=${YANDEX_SMTP_PASSWORD}
       - DB_TYPE=${DB_TYPE}
       - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=redis://redis:6379/0
       - TZ=Europe/Astrakhan
+      # Доверяем X-Forwarded-For только из docker-сети (см. docker-compose.yml)
+      - FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-172.16.0.0/12}
       # Оптимизация для ограниченных ресурсов
       - WORKERS=1  # Один worker для экономии памяти
       - MAX_REQUESTS=1000  # Перезапуск worker после 1000 запросов
@@ -75,7 +100,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 10s  # увеличено для экономии ресурсов
+      retries: 5
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -90,8 +123,7 @@ services:
     build:
       context: ./RentalApp_FASTAPI
       dockerfile: Dockerfile.backend
-    volumes:
-      - ./RentalApp_FASTAPI:/app
+    # Без bind-mount: код попадает в образ сборкой (см. Dockerfile.backend)
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
@@ -136,6 +168,13 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    healthcheck:
+      # 127.0.0.1, не localhost (иначе IPv6 ::1); http достаточно для dev-конфига
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || wget -qO- --no-check-certificate https://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -206,3 +245,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

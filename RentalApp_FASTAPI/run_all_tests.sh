@@ -103,11 +103,16 @@ if [ "$DOCKER" = true ]; then
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        error "docker-compose не установлен"
+    if command -v docker-compose &> /dev/null; then
+        COMPOSE_CMD="docker-compose"
+    elif docker compose version &> /dev/null; then
+        COMPOSE_CMD="docker compose"
+    else
+        error "docker-compose (или плагин 'docker compose') не установлен"
         exit 1
     fi
 fi
+COMPOSE_CMD="${COMPOSE_CMD:-docker-compose}"
 
 # Формирование опций pytest
 PYTEST_OPTS=""
@@ -120,8 +125,8 @@ if [ "$FAST_ONLY" = true ]; then
     log "Запуск быстрых тестов (API, модели, утилиты)..."
     
     if [ "$DOCKER" = true ]; then
-        docker-compose -f docker-compose.fast-tests.yml down --remove-orphans
-        docker-compose -f docker-compose.fast-tests.yml run --rm test-backend
+        $COMPOSE_CMD -f docker-compose.unit-tests.yml down --remove-orphans
+        $COMPOSE_CMD -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
     else
         pytest tests/api/ tests/models/ tests/repositories/ tests/utils/ tests/services/test_*_service.py tests/services/test_*_model.py tests/services/test_*_repository.py tests/services/test_password_utils.py $PYTEST_OPTS -m "not slow and not integration and not e2e"
     fi
@@ -140,8 +145,8 @@ if [ "$FULL_ONLY" = true ]; then
     log "Запуск всех тестов (быстрых + медленных)..."
     
     if [ "$DOCKER" = true ]; then
-        docker-compose -f docker-compose.full-tests.yml down --remove-orphans
-        docker-compose -f docker-compose.full-tests.yml run --rm test-backend
+        $COMPOSE_CMD -f docker-compose.full-architecture-tests.yml down --remove-orphans
+        $COMPOSE_CMD -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
     else
         pytest tests/ $PYTEST_OPTS --durations=10
     fi
@@ -160,7 +165,10 @@ if [ "$UNIT_ONLY" = true ] || ([ "$INTEGRATION_ONLY" = false ] && [ "$E2E_ONLY" 
     log "Запуск юнит-тестов..."
     
     if [ "$DOCKER" = true ]; then
-        docker-compose -f docker-compose.test.yml run --rm test-backend pytest tests/services/ $PYTEST_OPTS
+        # up с фиксированной командой из compose (run --rm переопределял pip install,
+        # и в образе не оказывалось pytest)
+        $COMPOSE_CMD -f docker-compose.unit-tests.yml down --remove-orphans
+        $COMPOSE_CMD -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
     else
         pytest tests/services/ $PYTEST_OPTS
     fi
@@ -178,7 +186,7 @@ if [ "$INTEGRATION_ONLY" = true ] || ([ "$UNIT_ONLY" = false ] && [ "$E2E_ONLY" 
     log "Запуск интеграционных тестов..."
     
     if [ "$DOCKER" = true ]; then
-        docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+        $COMPOSE_CMD -f docker-compose.integration-tests.yml up --build --abort-on-container-exit
     else
         pytest tests/integration/ $PYTEST_OPTS -m integration
     fi
@@ -196,7 +204,7 @@ if [ "$E2E_ONLY" = true ] || ([ "$UNIT_ONLY" = false ] && [ "$INTEGRATION_ONLY" 
     log "Запуск E2E тестов..."
     
     if [ "$DOCKER" = true ]; then
-        docker-compose -f docker-compose.e2e.yml up --abort-on-container-exit
+        $COMPOSE_CMD -f docker-compose.e2e.yml up --abort-on-container-exit
     else
         pytest tests/e2e/ $PYTEST_OPTS -m e2e
     fi

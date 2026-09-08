@@ -1,0 +1,49 @@
+# Docker build context: RentalApp_FASTAPI (Dockerfile.backend)
+# В образ не должны попадать dev-окружение, тесты и локальный мусор
+
+# Виртуальные окружения и IDE
+.venv
+venv
+.idea
+.gigaide
+
+# Тесты и артефакты тестирования
+tests
+htmlcov
+.benchmarks
+.pytest_cache
+.coverage
+coverage*
+test_output.txt
+create_test_database.py
+pytest.ini
+
+# Python-кэш (в т.ч. вложенные каталоги)
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Логи и бэкапы
+app.log
+*.log
+*.bak
+*.old
+
+# Секреты и локальное окружение (не запекать в образ!)
+env.test
+.env
+.env.*
+env.example
+
+# Docker/CI-файлы не нужны внутри контекста
+docker-compose*.yml
+Dockerfile.backend
+.dockerignore
+
+# Прочее
+db
+*.md
+run_*.sh
+run_*.bat
+test_*.py
+DOCS_CSP_NONCE_TESTS.md

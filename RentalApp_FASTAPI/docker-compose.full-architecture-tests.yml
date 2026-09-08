@@ -10,8 +10,8 @@ services:
       - POSTGRES_PASSWORD=test_password
       - POSTGRES_DB=test_db
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
-    ports:
-      - "5435:5432"
+    # Порт наружу не публикуется: pytest ходит по внутренней сети compose
+    # (публикация 543x на хосте приводила к конфликтам параллельных наборов)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
       interval: 5s
@@ -21,6 +21,9 @@ services:
       - /var/lib/postgresql/data  # Используем tmpfs для быстрых тестов
 
   test-backend:
+    # pip install пишется в системные site-packages: у appuser нет прав.
+    # Тестовый контейнер — root допустим (прод-образ остаётся non-root).
+    user: root
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -40,7 +43,7 @@ services:
       test-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import asyncio; import asyncpg; asyncio.run(asyncpg.connect('postgresql://test_user:test_password@test-db:5432/test_db').close())"]
+      test: ["CMD", "python", "-c", "import asyncio, asyncpg; asyncio.run(asyncpg.connect('postgresql://test_user:test_password@test-db:5432/test_db'))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,8 +65,8 @@ services:
         echo 'Запуск e2e тестов...' && 
         pytest tests/e2e/ -v --tb=short -m e2e && 
         echo 'Запуск critical тестов...' && 
-        pytest tests/critical/ -v --tb=short -m integration && 
-        echo 'Запуск остальных тестов...' && 
-        pytest tests/ -v --tb=short -m \"not integration and not e2e and not slow\" && 
+        pytest tests/critical/ -v --tb=short && 
+        echo 'Запуск остальных тестов...' &&
+        pytest tests/ -v --tb=short -m \"not integration and not e2e and not slow\" --ignore=tests/critical &&
         echo 'Все тесты завершены успешно!'
       "

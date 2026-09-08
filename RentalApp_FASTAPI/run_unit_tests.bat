@@ -6,18 +6,22 @@ echo ========================================
 echo 🚀 Запуск быстрых юнит-тестов
 echo ========================================
 
-REM Проверяем наличие виртуального окружения
-if not exist "venv\" (
-    echo ❌ Виртуальное окружение не найдено. Создайте его командой: python -m venv venv
+REM Проверяем наличие виртуального окружения (.venv — актуальное имя, venv — legacy)
+set "VENV_DIR=.venv"
+if not exist ".venv\" (
+    if exist "venv\" set "VENV_DIR=venv"
+)
+if not exist "%VENV_DIR%\" (
+    echo ❌ Виртуальное окружение не найдено. Создайте его командой: python -m venv .venv
     pause
     exit /b 1
 )
 
 REM Активируем виртуальное окружение
-call venv\Scripts\activate.bat
+call %VENV_DIR%\Scripts\activate.bat
 
 REM Устанавливаем зависимости если нужно
-if not exist "venv\Lib\site-packages\pytest" (
+if not exist "%VENV_DIR%\Lib\site-packages\pytest" (
     echo 📦 Устанавливаем тестовые зависимости...
     pip install -r requirements-test.txt
 )

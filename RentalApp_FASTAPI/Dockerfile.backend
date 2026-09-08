@@ -1,33 +1,72 @@
 # RentalApp_FASTAPI/Dockerfile.backend
+# Multistage-сборка: builder (установка зависимостей) -> runtime (только прод-рантайм)
 
-FROM python:3.11-slim
+# --- ЭТАП 1: builder — установка Python-зависимостей ---
+FROM python:3.11-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Установка системных зависимостей
-RUN apt-get update && apt-get install -y \
-    curl \
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# --- ЭТАП 2: runtime — продакшен-образ ---
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# Системные библиотеки, нужные runtime-зависимостям:
+#   weasyprint (PDF): libpango-1.0-0, libpangoft2-1.0-0, libharfbuzz-subset0, fontconfig
+#   fonts-dejavu-core — базовые шрифты для рендеринга PDF
+# curl/wget не ставим: HEALTHCHECK использует python (в slim их нет)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libharfbuzz-subset0 \
+        fontconfig \
+        fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
-# Пути теперь относительны папки RentalApp_FASTAPI
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade pip -r requirements.txt
+# Python-зависимости из builder (без build-tools и тестовых зависимостей)
+COPY --from=builder /install /usr/local
 
-# Установка тестовых зависимостей
-COPY requirements-test.txt requirements-test.txt
-RUN pip install --no-cache-dir -r requirements-test.txt
+# Непривилегированный пользователь
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown appuser:appuser /app
 
-COPY ./api ./api
-COPY ./shared ./shared
-COPY ./config ./config
-COPY ./migrations ./migrations
-COPY ./tests ./tests
-COPY ./scripts ./scripts
-COPY containers.py containers.py
-COPY alembic.ini alembic.ini
-COPY pytest.ini pytest.ini
-COPY create_admin.py create_admin.py
-COPY check_tables.py check_tables.py
-COPY create_test_database.py create_test_database.py
-# Скрипты запуска тестов больше не нужны в контейнере
+# Код приложения (без tests/, pytest.ini, requirements-test.txt — они не нужны в проде).
+# containers — пакет (был сломанный COPY containers.py, файла не существует)
+COPY --chown=appuser:appuser ./api ./api
+COPY --chown=appuser:appuser ./shared ./shared
+COPY --chown=appuser:appuser ./config ./config
+COPY --chown=appuser:appuser ./migrations ./migrations
+COPY --chown=appuser:appuser ./scripts ./scripts
+COPY --chown=appuser:appuser ./containers ./containers
+COPY --chown=appuser:appuser alembic.ini alembic.ini
+COPY --chown=appuser:appuser apply_migrations.py apply_migrations.py
+COPY --chown=appuser:appuser create_admin.py create_admin.py
+COPY --chown=appuser:appuser reset_admin_password.py reset_admin_password.py
+COPY --chown=appuser:appuser check_tables.py check_tables.py
 
-CMD ["uvicorn", "api.main_api:app", "--host", "0.0.0.0", "--port", "8000"]
+USER appuser
+
+EXPOSE 8000
+
+# /health — лёгкий эндпоинт без аутентификации (python в slim есть всегда)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --start-interval=10s --retries=5 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"
+
+# exec — чтобы uvicorn был PID 1 и получал SIGTERM (graceful shutdown).
+# WORKERS/MAX_REQUESTS задаются окружением. Флаг добавляется ТОЛЬКО когда
+# MAX_REQUESTS непустой: uvicorn считает явный 0 «лимит исчерпан» и сразу
+# завершается (0/unset = без лимита). NB: флаг называется --limit-max-requests;
+# jitter-флага у uvicorn нет (это опция gunicorn).
+CMD ["sh", "-c", "exec uvicorn api.main_api:app --host 0.0.0.0 --port 8000 --workers ${WORKERS:-1} ${MAX_REQUESTS:+--limit-max-requests $MAX_REQUESTS}"]

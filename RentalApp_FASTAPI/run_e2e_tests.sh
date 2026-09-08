@@ -97,31 +97,30 @@ if [ "$DOCKER" = true ]; then
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        error "docker-compose не установлен"
+    if command -v docker-compose &> /dev/null; then
+        COMPOSE_BIN="docker-compose"
+    elif docker compose version &> /dev/null; then
+        COMPOSE_BIN="docker compose"
+    else
+        error "docker-compose (или плагин 'docker compose') не установлен"
         exit 1
     fi
     
     log "Запуск E2E тестов в Docker"
     
-    # Пересборка контейнеров если нужно
+    # Используем изолированный тестовый стек (docker-compose.e2e.yml): он поднимает
+    # собственные БД/Redis и test-backend. Прежний вариант управлял РАБОЧИМ стеком
+    # (docker-compose down/up) и ставил pip-пакеты в прод-контейнер — ломал и стек,
+    # и сам падал (non-root + тесты не копируются в образ).
+    E2E_COMPOSE="$COMPOSE_BIN -f docker-compose.e2e.yml"
+    
     if [ "$REBUILD" = true ]; then
-        log "Пересборка Docker контейнеров..."
-        docker-compose down
-        docker-compose build --no-cache
+        log "Пересборка тестовых контейнеров..."
+        $E2E_COMPOSE down -v --remove-orphans
+        $E2E_COMPOSE build --no-cache
+    else
+        $E2E_COMPOSE down -v --remove-orphans
     fi
-    
-    # Запуск контейнеров
-    log "Запуск контейнеров..."
-    docker-compose up -d db
-    
-    # Ожидание готовности базы данных
-    log "Ожидание готовности базы данных..."
-    sleep 15
-    
-    # Установка тестовых зависимостей
-    log "Установка тестовых зависимостей..."
-    docker-compose exec -T backend pip install -r requirements-test.txt
     
     # Формирование команды pytest
     PYTEST_CMD="pytest tests/e2e/"
@@ -142,13 +141,14 @@ if [ "$DOCKER" = true ]; then
         PYTEST_CMD="$PYTEST_CMD -m $MARKER"
     fi
     
-    # Запуск E2E тестов
+    # Запуск E2E тестов (изолированный стек, результат — в stdout)
     log "Запуск E2E тестов..."
-    docker-compose exec -T backend $PYTEST_CMD
+    $E2E_COMPOSE up --build --abort-on-container-exit; RC=$?
     
-    # Остановка контейнеров
-    log "Остановка контейнеров..."
-    docker-compose down
+    # Остановка тестовых контейнеров (рабочий стек не затрагивается)
+    log "Остановка тестовых контейнеров..."
+    $E2E_COMPOSE down -v --remove-orphans
+    exit $RC
     
 else
     # Локальный запуск

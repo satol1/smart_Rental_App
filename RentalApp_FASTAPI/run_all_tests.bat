@@ -124,6 +124,12 @@ if "%DOCKER%"=="true" (
     
     docker-compose --version >nul 2>&1
     if errorlevel 1 (
+        docker compose version >nul 2>&1 || (
+            echo [ERROR] docker-compose и плагин docker compose не установлены
+            exit /b 1
+        )
+    )
+    if 0==1 (
         echo [ERROR] docker-compose не установлен
         exit /b 1
     )
@@ -160,7 +166,9 @@ goto :check_integration
 echo [INFO] Запуск юнит-тестов...
 
 if "%DOCKER%"=="true" (
-    docker-compose -f docker-compose.unit-tests.yml run --rm test-backend pytest tests/services/ !PYTEST_OPTS!
+    REM up с фиксированной командой из compose (run --rm переопределял pip install, pytest не в образе)
+    docker-compose -f docker-compose.unit-tests.yml down --remove-orphans
+    docker-compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
 ) else (
     pytest tests/services/ !PYTEST_OPTS!
 )
@@ -232,8 +240,8 @@ if %ERRORLEVEL%==0 (
 echo [INFO] Запуск быстрых тестов (API, модели, утилиты)...
 
 if "%DOCKER%"=="true" (
-    docker-compose -f docker-compose.fast-tests.yml down --remove-orphans
-    docker-compose -f docker-compose.fast-tests.yml run --rm test-backend
+    docker-compose -f docker-compose.unit-tests.yml down --remove-orphans
+    docker-compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
 ) else (
     pytest tests/api/ tests/models/ tests/repositories/ tests/utils/ tests/services/test_*_service.py tests/services/test_*_model.py tests/services/test_*_repository.py tests/services/test_password_utils.py !PYTEST_OPTS! -m "not slow and not integration and not e2e"
 )
@@ -250,8 +258,8 @@ goto :finish
 echo [INFO] Запуск всех тестов (быстрых + медленных)...
 
 if "%DOCKER%"=="true" (
-    docker-compose -f docker-compose.full-tests.yml down --remove-orphans
-    docker-compose -f docker-compose.full-tests.yml run --rm test-backend
+    docker-compose -f docker-compose.full-architecture-tests.yml down --remove-orphans
+    docker-compose -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
 ) else (
     pytest tests/ !PYTEST_OPTS! --durations=10
 )

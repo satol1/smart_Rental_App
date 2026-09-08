@@ -1,0 +1,39 @@
+# Pre-commit hooks проекта (установка: pip install pre-commit && pre-commit install)
+# Запуск вручную по всему репо: pre-commit run --all-files
+repos:
+  # Базовые хуки
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      # end-of-file-fixer только для текстовых конфигов, чтобы не трогать легаси-код
+      - id: end-of-file-fixer
+        files: \.(md|json|ya?ml)$
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+
+  # Python: линтер и форматтер бэкенда
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+      - id: ruff
+        name: ruff (RentalApp_FASTAPI)
+        files: ^RentalApp_FASTAPI/
+      - id: ruff-format
+        name: ruff-format (RentalApp_FASTAPI)
+        files: ^RentalApp_FASTAPI/
+
+  # Frontend: eslint (локальный хук — использует node_modules из rental-app-main)
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint (rental-app-main)
+        language: system
+        pass_filenames: false
+        files: ^rental-app-main/src/.*\.(js|jsx|ts|tsx)$
+        # TODO: сделать блокирующим, когда eslint в src/ будет чистым (~329 ошибок легаси)
+        entry: >-
+          bash -c 'cd rental-app-main &&
+          npx --no-install eslint src --max-warnings=0 ||
+          echo "ADVISORY: eslint нашёл ошибки — см. TODO в .pre-commit-config.yaml"'

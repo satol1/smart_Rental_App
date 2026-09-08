@@ -13,8 +13,8 @@ services:
       - POSTGRES_PASSWORD=unit_test_password
       - POSTGRES_DB=unit_test_db
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
-    ports:
-      - "5436:5432"
+    # Порт наружу не публикуется: pytest ходит по внутренней сети compose
+    # (публикация 543x на хосте приводила к конфликтам параллельных наборов)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U unit_test_user -d unit_test_db"]
       interval: 5s
@@ -26,6 +26,9 @@ services:
       - test-network
 
   test-backend:
+    # pip install пишется в системные site-packages: у appuser нет прав.
+    # Тестовый контейнер — root допустим (прод-образ остаётся non-root).
+    user: root
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -34,7 +37,9 @@ services:
       - TEST_DATABASE_URL=postgresql+asyncpg://unit_test_user:unit_test_password@unit-test-db:5432/unit_test_db
       - CSRF_SECRET_KEY=0123456789abcdef0123456789abcdef
       - SECRET_KEY=abcdef0123456789abcdef0123456789
-      - DEBUG=false
+      # Тестовое окружение = dev-режим: fail-fast проверка секретов
+      # (POSTGRES_PASSWORD и пр.) для прода здесь неуместна
+      - DEBUG=true
       - TZ=Europe/Astrakhan
       - DISABLE_CSRF=false
     volumes:

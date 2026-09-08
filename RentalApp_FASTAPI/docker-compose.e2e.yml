@@ -13,8 +13,8 @@ services:
       - POSTGRES_PASSWORD=e2e_password
       - POSTGRES_DB=e2e_db
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C.UTF-8
-    ports:
-      - "5435:5432"
+    # Порт наружу не публикуется: pytest ходит по внутренней сети compose
+    # (публикация 543x на хосте приводила к конфликтам параллельных наборов)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U e2e_user -d e2e_db"]
       interval: 5s
@@ -26,6 +26,9 @@ services:
       - e2e-test-network
 
   test-backend:
+    # pip install пишется в системные site-packages: у appuser нет прав.
+    # Тестовый контейнер — root допустим (прод-образ остаётся non-root).
+    user: root
     build:
       context: .
       dockerfile: Dockerfile.backend

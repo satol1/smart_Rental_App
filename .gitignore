@@ -54,9 +54,6 @@ db_backup/backup_info_*.txt
 # Но оставляем README в папке бэкапов
 !db_backup/README.md
 
-# Docker
-.dockerignore
-
 # Временные файлы
 *.bak
 *.backup
@@ -102,3 +99,6 @@ dist/
 /package.json
 /package-lock.json
 /node_modules/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

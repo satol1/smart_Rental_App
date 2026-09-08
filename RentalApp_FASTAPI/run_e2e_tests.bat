@@ -123,24 +123,16 @@ if "%DOCKER%"=="true" (
     
     echo [INFO] Запуск E2E тестов в Docker
     
-    REM Пересборка контейнеров если нужно
+    REM Изолированный тестовый стек (docker-compose.e2e.yml): собственные БД/Redis
+    REM и test-backend. Прежний вариант управлял РАБОЧИМ стеком и ставил pip-пакеты
+    REM в прод-контейнер (non-root + тесты не в образе) — ломал стек и сам падал.
     if "%REBUILD%"=="true" (
-        echo [INFO] Пересборка Docker контейнеров...
-        docker-compose down
-        docker-compose build --no-cache
+        echo [INFO] Пересборка тестовых контейнеров...
+        docker-compose -f docker-compose.e2e.yml down -v --remove-orphans
+        docker-compose -f docker-compose.e2e.yml build --no-cache
+    ) else (
+        docker-compose -f docker-compose.e2e.yml down -v --remove-orphans
     )
-    
-    REM Запуск контейнеров
-    echo [INFO] Запуск контейнеров...
-    docker-compose up -d db
-    
-    REM Ожидание готовности базы данных
-    echo [INFO] Ожидание готовности базы данных...
-    timeout /t 15 /nobreak >nul
-    
-    REM Установка тестовых зависимостей
-    echo [INFO] Установка тестовых зависимостей...
-    docker-compose exec -T backend pip install -r requirements-test.txt
     
     REM Формирование команды pytest
     set PYTEST_CMD=pytest tests/e2e/
@@ -161,13 +153,13 @@ if "%DOCKER%"=="true" (
         set PYTEST_CMD=!PYTEST_CMD! -m %MARKER%
     )
     
-    REM Запуск E2E тестов
+    REM Запуск E2E тестов (изолированный стек)
     echo [INFO] Запуск E2E тестов...
-    docker-compose exec -T backend !PYTEST_CMD!
+    docker-compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
     
-    REM Остановка контейнеров
-    echo [INFO] Остановка контейнеров...
-    docker-compose down
+    REM Остановка тестовых контейнеров (рабочий стек не затрагивается)
+    echo [INFO] Остановка тестовых контейнеров...
+    docker-compose -f docker-compose.e2e.yml down -v --remove-orphans
     
 ) else (
     REM Локальный запуск
