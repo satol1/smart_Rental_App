@@ -16,12 +16,17 @@
 
 | Слой | Технологии |
 |---|---|
-| Backend | Python 3.11, FastAPI, SQLAlchemy 2 (async), Alembic, dependency-injector |
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS, Radix UI, FullCalendar |
+| Backend | Python 3.11, FastAPI, SQLAlchemy 2 (async), Alembic, dependency-injector, PyJWT, bcrypt |
+| Frontend | React 19, TypeScript (strict), Vite, Tailwind CSS, Radix UI, framer-motion, recharts, react-i18next |
 | База данных | PostgreSQL 15 (asyncpg) |
-| Инфраструктура | Docker Compose, nginx, Let's Encrypt (certbot) |
-| Безопасность | JWT, bcrypt, CSRF-защита, rate limiting (slowapi) |
-| Тесты | pytest (backend), Vitest (frontend) |
+| Кэш/состояние | Redis 7 (rate limit, denylist токенов, защита от брутфорса, кэш дашборда; graceful fallback в память) |
+| Инфраструктура | Docker Compose (non-root образы, healthchecks), nginx, Let's Encrypt (certbot), GitHub Actions CI |
+| Безопасность | JWT (типизация + denylist), bcrypt, CSRF-валидация, rate limiting (slowapi + nginx), fail-fast секреты |
+| Тесты | pytest (backend, ~1970), vitest (frontend, 306) |
+
+## Процесс разработки (Spec-Driven)
+
+Проект использует [GitHub SpecKit](https://github.com/github/spec-kit): конституция — `.specify/memory/constitution.md`, функциональность начинается со спека (`/speckit.specify` → clarify → plan → tasks → implement). Текущая программа модернизации: `specs/001-platform-modernization/` (spec + plan + tasks). Правила разработки: [RULES.md](RULES.md).
 
 ## Архитектура
 
@@ -51,10 +56,11 @@ cp env.example .env
 docker compose up -d --build
 
 # 4. Создать администратора (при первом запуске с пустой БД)
-docker compose exec backend python create_admin.py
-# Логин: admin@rentalapp.com  Пароль: AdminRental2024!
-# (смените пароль после первого входа)
+   # Пароль: аргумент CLI, env ADMIN_INITIAL_PASSWORD, либо будет сгенерирован и выведен в консоль
+   docker compose exec backend python create_admin.py
 ```
+
+**Важно (после модернизации 2026-09):** в продакшене (`DEBUG=false`) приложение отказывается стартовать без явно заданных `SECRET_KEY`, `CSRF_SECRET_KEY`, `POSTGRES_PASSWORD` (минимум 32 символа для секретов) — это защита от запуска с дефолтными значениями. База данных больше не публикуется наружу; добавлен сервис Redis.
 
 После запуска:
 
@@ -108,18 +114,33 @@ docker compose --profile diagnostics up -d  # диагностические п�
 
 ## Тесты
 
-```bash
-# Backend (все тесты)
-docker compose exec backend pytest
+Тесты выполняются в изолированных стеках (не затрагивают рабочий). Из `RentalApp_FASTAPI/`:
 
-# Отдельные наборы (unit / e2e / архитектурные)
-RentalApp_FASTAPI/run_unit_tests.sh
-RentalApp_FASTAPI/run_e2e_tests.sh
-RentalApp_FASTAPI/run_full_architecture_tests.sh
+```bash
+# Backend — наборы (unit / integration / e2e / все сразу)
+docker compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.integration-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
+# после каждого прогона: docker compose -f <файл> down -v
+
+# Обёртки (те же наборы, с очисткой)
+./run_unit_tests.sh -d
+./run_e2e_tests.sh -d
+
+# Backend локально (нужен .venv с requirements-test.txt)
+pytest tests/services/ -m "not slow"
 
 # Frontend
 cd rental-app-main && npm run test:run
 ```
+
+Примечание: `docker compose exec backend pytest` больше не работает — тесты и
+pytest не копируются в прод-образ (см. .dockerignore); используйте стеки выше.
+
+⚠️ `docker compose up` без `-f` подхватывает `docker-compose.override.yml`
+(dev-режим: DEBUG=true, порт 5173). Для прод-запуска на сервере используйте
+`docker compose -f docker-compose.yml up -d` и переименуйте/удалите override.
 
 ## Бэкапы и восстановление БД
 

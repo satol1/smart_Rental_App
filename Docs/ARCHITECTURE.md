@@ -4,8 +4,15 @@
 
 ## 🔧 Текущее состояние
 
-**Версия**: 4.2  
+**Версия**: 5.0 (модернизация 2026-09)  
 **Статус**: ✅ Полностью функциональна и готова к продакшену
+
+### Дополнение v5.0 (поверх описанного ниже)
+- **Redis 7** (новый слой): rate limiting (slowapi storage), brute-force защита, denylist refresh-токенов, кэш агрегатов дашборда (TTL 60с + инвалидация по мутациям). Все хранилища — с graceful fallback в in-memory при недоступности Redis (`api/services/redis_client.py`, `cache_service.py`)
+- **Аутентификация**: PyJWT (HS256) с типизацией токенов (`type: access|refresh`) и `jti`; refresh ротация; logout → denylist
+- **Фронтенд-архитектура**: React.lazy по страницам + Suspense; manualChunks (react-vendor/radix/query/charts); слой motion-токенов `src/lib/motion.ts`; тема через `themeStore` + `.dark`-токены; i18n-слой `src/i18n/`; общие примитивы отображения сущностей (StatusBadge/RoleBadge/MoneyText) над shadcn/ui
+- **Процесс**: Spec-Driven Development (GitHub SpecKit) — `.specify/` + `specs/`; конституция главенствует над архитектурными решениями
+- **CI**: GitHub Actions — ruff+pytest (backend), eslint+tsc+vitest+build (frontend), docker build обоих образов
 
 ### Ключевые архитектурные решения
 - **Repository Pattern**: Полностью внедрен строгий паттерн репозиториев для всех сервисов
