@@ -224,10 +224,9 @@ class TestPromoCodeBusinessLogicFinal:
         # Выполняем тест
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
         
-        # Проверяем, что методы были вызваны
+        # Каждое применение записывается: лимит на пользователя проверяет валидатор
         mock_promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        # record_promo_code_usage не должен вызываться, так как использование уже существует
-        mock_promo_code_repo.record_promo_code_usage.assert_not_called()
+        mock_promo_code_repo.record_promo_code_usage.assert_called_once()
 
     # Тесты для calculate_discount_amount
     def test_calculate_discount_amount_normal_case(self, promo_code_logic, sample_promo_code):

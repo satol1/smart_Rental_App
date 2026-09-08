@@ -48,13 +48,13 @@ class TestUserStatusWorkflow:
         await user_repo.save_object(e2e_test_user)
         await e2e_db_session.commit()
         
+        # get_user_completed_rentals_count делегируется в query_repo — он нужен реальный
+        from api.repositories.rental_query_repository import RentalQueryRepository
         rental_repo = RentalRepository(
             db=e2e_db_session,
-            query_repo=None,
+            query_repo=RentalQueryRepository(db=e2e_db_session, period_service=None),
             command_repo=None,
-            financial_repo=None,
-            financial_service=None,
-            period_service=None
+            financial_repo=None
         )
         
         user_status_service = UserStatusService(
@@ -115,13 +115,13 @@ class TestUserStatusWorkflow:
         await user_repo.save_object(e2e_test_user)
         await e2e_db_session.commit()
         
+        # get_user_completed_rentals_count делегируется в query_repo — он нужен реальный
+        from api.repositories.rental_query_repository import RentalQueryRepository
         rental_repo = RentalRepository(
             db=e2e_db_session,
-            query_repo=None,
+            query_repo=RentalQueryRepository(db=e2e_db_session, period_service=None),
             command_repo=None,
-            financial_repo=None,
-            financial_service=None,
-            period_service=None
+            financial_repo=None
         )
         
         user_status_service = UserStatusService(
@@ -191,13 +191,13 @@ class TestUserStatusWorkflow:
             availability_repo=None
         )
         
+        # get_user_completed_rentals_count делегируется в query_repo — он нужен реальный
+        from api.repositories.rental_query_repository import RentalQueryRepository
         rental_repo = RentalRepository(
             db=e2e_db_session,
-            query_repo=None,
+            query_repo=RentalQueryRepository(db=e2e_db_session, period_service=None),
             command_repo=None,
-            financial_repo=None,
-            financial_service=None,
-            period_service=None
+            financial_repo=None
         )
         
         user_status_service = UserStatusService(

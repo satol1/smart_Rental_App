@@ -194,7 +194,8 @@ class TestOrderValidatorStatus:
             )
         
         assert exc_info.value.status_code == 403
-        assert "2" in exc_info.value.detail or "два" in exc_info.value.detail.lower()
+        # «Новому» нужен запас >2 дней, т.е. от 3 дней; в сообщении и grace-период 24 ч
+        assert "3" in exc_info.value.detail or "24" in exc_info.value.detail
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -251,7 +252,8 @@ class TestOrderValidatorStatus:
             )
         
         assert exc_info.value.status_code == 403
-        assert "1" in exc_info.value.detail or "один" in exc_info.value.detail.lower()
+        # «Постоянному» нужен запас >1 дня, т.е. от 2 дней
+        assert "2" in exc_info.value.detail or "24" in exc_info.value.detail
 
     @pytest.mark.asyncio
     @pytest.mark.unit

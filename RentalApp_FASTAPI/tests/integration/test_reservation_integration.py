@@ -186,8 +186,9 @@ class TestReservationAPI:
         auth_headers: dict,
         db_session: AsyncSession):
         """Тест получения резервов пользователя."""
-        # Создаем резерв
-        start_date = date.today() + timedelta(days=1)
+        # Создаем резерв; старт через 5 дней: у статуса NEW отмена разрешена
+        # только за >=2 дней до начала (EDIT_RESTRICTION_DAYS)
+        start_date = date.today() + timedelta(days=5)
         end_date = start_date + timedelta(days=3)
         
         reservation_data = {
@@ -275,8 +276,9 @@ class TestReservationAPI:
         test_equipment: Equipment,
         auth_headers: dict):
         """Тест отмены резерва."""
-        # Создаем резерв
-        start_date = date.today() + timedelta(days=1)
+        # Старт через 5 дней: у статуса NEW (дефолт test_user без status) отмена
+        # разрешена только за >=2 дней до начала (EDIT_RESTRICTION_DAYS)
+        start_date = date.today() + timedelta(days=5)
         end_date = start_date + timedelta(days=3)
         
         reservation_data = {

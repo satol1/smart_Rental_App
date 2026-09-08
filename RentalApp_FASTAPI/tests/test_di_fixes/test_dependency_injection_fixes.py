@@ -126,8 +126,12 @@ class TestDependencyInjectionFixes:
     def test_no_global_error_handler_instance(self):
         """Тест: Нет глобального экземпляра ErrorHandlerService"""
         error_handler_code = open('api/services/error_handler_service.py').read()
-        assert 'error_handler = ErrorHandlerService()' not in error_handler_code
-        assert '# error_handler = ErrorHandlerService()' in error_handler_code
+        # Комментарий с примером допустим — проверяем только исполняемый код
+        code_without_comments = "\n".join(
+            line for line in error_handler_code.splitlines()
+            if not line.strip().startswith('#')
+        )
+        assert 'error_handler = ErrorHandlerService()' not in code_without_comments
     
     def test_container_providers_exist(self, container):
         """Тест: Все необходимые провайдеры существуют в контейнере"""

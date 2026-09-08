@@ -27,15 +27,22 @@ class TestRentalCancellationService:
         from api.services.order.order_validator import OrderValidator
         from api.services.balance_service import BalanceService
         
+        from api.services.order.system_repository import SystemService
+        from api.services.promo_code import PromoCodeBusinessLogic
+
         mock_rental_repo = MagicMock(spec=RentalRepository)
         mock_validator = MagicMock(spec=OrderValidator)
         mock_balance_service = MagicMock(spec=BalanceService)
+        mock_system_service = MagicMock(spec=SystemService)
+        mock_promo_code_logic = MagicMock(spec=PromoCodeBusinessLogic)
         
         return RentalCancellationService(
             db=mock_db_session,
             rental_repo=mock_rental_repo,
             validator=mock_validator,
-            balance_service=mock_balance_service
+            balance_service=mock_balance_service,
+            system_service=mock_system_service,
+            promo_code_logic=mock_promo_code_logic
         )
 
     @pytest.fixture
@@ -205,22 +212,22 @@ class TestRentalCancellationService:
     @pytest.mark.asyncio
     async def test_delete_rental_by_admin_from_reservation(self, rental_cancellation_service, mock_db_session,
                                                           sample_rental):
-        """Тест удаления аренды, созданной из резерва."""
+        """Удаление аренды из резерва запрещено: без компенсации средств клиент
+        терял деньги, резерв оставался «мертвым». Ожидаем 409 с подсказкой revert."""
         # Arrange
         mock_context = AsyncMock()
         mock_context.__aenter__ = AsyncMock(return_value=None)
         mock_context.__aexit__ = AsyncMock(return_value=None)
         mock_db_session.begin_nested = MagicMock(return_value=mock_context)
-        
+
         rental_cancellation_service.rental_repo.get_rental_by_id_or_fail = AsyncMock(return_value=sample_rental)
         rental_cancellation_service.rental_repo.delete_rental = AsyncMock()
 
-        # Act
-        await rental_cancellation_service.delete_rental_by_admin(1)
-
-        # Assert
-        rental_cancellation_service.rental_repo.get_rental_by_id_or_fail.assert_called_once_with(1)
-        rental_cancellation_service.rental_repo.delete_rental.assert_called_once_with(sample_rental)
+        # Act / Assert
+        with pytest.raises(HTTPException) as exc_info:
+            await rental_cancellation_service.delete_rental_by_admin(1)
+        assert exc_info.value.status_code == 409
+        rental_cancellation_service.rental_repo.delete_rental.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_delete_rental_by_admin_from_scratch_recent(self, rental_cancellation_service, mock_db_session,
@@ -228,7 +235,7 @@ class TestRentalCancellationService:
         """Тест удаления недавно созданной аренды с нуля."""
         # Arrange
         # Устанавливаем время создания менее 24 часов назад
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc) - timedelta(hours=12)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
         
         mock_context = AsyncMock()
         mock_context.__aenter__ = AsyncMock(return_value=None)
@@ -275,7 +282,7 @@ class TestRentalCancellationService:
                                                          sample_rental_from_scratch):
         """Тест удаления аренды с авансом."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc) - timedelta(hours=12)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
         sample_rental_from_scratch.prepayment_amount = 200.0
         
         mock_context = AsyncMock()
@@ -364,7 +371,7 @@ class TestRentalCancellationService:
     async def test_handle_scratch_rental_deletion_recent(self, rental_cancellation_service, sample_rental_from_scratch):
         """Тест обработки удаления недавно созданной аренды с нуля."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc) - timedelta(hours=12)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
         rental_cancellation_service.balance_service.add_transaction = AsyncMock()
 
         # Act
@@ -391,7 +398,7 @@ class TestRentalCancellationService:
     async def test_handle_scratch_rental_deletion_with_prepayment(self, rental_cancellation_service, sample_rental_from_scratch):
         """Тест обработки удаления аренды с авансом."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc) - timedelta(hours=12)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
         sample_rental_from_scratch.prepayment_amount = 200.0
         rental_cancellation_service.balance_service.add_transaction = AsyncMock()
 

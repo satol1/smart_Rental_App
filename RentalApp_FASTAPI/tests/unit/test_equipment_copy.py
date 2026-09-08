@@ -11,9 +11,21 @@ from api.models.equipment import Equipment
 class TestEquipmentCopy:
     """Тесты для функционала копирования оборудования"""
 
+    @staticmethod
+    def _arrange_refetch_returns(mock_db, equipment):
+        """Репозиторий после create перечитывает объект из БД (select + scalars().first())."""
+        execute_result = MagicMock()
+        execute_result.scalars.return_value.first.return_value = equipment
+        mock_db.execute = AsyncMock(return_value=execute_result)
+
     @pytest.fixture
     def mock_db(self):
-        return AsyncMock(spec=AsyncSession)
+        db = AsyncMock(spec=AsyncSession)
+        # AsyncMock(spec=AsyncSession).execute(...) после await возвращает AsyncMock,
+        # у которого .scalars() — корутина; результат execute должен быть sync-моком
+        db.execute = AsyncMock(return_value=MagicMock())
+        db.refresh = AsyncMock(return_value=None)
+        return db
 
     @pytest.fixture
     def mock_repo(self, mock_db):
@@ -47,13 +59,14 @@ class TestEquipmentCopy:
         equipment.associations = []
         return equipment
 
-    async def test_copy_equipment_basic(self, service, mock_repo, source_equipment):
+    async def test_copy_equipment_basic(self, service, mock_repo, mock_db, source_equipment):
         """Тест базового копирования оборудования"""
         # Arrange
         mock_repo.get_by_id_with_details.return_value = source_equipment
         created_equipment = MagicMock(spec=Equipment)
         created_equipment.id = 2
         mock_repo.create.return_value = created_equipment
+        self._arrange_refetch_returns(mock_db, created_equipment)
         
         copy_data = EquipmentCopyRequest(
             name="Canon EOS R5 (копия)",
@@ -98,7 +111,7 @@ class TestEquipmentCopy:
         assert create_call_args.serial_number is None
         assert create_call_args.notes == "Скопировано из ID: 1"
 
-    async def test_copy_equipment_with_relations(self, service, mock_repo, source_equipment):
+    async def test_copy_equipment_with_relations(self, service, mock_repo, mock_db, source_equipment):
         """Тест копирования с связями (аксессуары, ассоциации)"""
         # Arrange
         accessory = MagicMock()
@@ -118,10 +131,10 @@ class TestEquipmentCopy:
         result = await service.copy_equipment(1, copy_data)
 
         # Assert
-        assert len(created_equipment.accessories) == 1
-        assert len(created_equipment.associations) == 1
-        assert created_equipment.accessories[0] == accessory
-        assert created_equipment.associations[0] == association
+        # Связи копируются SQL-вставками и рефасетчем из БД: проверяем сами вставки
+        execute_calls = [str(c.args[0]) for c in mock_db.execute.call_args_list if c.args]
+        assert any('equipment_accessories' in c for c in execute_calls)
+        assert any('association_equipment_association' in c for c in execute_calls)
 
     async def test_copy_equipment_source_not_found(self, service, mock_repo):
         """Тест копирования несуществующего оборудования"""
@@ -133,12 +146,13 @@ class TestEquipmentCopy:
         with pytest.raises(ValueError, match="Оборудование с ID 1 не найдено"):
             await service.copy_equipment(1, copy_data)
 
-    async def test_copy_equipment_brand_system_creation(self, service, mock_repo, source_equipment):
+    async def test_copy_equipment_brand_system_creation(self, service, mock_repo, mock_db, source_equipment):
         """Тест создания системы бренда при копировании"""
         # Arrange
         mock_repo.get_by_id_with_details.return_value = source_equipment
         created_equipment = MagicMock(spec=Equipment)
         mock_repo.create.return_value = created_equipment
+        self._arrange_refetch_returns(mock_db, created_equipment)
         
         copy_data = EquipmentCopyRequest()
 

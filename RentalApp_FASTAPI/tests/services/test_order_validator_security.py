@@ -60,18 +60,19 @@ class TestOrderValidatorSecurity:
     async def test_validate_dates_and_holidays_prevents_holiday_booking(self, order_validator):
         """Тест предотвращения бронирования на выходные дни."""
         # Мокаем holiday в базе данных
+        # Даты в будущем: прошлые даты теперь отбиваются раньше (400 «в прошлом»)
+        holiday_date = date.today() + timedelta(days=10)
         mock_holiday = MagicMock()
-        mock_holiday.date = date(2024, 1, 15)  # Фиксированная дата
-        
+        mock_holiday.date = holiday_date
+
         order_validator.db.execute.return_value.scalar_one_or_none.return_value = mock_holiday
-        
-        # Используем фиксированные даты вместо date.today() + timedelta
-        start_date = date(2024, 1, 15)  # Та же дата что и holiday
-        end_date = date(2024, 1, 17)
-        
+
+        start_date = holiday_date  # Та же дата что и holiday
+        end_date = date.today() + timedelta(days=12)
+
         with pytest.raises(HTTPException) as exc_info:
             await order_validator.validate_dates_and_holidays(start_date, end_date)
-        
+
         assert exc_info.value.status_code == 409
         assert "DATE_IS_HOLIDAY" in str(exc_info.value.detail)
 
@@ -79,15 +80,15 @@ class TestOrderValidatorSecurity:
     async def test_validate_dates_and_holidays_allows_force_issue_on_holiday(self, order_validator):
         """Тест разрешения принудительного бронирования на выходные."""
         # Мокаем holiday в базе данных
+        holiday_date = date.today() + timedelta(days=10)
         mock_holiday = MagicMock()
-        mock_holiday.date = date(2024, 1, 15)  # Фиксированная дата
-        
+        mock_holiday.date = holiday_date
+
         order_validator.db.execute.return_value.scalar_one_or_none.return_value = mock_holiday
-        
-        # Используем фиксированные даты
-        start_date = date(2024, 1, 15)  # Та же дата что и holiday
-        end_date = date(2024, 1, 17)
-        
+
+        start_date = holiday_date
+        end_date = date.today() + timedelta(days=12)
+
         # Должно пройти без ошибок при force_issue_on_holiday=True
         await order_validator.validate_dates_and_holidays(start_date, end_date, force_issue_on_holiday=True)
 
@@ -103,7 +104,8 @@ class TestOrderValidatorSecurity:
         with pytest.raises(HTTPException) as exc_info:
             await order_validator.validate_dates_and_holidays(start_date, end_date)
         
-        assert exc_info.value.status_code == 409
+        assert exc_info.value.status_code == 400
+        assert "прошлом" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio
     async def test_validate_equipment_availability_prevents_double_booking(self, order_validator, sample_equipment):
@@ -152,7 +154,7 @@ class TestOrderValidatorSecurity:
         await order_validator.validate_equipment_availability([], start_date, end_date)
         
         # Проверяем, что метод был вызван (с учетом дополнительного параметра)
-        order_validator.availability_service.get_conflicting_equipment_ids.assert_called_once_with([], start_date, end_date, None)
+        order_validator.availability_service.get_conflicting_equipment_ids.assert_called_once_with([], start_date, end_date, None, None)
         
         # Мокаем сервис доступности для неактивного оборудования (есть конфликты)
         order_validator.availability_service.get_conflicting_equipment_ids = AsyncMock(return_value=[1])
@@ -162,7 +164,7 @@ class TestOrderValidatorSecurity:
         
         assert exc_info.value.status_code == 409
         # Проверяем, что метод был вызван с правильными параметрами
-        order_validator.availability_service.get_conflicting_equipment_ids.assert_called_with([1], start_date, end_date, None)
+        order_validator.availability_service.get_conflicting_equipment_ids.assert_called_with([1], start_date, end_date, None, None)
 
     # Тесты validate_user_permissions удалены - метод не существует в OrderValidator
 

@@ -14,6 +14,9 @@ from api.models.user import User
 from api.models.equipment import Equipment
 from shared.constants.order_status import OrderStatus
 
+# Модуль работает с реальной БД: не должен собираться в CI-прогоне без БД
+pytestmark = pytest.mark.integration
+
 
 class TestPeriodFiltering:
     """Тесты фильтрации по временным периодам"""
@@ -39,12 +42,12 @@ class TestPeriodFiltering:
     @pytest.fixture
     async def test_equipment(self, db_session: AsyncSession):
         """Создает тестовое оборудование"""
+        # Поля модели: equipment_type/brand; is_available не существует
         equipment = Equipment(
             name="Test Equipment",
-            type="camera",
-            brand_system_id=1,
-            daily_rate=100.0,
-            is_available=True
+            equipment_type="camera",
+            brand="Test Brand",
+            daily_rate=100.0
         )
         db_session.add(equipment)
         await db_session.commit()
@@ -62,7 +65,7 @@ class TestPeriodFiltering:
             start_date=today,
             end_date=today + timedelta(days=2),
             status=OrderStatus.ACTIVE,
-            total_amount=300.0
+            total_cost=300.0
         )
         
         # Резервация в предыдущей неделе
@@ -71,7 +74,7 @@ class TestPeriodFiltering:
             start_date=today - timedelta(days=10),
             end_date=today - timedelta(days=8),
             status=OrderStatus.COMPLETED,
-            total_amount=200.0
+            total_cost=200.0
         )
         
         # Резервация в следующей неделе
@@ -80,7 +83,7 @@ class TestPeriodFiltering:
             start_date=today + timedelta(days=10),
             end_date=today + timedelta(days=12),
             status=OrderStatus.ACTIVE,
-            total_amount=300.0
+            total_cost=300.0
         )
         
         # Резервация в текущем месяце (но не в текущей неделе)
@@ -89,7 +92,7 @@ class TestPeriodFiltering:
             start_date=today + timedelta(days=15),
             end_date=today + timedelta(days=17),
             status=OrderStatus.ACTIVE,
-            total_amount=300.0
+            total_cost=300.0
         )
         
         reservations = [reservation_current_week, reservation_prev_week, 
@@ -113,28 +116,31 @@ class TestPeriodFiltering:
         # Аренда в текущей неделе
         rental_current_week = Rental(
             user_id=test_user.id,
+            created_by_id=test_user.id,
             start_date=today,
             end_date=today + timedelta(days=2),
             status=OrderStatus.ACTIVE,
-            total_amount=300.0
+            total_cost=300.0
         )
         
         # Аренда в предыдущей неделе
         rental_prev_week = Rental(
             user_id=test_user.id,
+            created_by_id=test_user.id,
             start_date=today - timedelta(days=10),
             end_date=today - timedelta(days=8),
             status=OrderStatus.COMPLETED,
-            total_amount=200.0
+            total_cost=200.0
         )
         
         # Аренда в следующей неделе
         rental_next_week = Rental(
             user_id=test_user.id,
+            created_by_id=test_user.id,
             start_date=today + timedelta(days=10),
             end_date=today + timedelta(days=12),
             status=OrderStatus.ACTIVE,
-            total_amount=300.0
+            total_cost=300.0
         )
         
         rentals = [rental_current_week, rental_prev_week, rental_next_week]
@@ -192,6 +198,7 @@ class TestPeriodFiltering:
 
     async def test_reservation_filter_by_quarter(self, db_session: AsyncSession, period_service: PeriodService, test_reservations):
         """Тест фильтрации резерваций по кварталу"""
+        today = date.today()
         filter_repo = ReservationFilterRepository(db_session, period_service)
         
         # Получаем резервации текущего квартала
@@ -199,9 +206,18 @@ class TestPeriodFiltering:
             skip=0, limit=10, period_type="quarter", period_offset=0
         )
         
-        # Должно быть 3 резервации в текущем квартале
-        assert total == 3
-        assert len(reservations) == 3
+        # Резервации текущего квартала: фиксация «3» неверна, когда previous-week
+        # (today-10d) попадает в тот же квартал (например, конец августа) —
+        # считаем ожидание по фактическим датам фикстуры
+        def in_current_quarter(d: date) -> bool:
+            return d.year == today.year and (d.month - 1) // 3 == (today.month - 1) // 3
+        fixture_dates = [
+            today, today - timedelta(days=10),
+            today + timedelta(days=10), today + timedelta(days=15),
+        ]
+        expected = sum(1 for d in fixture_dates if in_current_quarter(d))
+        assert total == expected
+        assert len(reservations) == expected
 
     async def test_reservation_filter_by_year(self, db_session: AsyncSession, period_service: PeriodService, test_reservations):
         """Тест фильтрации резерваций по году"""

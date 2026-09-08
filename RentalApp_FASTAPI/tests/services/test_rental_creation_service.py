@@ -298,7 +298,9 @@ class TestRentalCreationService:
         assert result == sample_rental
         rental_creation_service.user_repo.get_user_by_id_or_fail.assert_called_once_with(1)
         rental_creation_service.equipment_repo.get_equipment_by_ids_or_fail.assert_called_once_with([1])
-        rental_creation_service.financial_service.calculate_final_price.assert_called_once()
+        # Двухпроходный расчёт: предварительный (без промо, для min_order_amount)
+        # и финальный (с промокодом)
+        assert rental_creation_service.financial_service.calculate_final_price.call_count == 2
         rental_creation_service.rental_repo.create_rental_instance.assert_called_once()
         rental_creation_service.balance_service.add_transaction.assert_called()
 

@@ -75,7 +75,9 @@ class TestAuthService:
         assert result == sample_user
         mock_user_repo.get_by_email.assert_called_once_with(sample_user_data.email)
         mock_user_repo.create.assert_called_once()
-        mock_user_repo.db.commit.assert_called_once()
+        # Коммитом владеет DIContainerMiddleware (request-scoped транзакция):
+        # сервис сознательно не коммитит сам.
+        mock_user_repo.db.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_create_user_email_already_exists(self, auth_service, mock_user_repo, sample_user_data, sample_user):

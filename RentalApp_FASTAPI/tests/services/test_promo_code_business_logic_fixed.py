@@ -106,7 +106,7 @@ class TestPromoCodeBusinessLogicFixed:
         # Проверяем результат
         assert result == sample_promo_code
         mock_validator.validate_complete.assert_called_once_with(
-            "TEST10", 1000.0, [1, 2], None
+            "TEST10", 1000.0, [1, 2], None, skip_usage_limits=False
         )
 
     @pytest.mark.asyncio
@@ -201,25 +201,16 @@ class TestPromoCodeBusinessLogicFixed:
     async def test_record_promo_code_usage_success(self, promo_code_logic, mock_promo_code_repo, mock_db_session, sample_promo_code, sample_user):
         """Тест записи использования промокода"""
         # Настраиваем моки
-        mock_context = AsyncMock()
-        mock_context.__aenter__ = AsyncMock(return_value=None)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_db_session.begin_nested = MagicMock(return_value=mock_context)
-        mock_db_session.commit = AsyncMock()
-        
         mock_promo_code_repo.increment_usage_counter = AsyncMock()
-        mock_promo_code_repo.get_user_usage_count = AsyncMock(return_value=0)  # Нет существующих использований
         mock_promo_code_repo.record_promo_code_usage = AsyncMock()
-        
+
         # Выполняем тест
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
-        
-        # Проверяем, что методы были вызваны
+
+        # Проверяем, что методы были вызваны (коммит выполняет middleware — db.commit не вызывается)
         from unittest.mock import ANY
         mock_promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        mock_promo_code_repo.get_user_usage_count.assert_called_once_with(sample_user.id, sample_promo_code.id)
         mock_promo_code_repo.record_promo_code_usage.assert_called_once_with(sample_user.id, sample_promo_code.id, ANY)
-        mock_db_session.commit.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_anonymous_user(self, promo_code_logic, mock_promo_code_repo, sample_promo_code):
@@ -236,27 +227,18 @@ class TestPromoCodeBusinessLogicFixed:
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_existing_usage(self, promo_code_logic, mock_promo_code_repo, mock_db_session, sample_promo_code, sample_user):
-        """Тест записи использования промокода при существующем использовании"""
+        """Каждое применение промокода записывается отдельной строкой истории:
+        лимит max_uses_per_user проверяет валидатор до применения, а не запись"""
         # Настраиваем моки
-        mock_context = AsyncMock()
-        mock_context.__aenter__ = AsyncMock(return_value=None)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_db_session.begin_nested = MagicMock(return_value=mock_context)
-        mock_db_session.commit = AsyncMock()
-        
         mock_promo_code_repo.increment_usage_counter = AsyncMock()
-        mock_promo_code_repo.get_user_usage_count = AsyncMock(return_value=1)  # Есть существующее использование
         mock_promo_code_repo.record_promo_code_usage = AsyncMock()
-        
+
         # Выполняем тест
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
-        
-        # Проверяем, что методы были вызваны
+
+        # Счётчик и запись об использовании создаются на каждое применение
         mock_promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        mock_promo_code_repo.get_user_usage_count.assert_called_once_with(sample_user.id, sample_promo_code.id)
-        # Проверяем, что новая запись об использовании НЕ была создана (т.к. уже есть использование)
-        mock_promo_code_repo.record_promo_code_usage.assert_not_called()
-        mock_db_session.commit.assert_called_once()
+        mock_promo_code_repo.record_promo_code_usage.assert_called_once()
 
     # Тесты для calculate_discount_amount
     def test_calculate_discount_amount_normal_case(self, promo_code_logic, sample_promo_code):

@@ -18,6 +18,8 @@ from api.models.rental import Rental
 from api.models.balance_history import BalanceHistory
 from containers import Container
 
+from tests.conftest import get_csrf_headers_async
+
 
 @pytest.mark.integration
 class TestCriticalAPIEndpoints:
@@ -29,7 +31,7 @@ class TestCriticalAPIEndpoints:
         response = await client.get("/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data["status"] == "ok"
 
     @pytest.mark.asyncio
     async def test_user_registration_and_login(self, client: AsyncClient):
@@ -45,7 +47,8 @@ class TestCriticalAPIEndpoints:
             "terms_accepted": True
         }
         
-        response = await client.post("/api/auth/register", json=registration_data)
+        csrf_headers = await get_csrf_headers_async(client)
+        response = await client.post("/api/auth/register", json=registration_data, headers=csrf_headers)
         # API возвращает 201 при успешной регистрации
         assert response.status_code == 201
         # Проверяем, что ответ содержит данные пользователя
@@ -55,10 +58,11 @@ class TestCriticalAPIEndpoints:
         # Авторизация пользователя
         login_data = {
             "username": unique_email,
-            "password": "testpassword123"
+            # Тот же пароль, что при регистрации (регистр важен)
+            "password": "TestPassword123"
         }
         
-        response = await client.post("/api/auth/token", data=login_data)
+        response = await client.post("/api/auth/token", data=login_data, headers=await get_csrf_headers_async(client))
         assert response.status_code == 200
         
         data = response.json()
@@ -95,7 +99,7 @@ class TestCriticalAPIEndpoints:
             "password": "testpassword123"
         }
         
-        response = await client.post("/api/auth/token", data=login_data)
+        response = await client.post("/api/auth/token", data=login_data, headers=await get_csrf_headers_async(client))
         assert response.status_code == 200, f"Login failed with status {response.status_code}: {response.text}"
         
         token = response.json()["access_token"]
@@ -130,7 +134,7 @@ class TestCriticalAPIEndpoints:
             "password": "testpassword123"
         }
         
-        response = await client.post("/api/auth/token", data=login_data)
+        response = await client.post("/api/auth/token", data=login_data, headers=await get_csrf_headers_async(client))
         assert response.status_code == 200
         
         token = response.json()["access_token"]
@@ -164,7 +168,7 @@ class TestCriticalAPIEndpoints:
             "password": "testpassword123"
         }
         
-        response = await client.post("/api/auth/token", data=login_data)
+        response = await client.post("/api/auth/token", data=login_data, headers=await get_csrf_headers_async(client))
         token = response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         
@@ -181,7 +185,7 @@ class TestCriticalAPIEndpoints:
             "password": "secret"
         }
         
-        response = await client.post("/api/auth/token", data=manager_login_data)
+        response = await client.post("/api/auth/token", data=manager_login_data, headers=await get_csrf_headers_async(client))
         manager_token = response.json()["access_token"]
         manager_headers = {"Authorization": f"Bearer {manager_token}"}
         
@@ -239,7 +243,7 @@ class TestCriticalAPIEndpoints:
             "password": "testpassword123"
         }
         
-        response = await client.post("/api/auth/token", data=login_data)
+        response = await client.post("/api/auth/token", data=login_data, headers=await get_csrf_headers_async(client))
         token = response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         

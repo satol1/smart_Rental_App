@@ -75,7 +75,8 @@ class TestAuthAPI:
         """Тест регистрации с дублирующимся email."""
         user_data = {
             "email": test_user.email,
-            "password": "Password123",
+            # 'Password123' попадает в словарь простых паролей -> 422 валидации
+            "password": "UniquePass2026!X",
             "full_name": "Another User",
             "privacy_policy_accepted": True,
             "terms_accepted": True
@@ -90,6 +91,7 @@ class TestAuthAPI:
             headers=csrf_headers
         )
         
+        # Дубликат email -> 400 (маппинг в auth/register)
         assert response.status_code == 400
         detail = response.json()["detail"].lower()
         assert "email" in detail and ("already" in detail or "уже" in detail)

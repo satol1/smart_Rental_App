@@ -4,19 +4,26 @@
 Содержит общие фикстуры и настройки для unit тестов.
 """
 
+# Тестовое окружение по умолчанию — те же значения, что и в docker-конфигурациях
+# тестов (env.test / docker-compose.unit-tests.yml). setdefault не перекрывает
+# реальные переменные окружения, поэтому docker/e2e конфигурации не затрагиваются.
+# DISABLE_CSRF сознательно НЕ задаём: CSRF-защита должна работать в тестах,
+# кроме окружений, где она явно отключена (docker-compose.e2e.yml).
+import os as _os
+
+_os.environ.setdefault("SECRET_KEY", "abcdef0123456789abcdef0123456789")
+_os.environ.setdefault("CSRF_SECRET_KEY", "0123456789abcdef0123456789abcdef")
+_os.environ.setdefault("POSTGRES_PASSWORD", "unit_test_password")
+_os.environ.setdefault("DEBUG", "false")
+
 # Импортируем фикстуры для создания тестовой базы данных
 from .conftest_migrations import create_test_database, clean_database
 
 import pytest
 import asyncio
-import warnings
 from unittest.mock import AsyncMock, MagicMock
 from datetime import date, datetime, timezone
 from typing import List, Dict, Any, Optional
-
-# Подавляем предупреждения о deprecated модуле crypt (используется внутри passlib)
-warnings.filterwarnings("ignore", message=".*'crypt'.*", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*crypt.*", category=DeprecationWarning)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
@@ -39,6 +46,21 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(autouse=True)
+def _clean_aggregate_cache():
+    """Кэш агрегатов (dashboard:summary) не должен протекать между тестами.
+
+    Очищает и in-memory, и redis-часть хранилища (если redis доступен).
+    """
+    from api.services.cache_service import app_cache, DASHBOARD_SUMMARY_KEY
+
+    app_cache.clear()
+    app_cache.invalidate(DASHBOARD_SUMMARY_KEY)
+    yield
+    app_cache.clear()
+    app_cache.invalidate(DASHBOARD_SUMMARY_KEY)
 
 
 @pytest.fixture
@@ -315,6 +337,48 @@ def test_container():
     ])
     
     yield test_container
-    
+
     # Очищаем после тестов
     test_container.unwire()
+
+
+# --- Изоляция rate-limiter между тестами ---
+# slowapi хранит счётчики в in-memory storage процесса pytest, поэтому без
+# сброса лимиты (например 5/minute на /auth/token) "протекают" между тестами.
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Сбрасывает счётчики rate-limiter перед и после каждого теста."""
+    from api.rate_limiter import limiter
+
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
+# --- Хелперы для работы с CSRF-защитой в тестах ---
+def csrf_protection_enabled() -> bool:
+    """CSRF-защита включена (DISABLE_CSRF не задан или не 'true')."""
+    return _os.getenv("DISABLE_CSRF", "false").lower() != "true"
+
+
+def get_csrf_headers(client) -> Dict[str, str]:
+    """Получает CSRF-токен через GET /api/auth/csrf-token и возвращает заголовки.
+
+    Cookie fastapi-csrf-token сохраняется в cookie-jar клиента автоматически
+    (работает и с TestClient, и с httpx.Client/AsyncClient).
+    При выключенной защите (DISABLE_CSRF=true) возвращает пустой словарь.
+    """
+    if not csrf_protection_enabled():
+        return {}
+    response = client.get("/api/auth/csrf-token")
+    response.raise_for_status()
+    return {"X-CSRF-Token": response.json()["csrf_token"]}
+
+
+async def get_csrf_headers_async(client) -> Dict[str, str]:
+    """Асинхронная версия get_csrf_headers для httpx.AsyncClient."""
+    if not csrf_protection_enabled():
+        return {}
+    response = await client.get("/api/auth/csrf-token")
+    response.raise_for_status()
+    return {"X-CSRF-Token": response.json()["csrf_token"]}

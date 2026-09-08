@@ -12,6 +12,9 @@ from api.main_api import app
 from containers import Container, AsyncSessionLocal
 from api.dependencies import get_db_session
 
+# Модуль работает с реальной БД: не должен собираться в CI-прогоне без БД
+pytestmark = pytest.mark.integration
+
 
 class TestCurrentSystemState:
     """Тесты для проверки текущего состояния системы."""

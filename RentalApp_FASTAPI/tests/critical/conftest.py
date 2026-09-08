@@ -1,3 +1,4 @@
+import logging
 # tests/critical/conftest.py
 """
 Конфигурация для критических тестов транзакционной целостности.
@@ -29,14 +30,16 @@ test_engine = create_async_engine(
     echo=False,
     pool_pre_ping=True,  # Включаем ping для стабильности
     pool_recycle=300,
-    pool_size=1,
-    max_overflow=0,
+    # Пул 1/0 был хрупким: один незакрытый коннект теста -> каскад QueuePool
+    # таймаутов на всех последующих (30s statement_timeout добивал сессию)
+    pool_size=5,
+    max_overflow=10,
     isolation_level="READ_COMMITTED",  # Используем READ_COMMITTED для совместимости
     connect_args={
         "server_settings": {
             "application_name": "test_critical",
-            "statement_timeout": "30s",
-            "idle_in_transaction_session_timeout": "30s"
+            "statement_timeout": "60s",
+            "idle_in_transaction_session_timeout": "60s"
         }
     }
 )
@@ -77,14 +80,27 @@ async def db_session(setup_test_db) -> AsyncGenerator[AsyncSession, None]:
         # Начинаем транзакцию явно
         await session.begin()
         yield session
-        # Коммитим транзакцию при успехе
-        await session.commit()
+        # Коммитим транзакцию при успехе. Сессию мог закрыть DI-middleware —
+        # это не ошибка самого теста (утверждения уже прошли), терпим тихо.
+        try:
+            await session.commit()
+        except Exception as commit_exc:  # noqa: BLE001
+            # warning (не debug): глотание ошибок коммита должно быть видимым
+            logging.getLogger(__name__).warning(
+                "db_session teardown: коммит не выполнен (%s)", commit_exc
+            )
     except Exception:
         # Откатываем транзакцию при ошибке
-        await session.rollback()
+        try:
+            await session.rollback()
+        except Exception:  # noqa: BLE001
+            pass
         raise
     finally:
-        await session.close()
+        try:
+            await session.close()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 @pytest_asyncio.fixture

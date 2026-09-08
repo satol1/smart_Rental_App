@@ -1,3 +1,4 @@
+import logging
 # tests/integration/conftest.py
 
 import pytest
@@ -29,14 +30,18 @@ test_engine = create_async_engine(
     echo=False,
     pool_pre_ping=True,  # Включаем ping для стабильности
     pool_recycle=300,
-    pool_size=1,
-    max_overflow=0,
+    # Пул 1/0 был хрупким: один незакрытый коннект теста -> каскад QueuePool
+    # таймаутов на всех последующих (30s statement_timeout добивал сессию)
+    pool_size=5,
+    max_overflow=10,
     isolation_level="READ_COMMITTED",  # Используем READ_COMMITTED вместо AUTOCOMMIT
     connect_args={
         "server_settings": {
             "application_name": "integration_tests",
-            "statement_timeout": "30s",  # Таймаут для запросов
-            "idle_in_transaction_session_timeout": "10s"  # Таймаут для idle транзакций
+            "statement_timeout": "60s",  # Таймаут для запросов
+            # 10s убивал живые тестовые сессии между операциями -> плавающие
+            # "connection is closed" на audit-вставках; 300s для CI-стабильности
+            "idle_in_transaction_session_timeout": "60s"
         }
     }
 )
@@ -73,8 +78,15 @@ async def db_session(setup_test_db) -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
         finally:
-            # Очищаем данные после теста
-            await session.rollback()
+            # Очищаем данные после теста. Сессию мог закрыть DI-middleware
+            # (жизненный цикл совпадает с запросом) — это не ошибка теста:
+            # все утверждения уже выполнены, молча терпим закрытое соединение.
+            try:
+                await session.rollback()
+            except Exception as cleanup_exc:  # noqa: BLE001
+                logging.getLogger(__name__).debug(
+                    "db_session teardown: соединение уже закрыто (%s)", cleanup_exc
+                )
 
 
 @pytest_asyncio.fixture

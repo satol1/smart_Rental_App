@@ -128,6 +128,8 @@ class TestDashboardRepository:
         """Тест успешного получения резервов на сегодня."""
         # Подготавливаем мок данные
         mock_result = MagicMock()
+        # репозиторий вызывает result.unique().scalars().all() — замыкаем unique на себя
+        mock_result.unique.return_value = mock_result
         mock_scalars = [MagicMock(), MagicMock()]
         mock_result.scalars.return_value.all.return_value = mock_scalars
         mock_db.execute.return_value = mock_result
@@ -148,6 +150,7 @@ class TestDashboardRepository:
         """Тест успешного получения аренд на возврат сегодня."""
         # Подготавливаем мок данные
         mock_result = MagicMock()
+        mock_result.unique.return_value = mock_result
         mock_scalars = [MagicMock()]
         mock_result.scalars.return_value.all.return_value = mock_scalars
         mock_db.execute.return_value = mock_result
@@ -168,6 +171,7 @@ class TestDashboardRepository:
         """Тест успешного получения просроченных аренд."""
         # Подготавливаем мок данные
         mock_result = MagicMock()
+        mock_result.unique.return_value = mock_result
         mock_scalars = [MagicMock(), MagicMock(), MagicMock()]
         mock_result.scalars.return_value.all.return_value = mock_scalars
         mock_db.execute.return_value = mock_result

@@ -295,8 +295,8 @@ class TestCompleteRentalFlow:
         # Шаг 2: Создаем резерв
         equipment_ids = [e2e_test_equipment_list[0].id]
         
-        start_date = (date.today() + timedelta(days=1)).isoformat()
-        end_date = (date.today() + timedelta(days=3)).isoformat()
+        start_date = (date.today() + timedelta(days=5)).isoformat()
+        end_date = (date.today() + timedelta(days=8)).isoformat()
         
         reservation_data = {
             "equipment_ids": equipment_ids,

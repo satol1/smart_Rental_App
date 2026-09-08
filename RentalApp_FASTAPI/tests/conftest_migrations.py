@@ -11,11 +11,22 @@ from sqlalchemy import text
 
 @pytest.fixture(scope="session", autouse=True)
 def create_test_database():
-    """Автоматически создает тестовую базу данных перед запуском тестов."""
-    
+    """Автоматически создает тестовую базу данных перед запуском тестов.
+
+    Работает только внутри docker-окружения (каталог /app существует).
+    Локально (Windows/macOS без контейнера) тестовая БД недоступна,
+    поэтому создание пропускается — mock-тесты в ней не нуждаются.
+    """
+    from pathlib import Path
+
+    if not Path("/app").exists():
+        print("\n⚙️ Локальное окружение (нет /app) — создание тестовой БД пропущено")
+        yield
+        return
+
     # URL тестовой базы данных
     database_url = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://unit_test_user:unit_test_password@unit-test-db:5432/unit_test_db")
-    
+
     print(f"\n🔧 Создание тестовой базы данных...")
     
     try:
@@ -69,10 +80,14 @@ def create_test_database():
         
         # Запускаем проверку таблиц
         asyncio.run(check_tables())
-        
+
     except Exception as e:
         print(f"❌ Ошибка при создании тестовой базы данных: {e}")
         raise
+
+    # Обязательный yield: без него pytest-asyncio падает на setup каждого теста
+    # с "create_test_database did not yield a value" (в docker-ветке его не было)
+    yield
 
 @pytest.fixture(scope="function")
 async def clean_database():

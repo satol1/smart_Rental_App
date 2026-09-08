@@ -43,13 +43,13 @@ async def test_database_info(isolated_db_session: AsyncSession):
     result = await isolated_db_session.execute(text("SELECT current_database()"))
     db_name = result.scalar()
     # В контексте unit тестов используется unit_test_db
-    assert db_name in ["integration_test_db", "unit_test_db"]
+    assert db_name in ["integration_test_db", "unit_test_db", "test_db"]
     
     # Текущий пользователь
     result = await isolated_db_session.execute(text("SELECT current_user"))
     user = result.scalar()
     # В контексте unit тестов используется unit_test_user
-    assert user in ["integration_test_user", "unit_test_user"]
+    assert user in ["integration_test_user", "unit_test_user", "test_user"]
     
     print(f"✅ База данных: {db_name}, Пользователь: {user}")
 

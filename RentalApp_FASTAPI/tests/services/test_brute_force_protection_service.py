@@ -26,6 +26,9 @@ class TestBruteForceProtectionService:
     @pytest.fixture
     def brute_force_service(self, mock_security_audit_service):
         """Создает экземпляр BruteForceProtectionService."""
+        # In-memory счётчики живут на классе (общие на процесс) — сбрасываем
+        BruteForceProtectionService.attempts.clear()
+        BruteForceProtectionService.blocked_ips.clear()
         return BruteForceProtectionService(security_audit_service=mock_security_audit_service)
 
     # === ТЕСТЫ ДЛЯ whitelist ===

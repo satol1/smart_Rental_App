@@ -217,49 +217,29 @@ class TestPromoCodeSecurity:
         promo_code_logic.validate_combined_discount(duration_discount, promo_discount)
 
     @pytest.mark.asyncio
-    async def test_record_promo_code_usage_prevents_double_usage(self, promo_code_logic, sample_promo_code, sample_user, mock_db_session):
-        """Тест предотвращения двойного использования промокода."""
-        # Мокируем async context manager для begin_nested
-        mock_context = AsyncMock()
-        mock_context.__aenter__ = AsyncMock(return_value=None)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_db_session.begin_nested = MagicMock(return_value=mock_context)
-        mock_db_session.commit = AsyncMock()
-        
+    async def test_release_promo_code_usage_frees_quota(self, promo_code_logic, sample_promo_code, sample_user, mock_db_session):
+        """Отмена резерва освобождает лимит: счетчик уменьшается, запись удаляется."""
         # Мокируем методы репозитория
-        promo_code_logic.promo_code_repo.increment_usage_counter = AsyncMock()
-        promo_code_logic.promo_code_repo.get_user_usage_count = AsyncMock(return_value=1)  # Есть существующее использование
-        promo_code_logic.promo_code_repo.record_promo_code_usage = AsyncMock()
-        
-        # Функция не должна поднимать исключение, а просто пропустить вставку
-        await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
-        
-        # Проверяем, что счетчик использований был увеличен
-        promo_code_logic.promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        # Проверяем, что новая запись об использовании НЕ была создана
-        promo_code_logic.promo_code_repo.record_promo_code_usage.assert_not_called()
+        promo_code_logic.promo_code_repo.decrement_usage_counter = AsyncMock()
+        promo_code_logic.promo_code_repo.remove_latest_promo_code_usage = AsyncMock()
+
+        await promo_code_logic.release_promo_code_usage(sample_promo_code.id, sample_user.id)
+
+        promo_code_logic.promo_code_repo.decrement_usage_counter.assert_called_once_with(sample_promo_code.id)
+        promo_code_logic.promo_code_repo.remove_latest_promo_code_usage.assert_called_once_with(sample_user.id, sample_promo_code.id)
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_allows_valid_usage(self, promo_code_logic, sample_promo_code, sample_user, mock_db_session):
         """Тест разрешения валидного использования промокода."""
-        # Мокируем async context manager для begin_nested
-        mock_context = AsyncMock()
-        mock_context.__aenter__ = AsyncMock(return_value=None)
-        mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_db_session.begin_nested = MagicMock(return_value=mock_context)
-        mock_db_session.commit = AsyncMock()
-        
         # Мокируем методы репозитория
         promo_code_logic.promo_code_repo.increment_usage_counter = AsyncMock()
-        promo_code_logic.promo_code_repo.get_user_usage_count = AsyncMock(return_value=0)  # Нет существующей записи
         promo_code_logic.promo_code_repo.record_promo_code_usage = AsyncMock()
-        
+
         # Должно пройти без ошибок
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
-        
+
         # Проверяем, что методы были вызваны
         promo_code_logic.promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        promo_code_logic.promo_code_repo.get_user_usage_count.assert_called_once_with(sample_user.id, sample_promo_code.id)
         promo_code_logic.promo_code_repo.record_promo_code_usage.assert_called_once()
 
     @pytest.mark.asyncio

@@ -1,206 +1,104 @@
 # tests/utils/test_password_utils.py
 
+import bcrypt
 import pytest
-from unittest.mock import patch, MagicMock
 
-from api.utils.password_utils import hash_password, verify_password, pwd_context
+from api.utils.password_utils import hash_password, verify_password
 
 
 class TestPasswordUtils:
-    """Тесты для утилит работы с паролями."""
+    """Тесты для утилит работы с паролями (bcrypt напрямую, без passlib)."""
 
     def test_hash_password_success(self):
-        """Тест успешного хеширования пароля."""
-        # Arrange
+        """Хеширование возвращает валидный bcrypt-хеш."""
         password = "testpassword123"
-        expected_hash = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'hash', return_value=expected_hash) as mock_hash:
-            # Act
-            result = hash_password(password)
-            
-            # Assert
-            assert result == expected_hash
-            mock_hash.assert_called_once_with(password)
+
+        result = hash_password(password)
+
+        assert isinstance(result, str)
+        assert result.startswith("$2")
+        # Один и тот же пароль даёт разные соли
+        assert hash_password(password) != result
 
     def test_hash_password_empty_string(self):
-        """Тест хеширования пустой строки."""
-        # Arrange
-        password = ""
-        expected_hash = "$2b$12$emptyhash"
-        
-        with patch.object(pwd_context, 'hash', return_value=expected_hash) as mock_hash:
-            # Act
-            result = hash_password(password)
-            
-            # Assert
-            assert result == expected_hash
-            mock_hash.assert_called_once_with(password)
+        """Пустой пароль тоже хешируется (валидацию длины делает схема)."""
+        result = hash_password("")
+
+        assert isinstance(result, str)
+        assert result.startswith("$2")
 
     def test_hash_password_special_characters(self):
-        """Тест хеширования пароля со специальными символами."""
-        # Arrange
+        """Хеширование пароля со специальными символами."""
         password = "!@#$%^&*()_+-=[]{}|;':\",./<>?"
-        expected_hash = "$2b$12$specialhash"
-        
-        with patch.object(pwd_context, 'hash', return_value=expected_hash) as mock_hash:
-            # Act
-            result = hash_password(password)
-            
-            # Assert
-            assert result == expected_hash
-            mock_hash.assert_called_once_with(password)
+
+        result = hash_password(password)
+
+        assert verify_password(password, result) is True
 
     def test_hash_password_unicode(self):
-        """Тест хеширования пароля с Unicode символами."""
-        # Arrange
+        """Хеширование пароля с Unicode символами."""
         password = "пароль123"
-        expected_hash = "$2b$12$unicodehash"
-        
-        with patch.object(pwd_context, 'hash', return_value=expected_hash) as mock_hash:
-            # Act
-            result = hash_password(password)
-            
-            # Assert
-            assert result == expected_hash
-            mock_hash.assert_called_once_with(password)
+
+        result = hash_password(password)
+
+        assert verify_password(password, result) is True
 
     def test_hash_password_long_password(self):
-        """Тест хеширования длинного пароля."""
-        # Arrange
-        password = "a" * 1000  # Очень длинный пароль
-        expected_hash = "$2b$12$longhash"
-        
-        with patch.object(pwd_context, 'hash', return_value=expected_hash) as mock_hash:
-            # Act
-            result = hash_password(password)
-            
-            # Assert
-            assert result == expected_hash
-            mock_hash.assert_called_once_with(password)
+        """Хеширование длинного пароля (bcrypt ограничен 72 байтами — не падаем)."""
+        result = hash_password("a" * 1000)
 
-    def test_verify_password_success(self):
-        """Тест успешной проверки пароля."""
-        # Arrange
-        plain_password = "testpassword123"
-        hashed_password = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'verify', return_value=True) as mock_verify:
-            # Act
-            result = verify_password(plain_password, hashed_password)
-            
-            # Assert
-            assert result is True
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+        assert isinstance(result, str)
+        assert result.startswith("$2")
+
+    def test_verify_password_correct(self):
+        """Верификация правильного пароля."""
+        hashed = hash_password("Password123")
+
+        assert verify_password("Password123", hashed) is True
 
     def test_verify_password_wrong_password(self):
-        """Тест проверки неправильного пароля."""
-        # Arrange
-        plain_password = "wrongpassword"
-        hashed_password = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'verify', return_value=False) as mock_verify:
-            # Act
-            result = verify_password(plain_password, hashed_password)
-            
-            # Assert
-            assert result is False
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+        """Верификация неверного пароля."""
+        hashed = hash_password("Password123")
+
+        assert verify_password("WrongPassword", hashed) is False
 
     def test_verify_password_empty_plain(self):
-        """Тест проверки пустого пароля."""
-        # Arrange
-        plain_password = ""
-        hashed_password = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'verify', return_value=False) as mock_verify:
-            # Act
-            result = verify_password(plain_password, hashed_password)
-            
-            # Assert
-            assert result is False
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+        """Проверка пустого пароля."""
+        hashed = hash_password("Password123")
+
+        assert verify_password("", hashed) is False
 
     def test_verify_password_empty_hash(self):
-        """Тест проверки с пустым хешем."""
-        # Arrange
-        plain_password = "testpassword123"
-        hashed_password = ""
-        
-        with patch.object(pwd_context, 'verify', return_value=False) as mock_verify:
-            # Act
-            result = verify_password(plain_password, hashed_password)
-            
-            # Assert
-            assert result is False
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+        """Проверка с пустым хешем."""
+        assert verify_password("Password123", "") is False
 
-    def test_verify_password_none_values(self):
-        """Тест проверки с None значениями."""
-        # Arrange
-        plain_password = None
-        hashed_password = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'verify', return_value=False) as mock_verify:
-            # Act
-            result = verify_password(plain_password, hashed_password)
-            
-            # Assert
-            assert result is False
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+    def test_verify_password_invalid_hash_format(self):
+        """Повреждённый/некорректный хеш не валит проверку — просто False."""
+        assert verify_password("Password123", "not-a-bcrypt-hash") is False
 
-    def test_hash_password_hash_context_error(self):
-        """Тест обработки ошибки при хешировании."""
-        # Arrange
-        password = "testpassword123"
-        
-        with patch.object(pwd_context, 'hash', side_effect=Exception("Hash error")) as mock_hash:
-            # Act & Assert
-            with pytest.raises(Exception) as exc_info:
-                hash_password(password)
-            
-            assert "Hash error" in str(exc_info.value)
-            mock_hash.assert_called_once_with(password)
+    def test_hash_roundtrip_via_bcrypt_module(self):
+        """Хеш из password_utils читается напрямую bcrypt.checkpw."""
+        hashed = hash_password("Password123")
 
-    def test_verify_password_verify_context_error(self):
-        """Тест обработки ошибки при проверке пароля."""
-        # Arrange
-        plain_password = "testpassword123"
-        hashed_password = "$2b$12$testhash"
-        
-        with patch.object(pwd_context, 'verify', side_effect=Exception("Verify error")) as mock_verify:
-            # Act & Assert
-            with pytest.raises(Exception) as exc_info:
-                verify_password(plain_password, hashed_password)
-            
-            assert "Verify error" in str(exc_info.value)
-            mock_verify.assert_called_once_with(plain_password, hashed_password)
+        assert bcrypt.checkpw(b"Password123", hashed.encode("utf-8")) is True
 
     def test_password_roundtrip(self):
-        """Тест полного цикла: хеширование и проверка."""
-        # Arrange
+        """Полный цикл: хеширование и проверка."""
         original_password = "testpassword123"
-        mock_hash = "$2b$12$roundtriphash"
-        
-        with patch.object(pwd_context, 'hash', return_value=mock_hash) as mock_hash_func, \
-             patch.object(pwd_context, 'verify', return_value=True) as mock_verify:
-            
-            # Act
-            hashed = hash_password(original_password)
-            is_valid = verify_password(original_password, hashed)
-            
-            # Assert
-            assert hashed == mock_hash
-            assert is_valid is True
-            mock_hash_func.assert_called_once_with(original_password)
-            mock_verify.assert_called_once_with(original_password, mock_hash)
 
-    def test_password_context_initialization(self):
-        """Тест инициализации контекста паролей."""
-        # Assert
-        assert pwd_context is not None
-        assert hasattr(pwd_context, 'hash')
-        assert hasattr(pwd_context, 'verify')
-        # Проверяем, что схемы содержат bcrypt (может быть не только bcrypt)
-        schemes = pwd_context.schemes() if callable(pwd_context.schemes) else pwd_context.schemes
-        assert "bcrypt" in schemes
+        hashed = hash_password(original_password)
+        is_valid = verify_password(original_password, hashed)
+
+        assert is_valid is True
+
+    def test_passlib_legacy_hash_compatibility(self):
+        """Совместимость: хеш, созданный старым кодом через passlib (формат $2b$),
+        валидируется новой реализацией на bcrypt.checkpw.
+
+        Хеш ниже сгенерирован passlib CryptContext(schemes=["bcrypt"])
+        для пароля MySecretPassword123.
+        """
+        legacy_passlib_hash = "$2b$12$EToegE1LuK9ckCPMFh/EROdWyPaFGPq8KiAw084IfcDnlSCsfzwXS"
+
+        assert verify_password("MySecretPassword123", legacy_passlib_hash) is True
+        assert verify_password("WrongPassword", legacy_passlib_hash) is False

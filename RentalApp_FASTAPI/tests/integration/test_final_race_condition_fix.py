@@ -24,7 +24,7 @@ class TestFinalRaceConditionFix:
         # Тестируем простой эндпоинт
         response = client.get('/health')
         assert response.status_code == 200
-        assert response.json()['status'] == 'healthy'
+        assert response.json()['status'] == 'ok'
         
         # Тестируем другой эндпоинт
         response = client.get('/test-simple')

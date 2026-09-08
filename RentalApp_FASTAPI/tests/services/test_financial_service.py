@@ -91,7 +91,8 @@ class TestFinancialService:
 
         # Assert
         assert rental_days == 2  # 4 дня - 2 выходных = 2 тарифицируемых дня
-        financial_service.holiday_repo.get_holidays_in_range.assert_called_once_with(start_date, end_date)
+        # Праздники ищутся в [start, end): end_date не тарифицируется
+        financial_service.holiday_repo.get_holidays_in_range.assert_called_once_with(start_date, end_date - timedelta(days=1))
 
     @pytest.mark.asyncio
     async def test_get_rental_days_same_date_returns_one(self, financial_service):
@@ -145,7 +146,8 @@ class TestFinancialService:
 
         # Assert
         assert rental_days == 4  # 4 дня без выходных
-        financial_service.holiday_repo.get_holidays_in_range.assert_called_once_with(start_date, end_date)
+        # Праздники ищутся в [start, end): end_date не тарифицируется
+        financial_service.holiday_repo.get_holidays_in_range.assert_called_once_with(start_date, end_date - timedelta(days=1))
 
     # === ТЕСТЫ ДЛЯ calculate_final_price ===
 

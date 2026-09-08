@@ -144,11 +144,11 @@ class TestIntegrationDIFixes:
         # Проверяем, что сервис создан
         assert isinstance(error_handler, ErrorHandlerService)
         
-        # Проверяем, что сервис может выполнять операции
-        error_handler.handle_error("Test error", "test_component")
-        
-        # Проверяем, что ошибка зарегистрирована
-        assert error_handler.error_counts["test_component"] == 1
+        # Проверяем, что сервис может выполнять операции (актуальный API — handle_generic_error)
+        error_handler.handle_generic_error(ValueError("Test error"), "test_component")
+
+        # Проверяем, что ошибка зарегистрирована (ключ — тип исключения)
+        assert error_handler.error_counts["ValueError"] == 1
     
     def test_container_wiring_integration(self, container):
         """Интеграционный тест: Контейнер правильно связан с модулями"""

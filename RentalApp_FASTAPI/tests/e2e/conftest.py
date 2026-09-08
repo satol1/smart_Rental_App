@@ -39,8 +39,9 @@ e2e_test_engine = create_async_engine(
     echo=False,
     pool_pre_ping=True,
     pool_recycle=300,
-    pool_size=1,  # Уменьшаем размер пула для тестов
-    max_overflow=0,  # Отключаем overflow для стабильности
+    # Пул 1/0 хрупок: один незакрытый коннект -> каскад QueuePool таймаутов
+    pool_size=5,
+    max_overflow=10,
     isolation_level="READ_COMMITTED",  # Используем READ_COMMITTED вместо AUTOCOMMIT
     connect_args={
         "server_settings": {
@@ -99,6 +100,14 @@ async def e2e_client(e2e_db_session: AsyncSession) -> AsyncGenerator[AsyncClient
     
     # Создаем новое приложение для E2E тестов
     e2e_app = FastAPI()
+    
+    # SlowAPIMiddleware на каждом запросе читает app.state.limiter — без этого
+    # новое приложение падает с "'State' object has no attribute 'limiter'"
+    from api.rate_limiter import limiter
+    from api.main_api import _rate_limit_exceeded_handler
+    from slowapi.errors import RateLimitExceeded
+    e2e_app.state.limiter = limiter
+    e2e_app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     
     # Копируем все middleware кроме DIContainerMiddleware
     for middleware in original_app.user_middleware:
@@ -163,6 +172,8 @@ async def cleanup_e2e_database(e2e_db_session: AsyncSession):
     await e2e_db_session.execute(text("DELETE FROM duration_discounts"))
     await e2e_db_session.execute(text("DELETE FROM packs"))
     await e2e_db_session.execute(text("DELETE FROM holidays"))
+    # использования промокодов ссылаются на промокоды и пользователей — чистим раньше
+    await e2e_db_session.execute(text("DELETE FROM promo_code_usages"))
     await e2e_db_session.execute(text("DELETE FROM promo_codes"))
     await e2e_db_session.execute(text("DELETE FROM accessories"))
     await e2e_db_session.execute(text("DELETE FROM equipment"))
@@ -173,7 +184,11 @@ async def cleanup_e2e_database(e2e_db_session: AsyncSession):
 @pytest.fixture
 async def clean_e2e_db(e2e_db_session: AsyncSession):
     """Очищает E2E базу данных после каждого теста."""
-    # НЕ очищаем данные перед тестом, чтобы не удалить пользователей из фикстур
+    # НЕ очищаем данные перед тестом, чтобы не удалить пользователей из фикстур.
+    # Но классовый кэш завершённых аренд чистим ДО теста: иначе результат
+    # предыдущего теста (count=0) маскирует аренды, созданные текущим
+    from api.services.user.user_status_service import UserStatusService
+    UserStatusService._completed_rentals_cache.clear()
     yield
     # Очищаем данные после теста
     await cleanup_e2e_database(e2e_db_session)

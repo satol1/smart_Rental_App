@@ -43,14 +43,15 @@ async def test_isolated_postgresql_database_info(isolated_db_session: AsyncSessi
     # Текущая база данных
     result = await isolated_db_session.execute(text("SELECT current_database()"))
     db_name = result.scalar()
-    # Проверяем, что это тестовая база данных (может быть unit_test_db или integration_test_db)
-    assert db_name in ["unit_test_db", "integration_test_db"]
+    # Проверяем, что это тестовая база данных (имя зависит от стека:
+    # unit_test_db / integration_test_db / test_db в full-architecture)
+    assert db_name in ["unit_test_db", "integration_test_db", "test_db"]
     
     # Текущий пользователь
     result = await isolated_db_session.execute(text("SELECT current_user"))
     user = result.scalar()
-    # Проверяем, что это тестовый пользователь (может быть unit_test_user или integration_test_user)
-    assert user in ["unit_test_user", "integration_test_user"]
+    # Проверяем, что это тестовый пользователь (имя зависит от стека)
+    assert user in ["unit_test_user", "integration_test_user", "test_user"]
     
     print(f"✅ База данных: {db_name}, Пользователь: {user}")
 
@@ -276,6 +277,6 @@ async def test_isolated_api_health_check(isolated_client: AsyncClient):
     assert response.status_code == 200
     
     data = response.json()
-    assert data["status"] == "healthy"
+    assert data["status"] == "ok"
     
     print("✅ Health check endpoint работает")

@@ -214,4 +214,5 @@ class TestPeriodService:
                 elif period_type == "quarter":
                     assert 89 <= days_diff <= 92  # Разные кварталы имеют разное количество дней
                 elif period_type == "year":
-                    assert days_diff == 365 or days_diff == 366  # Обычный или високосный год
+                    # Период inclusive: 1 янв .. 31 дек = 364 дня (365 в високосный)
+                    assert days_diff in (364, 365)

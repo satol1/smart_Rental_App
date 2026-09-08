@@ -76,9 +76,7 @@ class TestReservationWithUserStatus:
             db=db_session,
             query_repo=None,
             command_repo=None,
-            financial_repo=None,
-            financial_service=None,
-            period_service=None
+            financial_repo=None
         )
         
         user_status_service = UserStatusService(

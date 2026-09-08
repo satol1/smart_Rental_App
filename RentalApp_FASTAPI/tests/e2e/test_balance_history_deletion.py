@@ -57,7 +57,7 @@ async def test_delete_balance_history_entry_and_recalculate_balance(
     from sqlalchemy.orm import sessionmaker
     from config.core import settings
     
-    engine = create_async_engine(settings.DATABASE_URL)
+    engine = create_async_engine(settings.database_url)
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     async with async_session() as new_session:

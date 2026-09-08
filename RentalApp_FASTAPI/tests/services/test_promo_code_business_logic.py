@@ -91,7 +91,7 @@ class TestPromoCodeBusinessLogic:
             # Assert
             assert result == sample_promo_code
             promo_code_logic.validator.validate_complete.assert_called_once_with(
-                code, order_amount, equipment_ids, sample_user
+                code, order_amount, equipment_ids, sample_user, skip_usage_limits=False
             )
 
     @pytest.mark.asyncio
@@ -216,18 +216,16 @@ class TestPromoCodeBusinessLogic:
         
         # Мокируем методы репозитория
         promo_code_logic.promo_code_repo.increment_usage_counter = AsyncMock()
-        promo_code_logic.promo_code_repo.get_user_usage_count = AsyncMock(return_value=0)  # Нет существующих использований
         promo_code_logic.promo_code_repo.record_promo_code_usage = AsyncMock()
 
         # Act
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
         
         # Assert
-        # Проверяем, что методы репозитория были вызваны
+        # Проверяем, что методы репозитория были вызваны (коммитит middleware)
         promo_code_logic.promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        promo_code_logic.promo_code_repo.get_user_usage_count.assert_called_once_with(sample_user.id, sample_promo_code.id)
         promo_code_logic.promo_code_repo.record_promo_code_usage.assert_called_once()
-        mock_db_session.commit.assert_called_once()
+        mock_db_session.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_anonymous_user(self, promo_code_logic, mock_db_session, sample_promo_code):
@@ -246,8 +244,8 @@ class TestPromoCodeBusinessLogic:
         # Счётчик увеличивается через репозиторий, не через изменение поля объекта
         assert sample_promo_code.times_used == 0
         
-        # Проверяем, что commit был вызван
-        mock_db_session.commit.assert_called_once()
+        # Коммит выполняет middleware — db.commit не вызывается
+        mock_db_session.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_existing_usage(self, promo_code_logic, mock_db_session, sample_promo_code, sample_user):
@@ -264,20 +262,16 @@ class TestPromoCodeBusinessLogic:
         
         # Мокируем методы репозитория
         promo_code_logic.promo_code_repo.increment_usage_counter = AsyncMock()
-        promo_code_logic.promo_code_repo.get_user_usage_count = AsyncMock(return_value=1)  # Есть существующее использование
         promo_code_logic.promo_code_repo.record_promo_code_usage = AsyncMock()
 
         # Act
         await promo_code_logic.record_promo_code_usage(sample_promo_code, sample_user)
         
         # Assert
-        # Проверяем, что счетчик был увеличен
+        # Каждое применение записывается: лимит на пользователя проверяет валидатор
         promo_code_logic.promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
-        # Проверяем, что была проверка существующего использования
-        promo_code_logic.promo_code_repo.get_user_usage_count.assert_called_once_with(sample_user.id, sample_promo_code.id)
-        # Проверяем, что новая запись об использовании НЕ была создана (т.к. уже есть использование)
-        promo_code_logic.promo_code_repo.record_promo_code_usage.assert_not_called()
-        mock_db_session.commit.assert_called_once()
+        promo_code_logic.promo_code_repo.record_promo_code_usage.assert_called_once()
+        mock_db_session.commit.assert_not_called()
 
     # === ТЕСТЫ ДЛЯ calculate_discount_amount ===
 
