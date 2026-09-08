@@ -136,12 +136,13 @@ docker compose restart backend
 docker compose down            # контейнеры и сеть
 docker compose down -v         # + тома (ОСТОРОЖНО: удалит данные БД)
 
-# Разовые команды в контейнере
-docker compose exec backend python -m pytest tests/ -q
+# Разовые команды в контейнере (pytest недоступен в прод-образе — только стеки ниже)
 docker compose exec db pg_dump -U $POSTGRES_USER $POSTGRES_DB > backup.sql
 
-# Тестовые окружения (отдельные compose в RentalApp_FASTAPI/)
-docker compose -f RentalApp_FASTAPI/docker-compose.unit-tests.yml run --rm test-backend pytest tests/ -q
+# Тестовые окружения (отдельные compose в RentalApp_FASTAPI/; изоляция от рабочего стека)
+cd RentalApp_FASTAPI
+docker compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.unit-tests.yml down -v   # после каждого прогона
 
 # Слабый VPS (1 vCPU / 2GB)
 docker compose -f docker-compose.limited-resources.yml up -d --build
@@ -165,7 +166,7 @@ docker compose -f docker-compose.yml config -q
 ```
 
 Конституция проекта: `.specify/memory/constitution.md` (главенствует при конфликтах).
-Текущая программа: `specs/001-platform-modernization/` (аудит → план → задачи).
+Программа `specs/001-platform-modernization/` (аудит → план → задачи) завершена и влита в main (v5.0.3); новые фичи — по новым спекам.
 
 ---
 

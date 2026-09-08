@@ -255,25 +255,35 @@ export function NewFeatureCard({ feature, onEdit }: NewFeatureCardProps) {
 ## 🧪 Тестирование
 
 ### Backend тесты
+Из `RentalApp_FASTAPI/` (тестовые стеки изолированы от рабочего; после прогона — `down -v`):
+
 ```bash
-# Unit тесты
-docker-compose -f docker-compose.unit-tests.yml run --rm test-backend pytest tests/services/test_new_feature_service.py -v
+# Unit (весь набор или конкретный файл через переменную TESTS)
+docker compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.unit-tests.yml down -v
 
-# Integration тесты
-docker-compose -f docker-compose.integration-tests.yml run --rm test-backend pytest tests/integration/test_new_feature_integration.py -v
+# Локально в .venv (быстрая итерация, PostgreSQL не нужен для чистых юнитов)
+.venv/Scripts/python -m pytest tests/services/test_new_feature_service.py -v   # Windows
+.venv/bin/python -m pytest tests/services/test_new_feature_service.py -v       # Linux/macOS
 
-# Критичные тесты
-docker-compose -f docker-compose.unit-tests.yml run --rm test-backend pytest tests/critical/ -v
+# Integration / E2E / все фазы
+docker compose -f docker-compose.integration-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
 ```
+
+Примечание: прод-образ не содержит pytest — `run --rm`/`exec` с тестами не работают.
 
 ### Frontend тесты
-```bash
-# Запуск тестов (в Docker)
-docker-compose exec frontend npm test
+Из `rental-app-main/`:
 
-# Тесты с покрытием
-docker-compose exec frontend npm run test:coverage
+```bash
+npm run test:run            # разовый прогон (vitest)
+npm run test:watch          # watch-режим
+npm run test:coverage       # с покрытием
 ```
+
+В Docker: `docker compose -f docker-compose.test.yml --profile test up --build --abort-on-container-exit`.
 
 ## 📝 Создание миграций
 
@@ -349,7 +359,7 @@ docker-compose logs -f postgres
 
 ### Метрики
 - **Backend**: http://localhost:8000/health
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost:5173 (dev-override) / http://localhost (прод-конфиг)
 - **API Docs**: http://localhost:8000/docs
 
 ## 🔧 Полезные команды

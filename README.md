@@ -22,11 +22,11 @@
 | Кэш/состояние | Redis 7 (rate limit, denylist токенов, защита от брутфорса, кэш дашборда; graceful fallback в память) |
 | Инфраструктура | Docker Compose (non-root образы, healthchecks), nginx, Let's Encrypt (certbot), GitHub Actions CI |
 | Безопасность | JWT (типизация + denylist), bcrypt, CSRF-валидация, rate limiting (slowapi + nginx), fail-fast секреты |
-| Тесты | pytest (backend, ~1970), vitest (frontend, 306) |
+| Тесты | pytest (backend, ~1500+), vitest (frontend, 618) |
 
 ## Процесс разработки (Spec-Driven)
 
-Проект использует [GitHub SpecKit](https://github.com/github/spec-kit): конституция — `.specify/memory/constitution.md`, функциональность начинается со спека (`/speckit.specify` → clarify → plan → tasks → implement). Текущая программа модернизации: `specs/001-platform-modernization/` (spec + plan + tasks). Правила разработки: [RULES.md](RULES.md).
+Проект использует [GitHub SpecKit](https://github.com/github/spec-kit): конституция — `.specify/memory/constitution.md`, функциональность начинается со спека (`/speckit.specify` → clarify → plan → tasks → implement). Программа модернизации `specs/001-platform-modernization/` завершена и влита (журнал — [Docs/CHANGELOG.md](Docs/CHANGELOG.md)). Правила разработки: [RULES.md](RULES.md).
 
 ## Архитектура
 
@@ -34,11 +34,15 @@
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │   Frontend   │────▶│   Backend    │────▶│  PostgreSQL  │
 │ React + Vite │ API │   FastAPI    │     │      15      │
-│ nginx :80/443│     │ uvicorn:8000 │     │   :5432      │
-└──────────────┘     └──────┬───────┘     └──────────────┘
-                            │
-                    Telegram / SMTP / PDF
+│ nginx :80/443│     │ uvicorn:8000 │     └──────────────┘
+└──────────────┘     └──────┬───────┘     ┌──────────────┐
+                            │────────────▶│   Redis 7    │
+                    Telegram / SMTP / PDF  └──────────────┘
 ```
+
+PostgreSQL и Redis не публикуют порты наружу — доступ только внутри
+compose-сети. Backend публикует `8000:8000` (для API-документации и отладки;
+в жёстком проде уберите публикацию — nginx проксирует `/api/` внутри сети).
 
 ## Быстрый старт
 
@@ -66,10 +70,10 @@ docker compose up -d --build
 
 | Что | Где |
 |---|---|
-| Веб-интерфейс | http://localhost |
+| Веб-интерфейс | http://localhost (prod) / http://localhost:5173 (с dev-override) |
 | API | http://localhost:8000/api |
-| Документация API (Swagger) | http://localhost:8000/docs |
-| PostgreSQL | localhost:5433 (снаружи контейнера) |
+| Документация API (Swagger) | http://localhost:8000/docs (только при `DEBUG=true`) |
+| PostgreSQL / Redis | без публикации портов — только внутри compose-сети (`docker compose exec db psql ...`) |
 
 ## Переменные окружения
 
@@ -80,6 +84,8 @@ docker compose up -d --build
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Учётные данные и имя базы PostgreSQL |
 | `SECRET_KEY`, `CSRF_SECRET_KEY` | Секреты приложения (сгенерируйте случайные) |
 | `DEBUG` | `true` для разработки, `false` для продакшена |
+| `CORS_ORIGINS` | Разрешённые источники через запятую (по умолчанию localhost:5173,3000) |
+| `REDIS_URL` | Адрес Redis (в compose задаётся автоматически: `redis://redis:6379/0`) |
 | `TELEGRAM_TOKEN`, `DEFAULT_TELEGRAM_CHAT_ID` | Бот для уведомлений |
 | `YANDEX_EMAIL_SENDER`, `YANDEX_SMTP_PASSWORD` | Отправка email через SMTP Яндекса |
 | `DOMAIN`, `SSL_EMAIL` | Домен и email для сертификата Let's Encrypt (продакшен) |
@@ -99,9 +105,10 @@ docker compose --profile diagnostics up -d  # диагностические п�
 ```
 ├── RentalApp_FASTAPI/     # Backend: API, модели, сервисы, репозитории, миграции
 │   ├── api/               # Роутеры, модели, утилиты
+│   ├── containers/        # Конфигурация dependency-injector (пакет)
 │   ├── migrations/        # Миграции Alembic
-│   ├── containers.py      # Конфигурация dependency-injector
-│   └── tests/             # pytest-тесты
+│   ├── shared/            # Схемы Pydantic, константы (синхронизация фронт↔бэк)
+│   └── tests/             # pytest-тесты (tests/attic — устаревшие, не запускаются)
 ├── rental-app-main/       # Frontend: React + TypeScript + Vite
 │   ├── src/               # Компоненты, страницы, хуки
 │   └── nginx/             # Конфиги nginx для SPA и проксирования API
@@ -114,29 +121,30 @@ docker compose --profile diagnostics up -d  # диагностические п�
 
 ## Тесты
 
-Тесты выполняются в изолированных стеках (не затрагивают рабочий). Из `RentalApp_FASTAPI/`:
+Тесты выполняются в изолированных стеках (не затрагивают рабочий).
+Все наборы — зелёные: backend unit 953 / integration 94 / e2e 17 /
+critical 17 / csp-nonce 9; frontend 618.
 
 ```bash
-# Backend — наборы (unit / integration / e2e / все сразу)
+# Backend — обёртки (из RentalApp_FASTAPI/), флаги: -u unit, -i integration,
+# -e e2e, --full всё; -d — в Docker
+./run_all_tests.sh -u -d          # юнит в Docker
+./run_e2e_tests.sh -d             # e2e в изолированном стеке
+
+# Backend — напрямую через compose
 docker compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
 docker compose -f docker-compose.integration-tests.yml up --build --abort-on-container-exit
 docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
 docker compose -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
 # после каждого прогона: docker compose -f <файл> down -v
 
-# Обёртки (те же наборы, с очисткой)
-./run_unit_tests.sh -d
-./run_e2e_tests.sh -d
-
-# Backend локально (нужен .venv с requirements-test.txt)
-pytest tests/services/ -m "not slow"
-
-# Frontend
+# Frontend — локально или в Docker
 cd rental-app-main && npm run test:run
+cd rental-app-main && docker compose -f docker-compose.test.yml --profile test up --build --abort-on-container-exit
 ```
 
-Примечание: `docker compose exec backend pytest` больше не работает — тесты и
-pytest не копируются в прод-образ (см. .dockerignore); используйте стеки выше.
+Примечание: `docker compose exec backend pytest` не работает — тесты и pytest
+не копируются в прод-образ (см. .dockerignore); используйте стеки выше.
 
 ⚠️ `docker compose up` без `-f` подхватывает `docker-compose.override.yml`
 (dev-режим: DEBUG=true, порт 5173). Для прод-запуска на сервере используйте

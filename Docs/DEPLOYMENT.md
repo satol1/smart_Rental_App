@@ -1,939 +1,204 @@
 # 🚀 Руководство по развертыванию
 
-Подробное руководство по развертыванию системы аренды фототехники в различных средах.
-
-## 🔧 Текущее состояние
-
-**Версия**: 5.0 (модернизация 2026-09)  
-**Статус**: ✅ Полностью функциональна и готова к продакшену
-
-### ⚠️ Обязательные шаги при деплое на v5.0
-1. **Секреты fail-fast**: при `DEBUG=false` приложение не стартует без `SECRET_KEY`, `CSRF_SECRET_KEY` (≥32 символов) и `POSTGRES_PASSWORD` — задайте в `.env` на сервере (генератор: `RentalApp_FASTAPI/scripts/generate_secrets.py`)
-2. **Проверьте `.env`**: уберите `DEBUG=true` для прода; старый 20-символьный `SECRET_KEY` замените на ≥32 символов
-3. **PostgreSQL недоступна снаружи**: публикация порта 5433 удалена; бэкапы — через `docker compose exec db ...`
-4. **Новый сервис Redis**: поднимается compose автоматически; при недоступности приложение деградирует на in-memory хранилища (warning в логах), но лимиты/защита продолжают работать
-5. **Создание админа**: `python create_admin.py [пароль]` — пароль из аргумента, env `ADMIN_INITIAL_PASSWORD` или генерируется; захардкоженный `AdminRental2024!` удалён (если использовался — смените)
-6. **Ротация**: если старые секреты (Telegram-токен, SMTP-пароль) попадали в логи/дампы — перевыпустите
-
-### Ключевые достижения
-- **CI/CD**: GitHub Actions (линтеры, типы, тесты, сборка образов), Dependabot, pre-commit
-- **Безопасность**: CSRF/JWT/rate-limit работают по-настоящему; образы non-root; healthchecks у всех сервисов
-- **Универсальная конфигурация**: Одна конфигурация Docker для разработки и продакшена
-- **Автоматический SSL**: Let's Encrypt интеграция с автоматическим обновлением сертификатов
-- **Единообразная архитектура**: 100% API эндпоинтов используют dependency-injector
-- **Repository Pattern**: Полностью внедрен строгий паттерн репозиториев для всех сервисов
-- **Комплексное тестирование**: 1326+ тестов покрывают все компоненты системы
-- **Полная совместимость**: Все тесты используют PostgreSQL (как в продакшене)
-
-## 📚 История изменений
-
-### 19.01.2025 - Финальная актуализация документации (v4.2)
-- **Результат**: Все документы приведены к актуальному состоянию, удалены устаревшие файлы
-- **Новые возможности**: Единообразная структура документации, актуальная информация
-
-### 19.10.2025 - Рефакторинг Repository Pattern (v3.2)
-- **Результат**: Полное внедрение строгого паттерна репозиториев, устранены прямые SQL-запросы в сервисах
-- **Новые возможности**: 100% соблюдение Repository Pattern, оптимизированные запросы
-
-### 10.10.2025 - Универсальная конфигурация с автоматическим SSL (v3.0)
-- **Результат**: Одна конфигурация Docker для всех окружений, автоматический SSL с Let's Encrypt
-- **Новые возможности**: Автоматическое определение режима работы, SSL сертификаты, современные настройки безопасности
-
-### 09.10.2025 - Критическое исправление: Полное исправление падающих тестов
-- **Результат**: Все 17 падающих тестов исправлены, система имеет 1326+ тестов
-
-### 09.10.2025 - Миграция на единообразный Dependency Injection
-- **Результат**: 100% API эндпоинтов используют dependency-injector
-
-### 05.10.2025 - Обновление системы с новым функционалом
-- **Результат**: Добавлен новый эндпоинт для удаления записей истории баланса
+Развёртывание системы аренды фототехники. Актуально для v5.0.3 (сентябрь 2026).
 
 ## 📋 Содержание
 
-- [Обзор развертывания](#обзор-развертывания)
+- [Конфигурации Docker](#конфигурации-docker)
 - [Предварительные требования](#предварительные-требования)
 - [Локальная разработка](#локальная-разработка)
-- [Docker развертывание](#docker-развертывание)
-- [Продакшн развертывание](#продакшн-развертывание)
-- [Мониторинг и логирование](#мониторинг-и-логирование)
-- [Резервное копирование](#резервное-копирование)
+- [Продакшн-развертывание на VPS](#продакшн-развертывание-на-vps)
+- [Переменные окружения](#переменные-окружения)
 - [Обновление системы](#обновление-системы)
+- [Мониторинг](#мониторинг)
+- [Резервное копирование](#резервное-копирование)
 - [Устранение неполадок](#устранение-неполадок)
 
-## 🎯 Обзор развертывания
+## Конфигурации Docker
 
-Система поддерживает несколько способов развертывания:
+| Файл | Назначение |
+|---|---|
+| `docker-compose.yml` | Основная (продакшен): db + redis + backend + frontend (nginx, 80/443), healthchecks |
+| `docker-compose.override.yml` | Локальная разработка: подхватывается автоматически (DEBUG=true, фронт на :5173, dev-nginx) |
+| `docker-compose.limited-resources.yml` | Слабые VPS (1 vCPU / 2 ГБ RAM) — с лимитами ресурсов |
+| `RentalApp_FASTAPI/docker-compose.*-tests.yml` | Изолированные тестовые стеки (unit / integration / e2e / full-architecture / csp-nonce) |
+| `rental-app-main/docker-compose.test.yml` | Тесты фронтенда (vitest) в Docker, профиль `test` |
 
-- **🐳 Docker Compose** - рекомендуемый способ для разработки и небольших продакшн сред
-- **☁️ Облачные платформы** - AWS, Google Cloud, Azure
-- **🖥️ VPS/Сервер** - развертывание на виртуальном или физическом сервере
-- **🔧 Kubernetes** - для масштабируемых продакшн сред
+Профили основного компоуза: `ssl` (certbot), `backup` (хелпер бэкапа), `diagnostics`.
 
-## 📋 Предварительные требования
+Сервисы: **db** (PostgreSQL 15, порт не публикуется), **redis** (Redis 7, порт не
+публикуется), **backend** (uvicorn, 8000), **frontend** (nginx + статика SPA,
+80/443), опционально **certbot** / **db-backup** / **diagnostics**.
 
-### Системные требования
+## Предварительные требования
 
-#### Минимальные требования
-- **CPU**: 2 ядра
-- **RAM**: 4 GB
-- **Диск**: 20 GB свободного места
-- **ОС**: Linux (Ubuntu 20.04+), macOS, Windows 10+
+- Docker 24+ и Docker Compose v2 (плагин `docker compose`)
+- 2+ vCPU, 4+ ГБ RAM (минимум для limited-конфигурации — 1 vCPU / 2 ГБ)
+- Домен с A-записью на сервер (для продакшена с HTTPS)
 
-#### Рекомендуемые требования
-- **CPU**: 4+ ядра
-- **RAM**: 8+ GB
-- **Диск**: 50+ GB SSD
-- **ОС**: Ubuntu 22.04 LTS
-
-### Программное обеспечение
-
-#### Обязательное ПО
-- **Docker** 20.10+
-- **Docker Compose** 2.0+
-- **Git** 2.30+
-
-#### Дополнительное ПО (для локальной разработки)
-- **Node.js** 18+
-- **Python** 3.11+
-- **PostgreSQL** 15+ (если не используется Docker)
-
-## 🛠️ Локальная разработка
-
-### Быстрый старт с Docker
-
-1. **Клонирование репозитория**
-```bash
-git clone <repository-url>
-cd S_Project_Docker
-```
-
-2. **Настройка переменных окружения**
-```bash
-# Создайте .env файл в корне проекта
-cp RentalApp_FASTAPI/env.example .env
-
-# Отредактируйте .env файл
-nano .env
-```
-
-3. **Запуск системы**
-```bash
-# Запуск всех сервисов
-docker-compose up -d
-
-# Просмотр логов
-docker-compose logs -f
-
-# Проверка статуса
-docker-compose ps
-```
-
-4. **Создание администратора**
-```bash
-docker-compose exec backend python create_admin.py
-```
-
-5. **Проверка работы**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- API документация: http://localhost:8000/docs
-
-### Локальная разработка без Docker
-
-#### Backend
-
-1. **Настройка Python окружения**
-```bash
-cd RentalApp_FASTAPI
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# или
-venv\Scripts\activate     # Windows
-
-pip install -r requirements.txt
-```
-
-2. **Настройка базы данных**
-```bash
-# Установите PostgreSQL и создайте базу данных
-createdb rental_db
-
-# Примените миграции
-alembic upgrade head
-```
-
-3. **Запуск сервера**
-```bash
-uvicorn api.main_api:app --reload --host 0.0.0.0 --port 8000
-```
-
-#### Frontend
-
-1. **Установка зависимостей**
-```bash
-cd rental-app-main
-npm install
-```
-
-2. **Настройка переменных окружения**
-```bash
-# Создайте .env файл
-echo "VITE_API_BASE_URL=http://localhost:8000/api" > .env
-```
-
-3. **Запуск dev-сервера**
-```bash
-npm run dev
-```
-
-## 🐳 Docker развертывание
-
-### Универсальная конфигурация
-
-Система использует **одну конфигурацию** для всех окружений. Docker автоматически определяет режим работы на основе переменных окружения:
-
-- **Разработка**: `DOMAIN` и `SSL_EMAIL` не заданы → HTTP на localhost:5173
-- **Продакшен**: `DOMAIN` и `SSL_EMAIL` заданы → HTTPS с Let's Encrypt
-
-### Конфигурация Docker Compose
-
-#### Основной файл (`docker-compose.yml`)
-
-```yaml
-version: '3.8'
-
-services:
-  db:
-    image: postgres:15-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build:
-      context: ./RentalApp_FASTAPI
-      dockerfile: Dockerfile.backend
-    volumes:
-      - ./RentalApp_FASTAPI:/app
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - DEFAULT_TELEGRAM_CHAT_ID=${DEFAULT_TELEGRAM_CHAT_ID}
-      - DEBUG=${DEBUG}
-      - YANDEX_EMAIL_SENDER=${YANDEX_EMAIL_SENDER}
-      - YANDEX_SMTP_PASSWORD=${YANDEX_SMTP_PASSWORD}
-      - DB_TYPE=${DB_TYPE}
-      - SECRET_KEY=${SECRET_KEY}
-      - TZ=Europe/Astrakhan
-    depends_on:
-      db:
-        condition: service_healthy
-
-  frontend:
-    build:
-      context: ./rental-app-main
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
-
-  # Сервис для автоматических бэкапов (опциональный)
-  db-backup:
-    image: postgres:15-alpine
-    volumes:
-      - ./db_backup:/backups
-      - ./scripts:/scripts
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles:
-      - backup  # Запускается только при указании профиля: docker-compose --profile backup up
-    command: >
-      sh -c "
-        echo 'Сервис бэкапов запущен. Для создания бэкапа используйте:';
-        echo 'docker-compose exec db-backup /scripts/backup_database.sh';
-        echo 'Ожидание...';
-        tail -f /dev/null
-      "
-
-volumes:
-  postgres_data:
-```
-
-### Переменные окружения
-
-#### Файл `.env`
+## Локальная разработка
 
 ```bash
-# База данных
-POSTGRES_USER=myuser
-POSTGRES_PASSWORD=supersecretpassword
-POSTGRES_DB=rental_db
+# 1. Клонировать и настроить окружение
+git clone https://github.com/satol1/smart_Rental_App.git
+cd smart_Rental_App
+cp env.example .env          # значения по умолчанию годятся для dev
 
-# Безопасность
-SECRET_KEY=your-super-secret-key-here
-CSRF_SECRET_KEY=your-csrf-secret-key-here
+# 2. Запустить (override включит dev-режим: DEBUG=true, фронт на :5173)
+docker compose up -d --build
 
-# Уведомления
-TELEGRAM_TOKEN=your-telegram-bot-token
-DEFAULT_TELEGRAM_CHAT_ID=your-chat-id
-YANDEX_EMAIL_SENDER=your-email@yandex.ru
-YANDEX_SMTP_PASSWORD=your-smtp-password
-
-# Настройки
-DEBUG=True
-DB_TYPE=postgresql
-TZ=Europe/Astrakhan
+# 3. Создать администратора (пароль: аргумент, env ADMIN_INITIAL_PASSWORD или сгенерируется)
+docker compose exec backend python create_admin.py
 ```
 
-### Команды Docker
+Доступ: фронтенд http://localhost:5173, API http://localhost:8000/api,
+Swagger http://localhost:8000/docs (включён при DEBUG=true).
+
+Локальный запуск без Docker см. в [QUICK_START.md](QUICK_START.md) и
+[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).
+
+## Продакшн-развертывание на VPS
+
+### 1. Подготовка сервера
 
 ```bash
-# Сборка образов
-docker-compose build
-
-# Запуск в фоновом режиме
-docker-compose up -d
-
-# Просмотр логов
-docker-compose logs -f [service_name]
-
-# Остановка сервисов
-docker-compose down
-
-# Остановка с удалением volumes
-docker-compose down -v
-
-# Перезапуск сервиса
-docker-compose restart [service_name]
-
-# Выполнение команд в контейнере
-docker-compose exec backend python manage.py migrate
-docker-compose exec backend python create_admin.py
-
-# Запуск сервиса бэкапов
-docker-compose --profile backup up -d db-backup
-
-# Создание бэкапа базы данных
-docker-compose exec db-backup /scripts/backup_database.sh
+curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+sudo usermod -aG docker $USER   # перелогиньтесь
 ```
 
-## 🏭 Продакшн развертывание
-
-### Подготовка к продакшну
-
-#### 1. Настройка переменных окружения
+### 2. Код и окружение
 
 ```bash
-# Создайте продакшн .env файл
-cat > .env.prod << EOF
-# База данных
-POSTGRES_USER=rental_user
-POSTGRES_PASSWORD=$(openssl rand -base64 32)
-POSTGRES_DB=rental_production
-
-# Безопасность
-SECRET_KEY=$(openssl rand -base64 64)
-CSRF_SECRET_KEY=$(openssl rand -base64 32)
-
-# Уведомления
-TELEGRAM_TOKEN=your-production-telegram-token
-DEFAULT_TELEGRAM_CHAT_ID=your-production-chat-id
-YANDEX_EMAIL_SENDER=your-production-email@yandex.ru
-YANDEX_SMTP_PASSWORD=your-production-smtp-password
-
-# Настройки
-DEBUG=False
-TZ=Europe/Astrakhan
-EOF
+git clone https://github.com/satol1/smart_Rental_App.git
+cd smart_Rental_App
+cp env.example .env && nano .env
 ```
 
-#### 2. Создание продакшн Docker Compose
+**Чек-лист прод-.env (обязательно):**
 
-```yaml
-# docker-compose.prod.yml
-version: '3.8'
+| Переменная | Значение |
+|---|---|
+| `DEBUG` | `false` — иначе включены /docs, детали ошибок, cookie без Secure, wildcard-CORS |
+| `SECRET_KEY`, `CSRF_SECRET_KEY` | ≥32 символов, случайные. При `DEBUG=false` приложение **не стартует** с dev-значениями: генератор `RentalApp_FASTAPI/scripts/generate_secrets.py` |
+| `POSTGRES_PASSWORD` | сильный пароль (dev-значение `12345` будет отклонено) |
+| `CORS_ORIGINS` | ваш домен: `https://yourdomain.com` (не wildcard) |
+| `CORS_ALLOW_WILDCARD` | `false` |
+| `DOMAIN`, `SSL_EMAIL` | домен и почта для Let's Encrypt |
+| `FORWARDED_ALLOW_IPS` | подсеть docker (по умолчанию `172.16.0.0/12`); при нестандартной сети — адрес nginx-контейнера |
 
-services:
-  db:
-    restart: unless-stopped
-    environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-      - ./backups:/backups
-
-  backend:
-    restart: unless-stopped
-    environment:
-      - DEBUG=False
-    volumes:
-      - ./logs:/app/logs
-      - ./exports:/app/exports
-
-  frontend:
-    restart: unless-stopped
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
-      - ./ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - backend
-```
-
-#### 3. Конфигурация Nginx для продакшна
-
-```nginx
-# nginx/nginx.prod.conf
-upstream backend {
-    server backend:8000;
-}
-
-upstream frontend {
-    server frontend:80;
-}
-
-server {
-    listen 80;
-    server_name your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-
-    ssl_certificate /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/key.pem;
-
-    # API запросы
-    location /api/ {
-        proxy_pass http://backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Frontend
-    location / {
-        proxy_pass http://frontend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Развертывание на VPS
-
-#### 1. Подготовка сервера
+### 3. Запуск
 
 ```bash
-# Обновление системы
-sudo apt update && sudo apt upgrade -y
+# Прод-конфигурация БЕЗ override (override = dev-режим!)
+rm docker-compose.override.yml   # или переименуйте
+docker compose -f docker-compose.yml up -d --build
 
-# Установка Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
+# Получение SSL-сертификата (профиль ssl; certbot получает сертификат,
+# nginx терминирует TLS)
+docker compose -f docker-compose.yml --profile ssl up -d
 
-# Установка Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Добавление пользователя в группу docker
-sudo usermod -aG docker $USER
+# Админ
+docker compose -f docker-compose.yml exec backend python create_admin.py
 ```
 
-#### 2. Развертывание приложения
+Миграции применяются вручную при обновлениях (при первичном старте на пустой
+БД — `docker compose -f docker-compose.yml exec backend alembic upgrade head`).
+
+### 4. Слабый VPS
+
+Для серверов 1 vCPU / 2 ГБ RAM используйте лимитированную конфигурацию
+(вместо основной; override также удалить):
 
 ```bash
-# Клонирование репозитория
-git clone <repository-url>
-cd S_Project_Docker
-
-# Настройка переменных окружения
-cp RentalApp_FASTAPI/env.example .env
-nano .env  # Отредактируйте настройки
-
-# Запуск в продакшн режиме
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-# Создание администратора
-docker-compose exec backend python create_admin.py
+docker compose -f docker-compose.limited-resources.yml up -d --build
 ```
 
-#### 3. Настройка SSL сертификата
+## Переменные окружения
+
+Полный список с описаниями — [env.example](../env.example). Ключевые:
+
+| Переменная | Назначение |
+|---|---|
+| `POSTGRES_USER/PASSWORD/DB` | Учётные данные PostgreSQL |
+| `SECRET_KEY`, `CSRF_SECRET_KEY` | Секреты приложения (≥32 символов в проде, fail-fast) |
+| `DEBUG` | `false` в проде |
+| `REDIS_URL` | Задаётся компоузом (`redis://redis:6379/0`); при недоступности Redis бэкенд деградирует на in-memory (warning в логах) |
+| `CORS_*` | Источники/заголовки CORS |
+| `WORKERS` | Число воркеров uvicorn (по умолчанию 1); с несколькими воркерами Redis желателен |
+| `TELEGRAM_TOKEN`, `DEFAULT_TELEGRAM_CHAT_ID` | Уведомления в Telegram |
+| `YANDEX_EMAIL_SENDER`, `YANDEX_SMTP_PASSWORD` | Отправка email |
+| `DOMAIN`, `SSL_EMAIL` | Сертификат Let's Encrypt |
+
+## Обновление системы
 
 ```bash
-# Установка Certbot
-sudo apt install certbot python3-certbot-nginx -y
+# 1. Бэкап БД
+./scripts/backup_database.sh
 
-# Получение сертификата
-sudo certbot --nginx -d your-domain.com
-
-# Автоматическое обновление
-sudo crontab -e
-# Добавьте строку:
-# 0 12 * * * /usr/bin/certbot renew --quiet
-```
-
-### Развертывание в облаке
-
-#### AWS EC2
-
-1. **Создание EC2 инстанса**
-   - Выберите Ubuntu 22.04 LTS
-   - Минимум t3.medium
-   - Откройте порты 22, 80, 443
-
-2. **Настройка RDS PostgreSQL**
-   - Создайте RDS инстанс PostgreSQL
-   - Настройте security groups
-   - Обновите DATABASE_URL в .env
-
-3. **Использование Application Load Balancer**
-   - Создайте ALB
-   - Настройте target groups
-   - Добавьте SSL сертификат
-
-#### Google Cloud Platform
-
-1. **Создание Compute Engine инстанса**
-```bash
-gcloud compute instances create rental-app \
-    --image-family=ubuntu-2204-lts \
-    --image-project=ubuntu-os-cloud \
-    --machine-type=e2-medium \
-    --zone=us-central1-a
-```
-
-2. **Настройка Cloud SQL**
-```bash
-gcloud sql instances create rental-db \
-    --database-version=POSTGRES_15 \
-    --tier=db-f1-micro \
-    --region=us-central1
-```
-
-#### Azure
-
-1. **Создание Virtual Machine**
-```bash
-az vm create \
-    --resource-group myResourceGroup \
-    --name rental-vm \
-    --image Ubuntu2204 \
-    --size Standard_B2s \
-    --admin-username azureuser
-```
-
-2. **Настройка Azure Database for PostgreSQL**
-```bash
-az postgres server create \
-    --resource-group myResourceGroup \
-    --name rental-db \
-    --location eastus \
-    --admin-user adminuser \
-    --admin-password MyPassword123!
-```
-
-## 📊 Мониторинг и логирование
-
-### Настройка логирования
-
-#### Backend логирование
-
-```python
-# config/logging_config.py
-import logging
-import logging.config
-
-LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-        },
-        'detailed': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s:%(lineno)d: %(message)s'
-        },
-    },
-    'handlers': {
-        'default': {
-            'level': 'INFO',
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler',
-        },
-        'file': {
-            'level': 'DEBUG',
-            'formatter': 'detailed',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'app.log',
-            'maxBytes': 10485760,  # 10MB
-            'backupCount': 5,
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['default', 'file'],
-            'level': 'DEBUG',
-            'propagate': False
-        }
-    }
-}
-
-logging.config.dictConfig(LOGGING_CONFIG)
-```
-
-#### Docker логирование
-
-```yaml
-# docker-compose.yml
-services:
-  backend:
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-```
-
-### Мониторинг системы
-
-#### Логирование приложения
-
-Система использует встроенное логирование FastAPI для мониторинга:
-
-```python
-# config/logging_config.py
-import logging
-import logging.config
-
-LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-        },
-        'detailed': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s:%(lineno)d: %(message)s'
-        },
-    },
-    'handlers': {
-        'default': {
-            'level': 'INFO',
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler',
-        },
-        'file': {
-            'level': 'DEBUG',
-            'formatter': 'detailed',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'app.log',
-            'maxBytes': 10485760,  # 10MB
-            'backupCount': 5,
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['default', 'file'],
-            'level': 'DEBUG',
-            'propagate': False
-        }
-    }
-}
-
-logging.config.dictConfig(LOGGING_CONFIG)
-```
-
-### Health Checks
-
-```python
-# api/health.py
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from api.deps import get_db
-
-router = APIRouter()
-
-@router.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
-
-@router.get("/health/db")
-async def health_check_db(db: AsyncSession = Depends(get_db)):
-    try:
-        await db.execute("SELECT 1")
-        return {"status": "healthy", "database": "connected"}
-    except Exception as e:
-        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
-```
-
-## 💾 Резервное копирование
-
-### Автоматическое резервное копирование
-
-#### Скрипт резервного копирования
-
-```bash
-#!/bin/bash
-# backup.sh
-
-BACKUP_DIR="/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="rental_db"
-DB_USER="myuser"
-
-# Создание резервной копии базы данных
-docker-compose exec -T db pg_dump -U $DB_USER $DB_NAME > $BACKUP_DIR/db_backup_$DATE.sql
-
-# Сжатие резервной копии
-gzip $BACKUP_DIR/db_backup_$DATE.sql
-
-# Удаление старых резервных копий (старше 30 дней)
-find $BACKUP_DIR -name "db_backup_*.sql.gz" -mtime +30 -delete
-
-echo "Backup completed: db_backup_$DATE.sql.gz"
-```
-
-#### Настройка cron
-
-```bash
-# Добавьте в crontab
-crontab -e
-
-# Резервное копирование каждый день в 2:00
-0 2 * * * /path/to/backup.sh
-
-# Резервное копирование каждую неделю
-0 2 * * 0 /path/to/full_backup.sh
-```
-
-### Восстановление из резервной копии
-
-```bash
-# Остановка приложения
-docker-compose down
-
-# Восстановление базы данных
-gunzip -c db_backup_20240101_020000.sql.gz | docker-compose exec -T db psql -U myuser rental_db
-
-# Запуск приложения
-docker-compose up -d
-```
-
-## 🔄 Обновление системы
-
-### Обновление с Docker
-
-#### 1. Создание резервной копии
-
-```bash
-# Резервное копирование базы данных
-./backup.sh
-
-# Резервное копирование конфигурации
-cp .env .env.backup
-cp docker-compose.yml docker-compose.yml.backup
-```
-
-#### 2. Обновление кода
-
-```bash
-# Получение обновлений
-git fetch origin
-git checkout main
+# 2. Новый код
 git pull origin main
 
-# Пересборка образов
-docker-compose build --no-cache
+# 3. Пересборка и запуск
+docker compose -f docker-compose.yml up -d --build
 
-# Применение миграций
-docker-compose exec backend alembic upgrade head
+# 4. Миграции (если в релизе есть)
+docker compose -f docker-compose.yml exec backend alembic upgrade head
 
-# Перезапуск сервисов
-docker-compose up -d
+# 5. Проверка
+docker compose -f docker-compose.yml ps           # все healthy
+curl -fsS http://localhost:8000/health            # {"status":"ok",...}
 ```
 
-#### 3. Проверка работоспособности
+Катящиеся обновления: `--build` пересоздаёт только изменившиеся образы;
+nginx продолжит отдавать статику, кратковременная недоступность API — норма.
+
+## Мониторинг
+
+- **Healthcheck**: `GET /health` (без аутентификации; по нему же работает
+  healthcheck контейнера backend)
+- **Метрики middleware**: `GET /monitoring/stats` — только для админа
+- **Логи**: `docker compose -f docker-compose.yml logs -f backend`
+- **Диагностика**: `docker compose -f docker-compose.yml --profile diagnostics run diagnostics`
+  или `RentalApp_FASTAPI/scripts/run_diagnostics.py`
+- **События безопасности**: аудит-лог входов/брутфорса —
+  `GET /api/admin/security/audit/logs` (см. [SECURITY_GUIDE](../RentalApp_FASTAPI/SECURITY_GUIDE.md))
+
+## Резервное копирование
 
 ```bash
-# Проверка статуса сервисов
-docker-compose ps
-
-# Проверка логов
-docker-compose logs -f
-
-# Проверка health checks
-curl http://localhost:8000/api/health
+./scripts/backup_database.sh           # бэкап в db_backup/
+./scripts/restore_database.sh          # восстановление
+./scripts/backup_database_utf8.sh      # вариант с гарантией UTF-8
+./scripts/restore_database_utf8.sh
 ```
 
-### Zero-downtime обновление
+Скрипты работают через `docker compose exec db pg_dump` — внешний порт БД не
+нужен и **не публикуется**. Регулярное расписание настройте cron'ом на хосте,
+например ежедневно в 02:00:
 
-#### 1. Blue-Green развертывание
-
-```bash
-# Создание нового окружения
-docker-compose -f docker-compose.yml -f docker-compose.blue.yml up -d
-
-# Тестирование нового окружения
-curl http://localhost:8001/api/health
-
-# Переключение трафика
-# Обновление nginx конфигурации
-# Перезапуск nginx
-docker-compose restart nginx
-
-# Остановка старого окружения
-docker-compose -f docker-compose.yml -f docker-compose.green.yml down
+```
+0 2 * * * cd /path/to/smart_Rental_App && ./scripts/backup_database.sh
 ```
 
-## 🔧 Устранение неполадок
+Старые дампы (`db_backup/*.sql`) чистите вручную или find'ом в cron
+(`-mtime +30 -delete`). Они git-игнорируются, но храните их вне сервера
+(офсайт-копия).
 
-### Частые проблемы
+## Устранение неполадок
 
-#### 1. Проблемы с базой данных
-
-```bash
-# Проверка подключения к БД
-docker-compose exec backend python -c "
-import asyncio
-from api.database import get_db
-async def test():
-    async for db in get_db():
-        print('Database connection OK')
-        break
-asyncio.run(test())
-"
-
-# Проверка миграций
-docker-compose exec backend alembic current
-docker-compose exec backend alembic history
-```
-
-#### 2. Проблемы с памятью
-
-```bash
-# Мониторинг использования ресурсов
-docker stats
-
-# Очистка неиспользуемых образов
-docker system prune -a
-
-# Ограничение памяти для контейнеров
-# В docker-compose.yml:
-services:
-  backend:
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-```
-
-#### 3. Проблемы с сетью
-
-```bash
-# Проверка сетевых подключений
-docker network ls
-docker network inspect s_project_docker_default
-
-# Тестирование подключения между сервисами
-docker-compose exec backend ping db
-docker-compose exec frontend ping backend
-```
-
-### Логи и отладка
-
-#### Просмотр логов
-
-```bash
-# Все сервисы
-docker-compose logs -f
-
-# Конкретный сервис
-docker-compose logs -f backend
-
-# Последние 100 строк
-docker-compose logs --tail=100 backend
-
-# Логи с временными метками
-docker-compose logs -f -t backend
-```
-
-#### Отладка в контейнере
-
-```bash
-# Подключение к контейнеру
-docker-compose exec backend bash
-
-# Выполнение команд Python
-docker-compose exec backend python -c "print('Hello from container')"
-
-# Проверка переменных окружения
-docker-compose exec backend env
-```
-
-### Восстановление после сбоев
-
-#### 1. Полное восстановление
-
-```bash
-# Остановка всех сервисов
-docker-compose down -v
-
-# Удаление всех данных
-docker system prune -a --volumes
-
-# Восстановление из резервной копии
-gunzip -c latest_backup.sql.gz | docker-compose exec -T db psql -U myuser rental_db
-
-# Запуск системы
-docker-compose up -d
-```
-
-#### 2. Восстановление отдельных сервисов
-
-```bash
-# Перезапуск конкретного сервиса
-docker-compose restart backend
-
-# Пересоздание сервиса
-docker-compose up -d --force-recreate backend
-
-# Проверка конфигурации
-docker-compose config
-```
+| Симптом | Причина / действие |
+|---|---|
+| Backend не стартует, `ValueError` про SECRET_KEY | Прод-режим (`DEBUG=false`) с dev-секретами — сгенерируйте (`scripts/generate_secrets.py`) и впишите в `.env` |
+| Все клиенты с одного IP в rate-limit/брутфорс-логах | `FORWARDED_ALLOW_IPS` не покрывает сеть docker — задайте подсеть |
+| В логах `Redis недоступен ... in-memory fallback` | Redis не поднялся: `docker compose ps redis`, `logs redis`. Приложение работает, но denylist/лимиты per-process |
+| 401/разлогин через ~60 минут | Проверьте, что фронт ходит на тот же домен (cookie Secure/CSRF) и nginx проксирует `/api/auth/` без rewrite (`proxy_pass http://backend;`) |
+| Frontend 502 | backend не поднялся: `docker compose logs backend`; проверьте `up -d --build` после pull |
+| SSL не выдаётся | certbot webroot требует доступный `http://DOMAIN/.well-known/`; проверьте DNS и `--profile ssl` |
+| `docker compose exec backend pytest` не работает | Так и задумано — тестов нет в прод-образе; см. [DOCKER.md](DOCKER.md) для тестовых стеков |
 
 ---
 
-**Степень уверенности: 100%** - Документация актуализирована в соответствии с текущей конфигурацией Docker и архитектурой проекта. Включает все актуальные настройки развертывания, мониторинга и резервного копирования. Обновлена с учетом миграции на единообразный Dependency Injection.
+Связанные документы: [DOCKER.md](DOCKER.md) (шпаргалка команд),
+[QUICK_START.md](QUICK_START.md), [BACKUP_UTF8_GUIDE.md](BACKUP_UTF8_GUIDE.md),
+[SECURITY_GUIDE](../RentalApp_FASTAPI/SECURITY_GUIDE.md),
+[CHANGELOG.md](CHANGELOG.md).

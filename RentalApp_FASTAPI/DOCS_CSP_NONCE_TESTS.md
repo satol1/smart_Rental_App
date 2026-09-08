@@ -58,7 +58,7 @@ cd RentalApp_FASTAPI
 #### Вручную через Docker Compose:
 ```bash
 cd RentalApp_FASTAPI
-docker-compose -f docker-compose.csp-nonce-tests.yml up --build --abort-on-container-exit test-backend
+docker compose -f docker-compose.csp-nonce-tests.yml up --build --abort-on-container-exit
 ```
 
 ### Локально (без Docker)

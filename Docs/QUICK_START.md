@@ -1,140 +1,105 @@
 # 🚀 Быстрый старт
 
-Краткое руководство по запуску системы аренды фототехники.
+Минимальный путь до работающей системы аренды фототехники.
 
-## 📋 Предварительные требования
+## Предварительные требования
 
-- Docker и Docker Compose
+- Docker и Docker Compose v2
 - Git
 
-## ⚡ Быстрый запуск
+## Запуск в Docker (рекомендуется)
 
 ### 1. Клонирование и настройка
 
 ```bash
-git clone <repository-url>
-cd S_Project_Docker
+git clone https://github.com/satol1/smart_Rental_App.git
+cd smart_Rental_App
 cp env.example .env
-# Отредактируйте .env файл при необходимости
+# Для разработки значения по умолчанию подходят; отредактируйте при необходимости
 ```
 
 ### 2. Запуск системы
 
 ```bash
-# Запуск всех сервисов
-docker-compose up -d
+# Подхватится docker-compose.override.yml (dev: DEBUG=true, фронт на :5173)
+docker compose up -d --build
 
-# Проверка статуса
-docker-compose ps
+docker compose ps    # все сервисы должны быть healthy
 ```
 
 ### 3. Инициализация
 
 ```bash
-# Применение миграций
-docker-compose exec backend alembic upgrade head
+# Миграции (на пустой БД)
+docker compose exec backend alembic upgrade head
 
-# Создание администратора
-docker-compose exec backend python create_admin.py
+# Администратор: пароль — аргумент, env ADMIN_INITIAL_PASSWORD или сгенерируется и
+# будет напечатан в консоли
+docker compose exec backend python create_admin.py
 ```
 
 ### 4. Доступ к приложению
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+- **Frontend**: http://localhost:5173 (dev) / http://localhost (prod-конфиг без override)
+- **Backend API**: http://localhost:8000/api
+- **API Docs (Swagger)**: http://localhost:8000/docs — только при `DEBUG=true`
 
-## 🧪 Тестирование
+## Тесты
 
-### Unit тесты
-```bash
-docker-compose -f docker-compose.unit-tests.yml run --rm test-backend pytest tests/services/ -v
-```
-
-### Integration тесты
-```bash
-docker-compose -f docker-compose.integration-tests.yml run --rm test-backend pytest tests/integration/ -v
-```
-
-### E2E тесты
-```bash
-docker-compose -f docker-compose.e2e.yml run --rm test-backend pytest tests/e2e/ -v
-```
-
-### Все тесты
-```bash
-docker-compose -f docker-compose.test.yml run --rm test-backend pytest -v
-```
-
-## 🔧 Разработка
-
-### Backend разработка
-```bash
-# Логи бэкенда
-docker-compose logs -f backend
-
-# Вход в контейнер
-docker-compose exec backend bash
-
-# Создание миграции
-docker-compose exec backend alembic revision --autogenerate -m "Description"
-```
-
-### Frontend разработка
-```bash
-# Логи фронтенда
-docker-compose logs -f frontend
-
-# Пересборка фронтенда
-docker-compose build frontend
-```
-
-## 🛑 Остановка
+Тесты идут в изолированных стеках (рабочий не трогают). Из каталога
+`RentalApp_FASTAPI/`:
 
 ```bash
-# Остановка всех сервисов
-docker-compose down
+# Юнит-тесты (самый быстрый набор)
+docker compose -f docker-compose.unit-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.unit-tests.yml down -v
 
-# Остановка с удалением данных
-docker-compose down -v
+# Интеграционные / E2E / все сразу
+docker compose -f docker-compose.integration-tests.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.full-architecture-tests.yml up --build --abort-on-container-exit
+
+# Обёртка с флагами: -u unit, -i integration, -e e2e, -d docker
+./run_all_tests.sh -u -d
 ```
 
-## 📚 Дополнительная документация
+Фронтенд:
 
-- [Архитектура](ARCHITECTURE.md) - Подробное описание архитектуры
-- [Развертывание](DEPLOYMENT.md) - Руководство по развертыванию
-- [API Документация](API_DOCUMENTATION.md) - Документация API
-- [Руководство разработчика](DEVELOPER_GUIDE.md) - Практические советы
-
-## ❓ Частые проблемы
-
-### Порт занят
 ```bash
-# Проверка занятых портов
-netstat -tulpn | grep :8000
-netstat -tulpn | grep :3000
-
-# Остановка процессов
-sudo kill -9 <PID>
+cd rental-app-main
+npm run test:run                                  # локально
+docker compose -f docker-compose.test.yml --profile test up --build --abort-on-container-exit   # в Docker
 ```
 
-### Проблемы с Docker
+Примечание: `docker compose exec backend pytest` не работает — в прод-образе
+нет тестовых зависимостей. После каждого тестового прогона выполняйте
+`docker compose -f <файл> down -v`.
+
+## Локальный запуск без Docker (опционально)
+
+### Backend
+
 ```bash
-# Очистка Docker
-docker system prune -a
+cd RentalApp_FASTAPI
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 
-# Пересборка контейнеров
-docker-compose build --no-cache
+# PostgreSQL и Redis должны быть доступны; параметры — в RentalApp_FASTAPI/.env
+alembic upgrade head
+uvicorn api.main_api:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Проблемы с базой данных
+### Frontend
+
 ```bash
-# Сброс базы данных
-docker-compose down -v
-docker-compose up -d postgres
-docker-compose exec backend alembic upgrade head
+cd rental-app-main
+npm ci
+npm run dev        # Vite dev-сервер с проксированием /api
 ```
 
----
+## Дальше
 
-**Степень уверенности: 100%** - Краткое и практичное руководство для быстрого старта.
+- Продакшен-развертывание и SSL: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Шпаргалка Docker-команд: [DOCKER.md](DOCKER.md)
+- Архитектура: [ARCHITECTURE.md](ARCHITECTURE.md)

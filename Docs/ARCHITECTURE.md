@@ -4,22 +4,25 @@
 
 ## 🔧 Текущее состояние
 
-**Версия**: 5.0 (модернизация 2026-09)  
+**Версия**: 5.0.3 (модернизация + пост-аудиторская стабилизация, 2026-09)  
 **Статус**: ✅ Полностью функциональна и готова к продакшену
 
 ### Дополнение v5.0 (поверх описанного ниже)
 - **Redis 7** (новый слой): rate limiting (slowapi storage), brute-force защита, denylist refresh-токенов, кэш агрегатов дашборда (TTL 60с + инвалидация по мутациям). Все хранилища — с graceful fallback в in-memory при недоступности Redis (`api/services/redis_client.py`, `cache_service.py`)
-- **Аутентификация**: PyJWT (HS256) с типизацией токенов (`type: access|refresh`) и `jti`; refresh ротация; logout → denylist
+- **Аутентификация**: PyJWT (HS256) с типизацией токенов (`type: access|refresh`) и `jti`; logout → denylist refresh-токена; access-токен живёт только в памяти фронтенда, обновление — по HttpOnly-cookie через `/auth/refresh`
+- **Финансовая целостность** (v5.0.3): учёт использований промокодов (лимиты `max_uses`/`max_uses_per_user` реально работают, атомарные счётчики, освобождение при отмене), зеркальные транзакции предоплаты и пересчётов стоимости, границы даты возврата аренды, advisory-локи `pg_advisory_xact_lock` против овербукинга
+- **Grace-период отмены резерва**: 24 ч после создания резерв можно отменить/изменить независимо от близости даты начала; правила статусов синхронизированы фронт↔бэк (`shared/constants/user_status.py` ↔ `src/constants/userStatusConstants.ts`)
 - **Фронтенд-архитектура**: React.lazy по страницам + Suspense; manualChunks (react-vendor/radix/query/charts); слой motion-токенов `src/lib/motion.ts`; тема через `themeStore` + `.dark`-токены; i18n-слой `src/i18n/`; общие примитивы отображения сущностей (StatusBadge/RoleBadge/MoneyText) над shadcn/ui
 - **Процесс**: Spec-Driven Development (GitHub SpecKit) — `.specify/` + `specs/`; конституция главенствует над архитектурными решениями
-- **CI**: GitHub Actions — ruff+pytest (backend), eslint+tsc+vitest+build (frontend), docker build обоих образов
+- **CI**: GitHub Actions — ruff+pytest с PostgreSQL-сервисом (backend), eslint+tsc+vitest+build (frontend), docker build обоих образов
 
 ### Ключевые архитектурные решения
 - **Repository Pattern**: Полностью внедрен строгий паттерн репозиториев для всех сервисов
-- **Dependency Injection**: Единообразный DI-контейнер для всех компонентов системы
+- **Dependency Injection**: Единообразный DI-контейнер (пакет `containers/`) для всех компонентов системы
 - **Изоляция сессий**: Решена критическая проблема с конкурентными запросами через contextvars
-- **Система мониторинга**: Health check эндпоинты и диагностические скрипты для мониторинга производительности
-- **Комплексное тестирование**: 111+ тестов покрывают все компоненты системы
+- **Блокировки**: `SELECT ... FOR UPDATE` для баланса (без skip_locked — ожидание, а не пропуск), advisory-локи для проверки занятости оборудования
+- **Система мониторинга**: `/health` (публичный) и `/monitoring/stats` (только админ), диагностический скрипт `scripts/run_diagnostics.py`
+- **Комплексное тестирование**: ~1500+ бэкенд-тестов (unit 953 / integration 94 / e2e 17 / critical 17 / csp-nonce 9) и 618 фронтенд-тестов; все — в изолированных Docker-стеках
 - **Полная совместимость**: Все тесты используют PostgreSQL (как в продакшене)
 - **Модульная архитектура**: Четкое разделение на сервисы, репозитории и API
 - **Промокоды**: Полностью интегрированы в архитектуру с соблюдением всех принципов
@@ -427,9 +430,11 @@ class BalanceService:
 # СПЕЦИАЛИЗИРОВАННЫЕ РЕПОЗИТОРИИ
 class UserRepository(BaseRepository):
     async def get_by_id_for_update(self, user_id: int) -> Optional[User]:
-        """Получение пользователя с блокировкой для обновления баланса"""
+        """Получение пользователя с блокировкой для обновления баланса.
+        Без skip_locked: конкурентные записи баланса выстраиваются в очередь,
+        а не молча пропускаются (устраняет lost update)."""
         result = await self.db.execute(
-            select(User).filter(User.id == user_id).with_for_update(skip_locked=True)
+            select(User).filter(User.id == user_id).with_for_update()
         )
         return result.scalars().first()
 
@@ -541,7 +546,7 @@ async def check_equipment_availability(
     return await availability_service.check_availability(equipment_ids, start_date, end_date)
 ```
 
-**DI-контейнер (containers.py) - Решенные проблемы:**
+**DI-контейнер (пакет `containers/`, провайдеры в `containers/services.py`) - Решенные проблемы:**
 ```python
 # РЕШЕНИЕ ЦИКЛИЧЕСКИХ ЗАВИСИМОСТЕЙ
 # 1. Создаем rental_repo для availability сервисов
@@ -798,13 +803,15 @@ class NotificationService:
    ↓
 4. HTTP Request (auth_api.py)
    ↓
-5. Credential Verification (AuthService.authenticate_user)
+5. Credential Verification (AuthService.authenticate_user, bcrypt)
    ↓
-6. JWT Generation (Python-JOSE)
+6. JWT Generation (PyJWT HS256; access + refresh с type-claim и jti;
+   refresh выставляется HttpOnly-cookie)
    ↓
-7. Response (Token + User Data)
+7. Response (access-токен + данные пользователя)
    ↓
-8. Token Storage (localStorage)
+8. Token Storage (только память, tokenManager.ts; авторефреш по 401
+   с очередью запросов; logout → jti в denylist Redis)
    ↓
 9. State Update (authStore)
    ↓
@@ -836,19 +843,27 @@ class NotificationService:
 
 ### Защита данных
 
-- **Хеширование паролей** - bcrypt
-- **JWT токены** - для аутентификации
-- **CSRF защита** - для предотвращения атак
-- **Rate limiting** - ограничение частоты запросов
-- **Input validation** - валидация всех входных данных
+- **Хеширование паролей** - bcrypt (напрямую, без passlib)
+- **JWT токены** - PyJWT HS256; claim `type` (access ≠ refresh), `jti`; refresh в HttpOnly-cookie
+- **Denylist токенов** - logout помещает jti refresh-токена в Redis (TTL до exp); fallback в память
+- **CSRF защита** - double-submit подписанным токеном (itsdangerous) на auth-эндпоинтах
+- **Rate limiting** - slowapi: глобально 200/мин, на auth 5/мин; edge-лимит nginx 10/мин на /api/auth/
+- **Brute-force защита** - 5 неудачных входов / 15 мин → блокировка IP на 60 мин (Redis, ключ по реальному клиентскому IP через FORWARDED_ALLOW_IPS)
+- **CSP nonce** - `SecureHeadersMiddleware` генерирует nonce на каждый API-ответ (тесты — tests/api/test_csp_nonce.py)
+- **Fail-fast секреты** - при DEBUG=false приложение не стартует с dev-значениями/короткими ключами
+- **Input validation** - валидация всех входных данных (Pydantic + доменные валидаторы)
 - **SQL injection защита** - через ORM
+- **Права доступа** - require_user/require_manager/require_admin; владелец проверяется в сервисах
+
+Подробности и известные остаточные риски — [SECURITY_GUIDE](../RentalApp_FASTAPI/SECURITY_GUIDE.md).
 
 ### Система мониторинга
 
-- **Health Check** - эндпоинт `/health` для проверки состояния системы
-- **Middleware Stats** - эндпоинт `/monitoring/stats` для мониторинга производительности
-- **Диагностические скрипты** - `deep_diagnostic_test.py` для глубокой диагностики
-- **Race Condition тесты** - `test_race_condition_simple.py` для проверки конкурентности
+- **Health Check** - `/health` (без аутентификации; по нему работает healthcheck контейнера)
+- **Middleware Stats** - `/monitoring/stats` (только для администратора)
+- **Диагностика** - `RentalApp_FASTAPI/scripts/run_diagnostics.py` (профиль `diagnostics` в compose)
+- **Race Condition тесты** - `tests/integration/test_final_race_condition_fix.py`
+- **Аудит безопасности** - таблица `security_audit_logs` + API `/api/admin/security/audit/*`
 - **Логирование** - централизованное логирование всех операций
 
 ## 🛠️ Руководство для разработчика: Расширение функционала
@@ -881,7 +896,7 @@ class NotificationService:
 - Изучите примеры: `api/services/equipment_crud_service.py`
 - Реализуйте бизнес-логику, валидацию, транзакции
 
-**5. DI-контейнер** → `containers.py`
+**5. DI-контейнер** → `containers/` (провайдеры — `containers/services.py`)
 - Добавьте провайдеры для репозитория и сервиса
 - Обновите `wiring_config` с новым модулем
 - Изучите существующие провайдеры
@@ -1126,7 +1141,7 @@ import {
 - `api/services/promo_code/promo_code_manager.py` - фасад для промокодов
 - `api/equipment_api.py` - API эндпоинты
 - `api/promo_code_api.py` - API эндпоинты промокодов
-- `containers.py` - DI-контейнер
+- `containers/services.py` - провайдеры DI-контейнера
 
 **Frontend:**
 - `src/core/services/EquipmentService.ts` - API сервис
@@ -1198,7 +1213,7 @@ import {
 3. **Создайте репозиторий** - инкапсулируйте доступ к данным в `api/repositories/`
 4. **Реализуйте сервис** - бизнес-логика в `api/services/` с использованием фасадов
 5. **Добавьте API эндпоинты** - в `api/` с использованием `@inject` и `Depends(Provide[...])`
-6. **Настройте DI-контейнер** - добавьте провайдеры в `containers.py`
+6. **Настройте DI-контейнер** - добавьте провайдеры в `containers/services.py`
 7. **Создайте миграции** - `alembic revision --autogenerate -m "Add table"`
 8. **Напишите тесты** - юнит-тесты для сервисов, интеграционные для API
 

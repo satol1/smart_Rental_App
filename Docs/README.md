@@ -13,7 +13,10 @@
 
 ### Практические руководства
 - **QUICK_START.md** - Быстрый старт и основные команды
+- **DOCKER.md** - Шпаргалка по compose-файлам и командам
 - **DEVELOPER_GUIDE.md** - Руководство разработчика с практическими советами
+- **BACKUP_UTF8_GUIDE.md** - Бэкапы БД с гарантией UTF-8
+- **PRODUCTION_MIGRATION.md** - Перенос на прод-хостинг (историческое)
 
 ## 🎯 Навигация по документации
 
@@ -45,10 +48,15 @@ Docs/
 ├── ARCHITECTURE.md                     # Полная архитектура
 ├── API_DOCUMENTATION.md                # API документация
 ├── DEPLOYMENT.md                       # Развертывание
-├── CHANGELOG.md                        # История изменений
+├── DOCKER.md                           # Шпаргалка Docker
 ├── QUICK_START.md                      # Быстрый старт
-└── DEVELOPER_GUIDE.md                  # Руководство разработчика
+├── DEVELOPER_GUIDE.md                  # Руководство разработчика
+├── CHANGELOG.md                        # История изменений
+├── BACKUP_UTF8_GUIDE.md                # Бэкапы UTF-8
+└── PRODUCTION_MIGRATION.md             # Перенос на прод (историческое)
 ```
+
+Актуальная версия системы: **5.0.3** (см. [CHANGELOG.md](CHANGELOG.md)).
 
 ## ✨ Преимущества новой структуры
 

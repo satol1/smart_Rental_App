@@ -4,14 +4,19 @@
 
 ## 🔧 Текущее состояние
 
-**Версия**: 4.2  
+**Версия**: 5.0.3 (сентябрь 2026)  
 **Статус**: ✅ Полностью функциональна и готова к продакшену
+
+> Живой контракт API важнее этого документа: при `DEBUG=true` он доступен
+> по `http://localhost:8000/docs` (OpenAPI из кода). Документ ниже —
+> справочное описание ключевых потоков; примеры ответов могут отставать
+> от фактических полей (например, в резервах/арендах добавлен `created_at`).
 
 ### Ключевые достижения
 - **Repository Pattern**: Полностью внедрен строгий паттерн репозиториев для всех сервисов
 - **Dependency Injection**: Единообразный DI-контейнер для всех компонентов системы
 - **Единообразная архитектура**: 100% API эндпоинтов используют dependency-injector
-- **Комплексное тестирование**: 49 API тестов + 420+ общих тестов системы
+- **Комплексное тестирование**: ~1500+ бэкенд-тестов (unit/integration/e2e/critical/csp) и 618 фронтенд-тестов (vitest)
 - **Полная совместимость**: Все тесты используют PostgreSQL (как в продакшене)
 
 ## 📚 История изменений
@@ -358,7 +363,7 @@ GET /equipment/?skip=0&limit=10&type=camera&available_only=true&start_date=2024-
       "start_date": "2024-01-15",
       "end_date": "2024-01-20",
       "status": "confirmed",
-      "total_amount": 25000.00,
+      "total_cost": 25000.00,
       "deposit_amount": 5000.00,
       "created_at": "2024-01-01T10:00:00Z",
       "user": {
@@ -419,7 +424,7 @@ GET /equipment/?skip=0&limit=10&type=camera&available_only=true&start_date=2024-
   "start_date": "2024-01-15",
   "end_date": "2024-01-20",
   "status": "pending",
-  "total_amount": 25000.00,
+  "total_cost": 25000.00,
   "deposit_amount": 5000.00,
   "created_at": "2024-01-01T10:00:00Z",
   "equipment": [...],
@@ -879,7 +884,7 @@ curl -X DELETE "http://localhost:8000/api/user/admin/users/balance-history/123" 
   "start_date": "2024-01-15",
   "end_date": "2024-01-20",
   "status": "confirmed",
-  "total_amount": 25000.00,
+  "total_cost": 25000.00,
   "deposit_amount": 5000.00,
   "notes": "Резервация для свадебной съемки",
   "created_at": "2024-01-01T10:00:00Z",
