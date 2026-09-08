@@ -7,7 +7,7 @@ type StatusKey = EquipmentStatus | "my_reservation" | "added";
 // Стили ТОЛЬКО для цвета текста
 export const STATUS_TEXT_STYLES: Record<StatusKey, string> = {
     available: "text-green-600",
-    reserved: "text-yellow-500",
+    reserved: "text-reserved-foreground",
     rented: "text-red-600",
     my_reservation: "text-sky-700",
     added: "text-emerald-600",

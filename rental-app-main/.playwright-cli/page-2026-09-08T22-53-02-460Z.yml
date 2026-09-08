@@ -1,0 +1,27 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - link "Перейти к содержимому" [ref=f2e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f2e5]:
+      - generic [ref=f2e6]:
+        - link "Сбросить фильтры" [ref=f2e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f2e17]:
+            - generic [ref=f2e18]: Цифровой
+            - generic [ref=f2e19]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f2e20]:
+          - link "Каталог" [ref=f2e21] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f2e24] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f2e26] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f2e28] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f2e30] [cursor=pointer]
+        - generic [ref=f2e32]:
+          - 'button "Тема оформления: Светлое" [ref=f2e34] [cursor=pointer]'
+          - button "Войти" [ref=f2e36] [cursor=pointer]
+    - main [ref=f2e37]:
+      - status "Страница загружается" [ref=f2e38]
+  - region "Notifications alt+T"

@@ -1,9 +1,11 @@
 // path: rental-app-main/src/components/equipment-card/EquipmentCard.tsx
 
 import React, { useState } from "react";
-import { CheckCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { formatDateRangeEuropean } from "@/lib/utils";
+import { springs, transitionBase } from "@/lib/motion";
 
 // Подкомпоненты
 import { CardImage } from "./CardImage";
@@ -73,6 +75,7 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
     // рендерами роняет React («Rendered fewer hooks than expected»)
     const [showDetails, setShowDetails] = useState(false);
     const [showAccessories, setShowAccessories] = useState(false);
+    const reducedMotion = useReducedMotion();
 
     // Защитный код: проверяем, что все необходимые данные получены
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
@@ -102,14 +105,31 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
 
     return (
         <>
-            <div
+            <motion.div
                 className={`equipment-tile group ${backgroundClass} ${selectionClass}`}
                 data-selected={isSelected}
                 onClick={handleCardClick}
+                initial={false}
+                animate={{ y: isSelected && !reducedMotion ? -2 : 0 }}
+                whileHover={reducedMotion || isUnderRepair ? undefined : { y: -2 }}
+                transition={transitionBase}
             >
-                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1"><CheckCircle className="w-4 h-4" /></div>}
+                <AnimatePresence>
+                    {isSelected && (
+                        <motion.div
+                            key="selected-badge"
+                            initial={{ scale: reducedMotion ? 1 : 0, opacity: reducedMotion ? 1 : 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: reducedMotion ? 1 : 0.6, opacity: 0 }}
+                            transition={reducedMotion ? { duration: 0 } : springs.pop}
+                            className="absolute top-3 right-3 z-10 grid place-items-center rounded-full bg-primary p-1 text-primary-foreground shadow-md"
+                        >
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                <CardImage imageUrl={equipment.image_url} name={equipment.name} />
+                <CardImage imageUrl={equipment.image_url} name={equipment.name} selected={isSelected} />
 
                 <div className="equipment-tile-body">
                     <div className="equipment-tile-info">
@@ -147,7 +167,7 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
                         onSetStartDate={handleSetStartDate}
                     />
                 </div>
-            </div>
+            </motion.div>
 
             <EquipmentDetailsDialog
                 open={showDetails}
@@ -180,6 +200,7 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
     // Правила хуков: useState до guard (см. основной вариант выше)
     const [showDetails, setShowDetails] = useState(false);
     const [showAccessories, setShowAccessories] = useState(false);
+    const reducedMotion = useReducedMotion();
 
     // Защитный код: проверяем, что все необходимые данные переданы
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
@@ -206,14 +227,31 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
 
     return (
         <>
-            <div
+            <motion.div
                 className={`equipment-tile group ${backgroundClass} ${selectionClass}`}
                 data-selected={isSelected}
                 onClick={handleCardClick}
+                initial={false}
+                animate={{ y: isSelected && !reducedMotion ? -2 : 0 }}
+                whileHover={reducedMotion || isUnderRepair ? undefined : { y: -2 }}
+                transition={transitionBase}
             >
-                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1"><CheckCircle className="w-4 h-4" /></div>}
+                <AnimatePresence>
+                    {isSelected && (
+                        <motion.div
+                            key="selected-badge"
+                            initial={{ scale: reducedMotion ? 1 : 0, opacity: reducedMotion ? 1 : 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: reducedMotion ? 1 : 0.6, opacity: 0 }}
+                            transition={reducedMotion ? { duration: 0 } : springs.pop}
+                            className="absolute top-3 right-3 z-10 grid place-items-center rounded-full bg-primary p-1 text-primary-foreground shadow-md"
+                        >
+                            <Check className="w-4 h-4" strokeWidth={3} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                <CardImage imageUrl={equipment.image_url} name={equipment.name} />
+                <CardImage imageUrl={equipment.image_url} name={equipment.name} selected={isSelected} />
 
                 <div className="equipment-tile-body">
                     <div className="equipment-tile-info">
@@ -250,7 +288,7 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
                         onSetStartDate={handleSetStartDate}
                     />
                 </div>
-            </div>
+            </motion.div>
 
             <EquipmentDetailsDialog
                 open={showDetails}

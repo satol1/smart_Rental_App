@@ -1,11 +1,11 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export function CalendarLegend() {
   const { t } = useTranslation();
   const statuses = [
-    { surface: 'bg-pastel-mint', label: t('shell.available') },
-    { surface: 'bg-pastel-amber', label: t('shell.reserved') },
-    { surface: 'bg-pastel-coral', label: t('shell.rented') },
+    { surface: 'bg-success-soft', label: t('shell.available') },
+    { surface: 'bg-reserved-soft', label: t('shell.reserved') },
+    { surface: 'bg-reserved', label: t('shell.rented') },
     { surface: 'bg-muted', label: t('shell.underRepair') },
   ];
 

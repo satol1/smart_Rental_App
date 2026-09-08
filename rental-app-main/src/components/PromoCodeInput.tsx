@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { TicketPercent, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { motion, useReducedMotion } from "framer-motion";
+import { buttonGesture, springs } from "@/lib/motion";
 
 interface PromoCodeInputProps {
     promoCode: string;
@@ -50,6 +52,8 @@ export default function PromoCodeInput({
     const isApplied = promoCodeMessage && promoCodeMessage.length > 0;
     const isSuccess = isApplied && promoCodeMessage.includes("успешно");
     const isDisabledByRequirement = !!requirementMessage;
+    const reducedMotion = useReducedMotion();
+    const isApplyDisabled = disabled || isLoading || isSuccess || isDisabledByRequirement;
 
     return (
         <div className="space-y-2">
@@ -70,22 +74,34 @@ export default function PromoCodeInput({
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        disabled={disabled || isLoading || isSuccess || isDisabledByRequirement}
+                        disabled={isApplyDisabled}
                         className="pl-9 pr-8"
                     />
                     {isSuccess && promoCode && (
-                        <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success" aria-hidden="true" />
+                        <motion.span
+                            className="absolute right-3 top-1/2"
+                            initial={reducedMotion ? { y: '-50%' } : { scale: 0.5, opacity: 0, y: '-50%' }}
+                            animate={{ scale: 1, opacity: 1, y: '-50%' }}
+                            transition={reducedMotion ? { duration: 0 } : springs.pop}
+                        >
+                            <CheckCircle className="h-4 w-4 text-success" aria-hidden="true" />
+                        </motion.span>
                     )}
                 </div>
+                <motion.span
+                    className="inline-flex"
+                    {...(!isApplyDisabled && !reducedMotion ? buttonGesture : {})}
+                >
                 <Button
                     type="button"
                     variant="outline"
                     onClick={handleApply}
                     aria-label={t('ordersDesign.applyPromo')}
-                    disabled={disabled || isLoading || isSuccess || isDisabledByRequirement}
+                    disabled={isApplyDisabled}
                 >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : t('ordersDesign.applyPromo')}
                 </Button>
+                </motion.span>
             </div>
 
             {isDisabledByRequirement && (

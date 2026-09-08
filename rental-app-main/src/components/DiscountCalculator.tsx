@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence, useSpring, useTransform, useReducedMotion } from 'framer-motion';
+import { transitionFast } from '@/lib/motion';
 import { useSandboxCalculatorStore } from '@/store/sandboxCalculatorStore';
 import { combinedDiscountPercentage } from '@/constants/discount';
 import { useDateStore } from '@/store/dateStore';
@@ -99,6 +101,18 @@ export default function DiscountCalculator() {
 
     const totalDiscountPercentage = useMemo(() => combinedDiscountPercentage(durationDiscountPercentage, promoCodePercentage), [durationDiscountPercentage, promoCodePercentage]);
 
+    const reducedMotion = useReducedMotion();
+    // Пружина ведёт число плавно, без дёрганья; при reduced-motion прыгаем сразу к цели
+    const percentSpring = useSpring(totalDiscountPercentage, { stiffness: 180, damping: 26 });
+    useEffect(() => {
+        if (reducedMotion) {
+            percentSpring.jump(totalDiscountPercentage);
+        } else {
+            percentSpring.set(totalDiscountPercentage);
+        }
+    }, [totalDiscountPercentage, reducedMotion, percentSpring]);
+    const displayPercent = useTransform(percentSpring, (v) => Math.round(v));
+
     // Вычисляем максимальное значение для бегунка на основе максимального min_days + 3 (рабочие дни)
     const maxSliderDays = useMemo(() => {
         if (durationDiscountTiers.length === 0) return 30; // fallback значение
@@ -106,12 +120,13 @@ export default function DiscountCalculator() {
         return maxMinDays + 3; // Это рабочие дни
     }, [durationDiscountTiers]);
 
+    // Градация только на фирменных токенах: muted → accent → success-soft → warning-soft
     const getDiscountInfo = (percent: number) => {
-        if (percent >= 25) return {label: "Максимум выгоды!", className: "text-amber-600 font-bold"};
-        if (percent >= 20) return {label: "Отличная скидка!", className: "text-purple-600 font-bold"};
-        if (percent >= 15) return {label: "Хорошая скидка", className: "text-green-600 font-bold"};
-        if (percent > 0) return {label: "Небольшая скидка", className: "text-sky-600"};
-        return {label: "Скидка зависит от дней", className: "text-gray-500"};
+        if (percent >= 25) return {label: "Максимум выгоды!", blockClass: "bg-warning-soft border-warning/30", textClass: "text-warning font-bold"};
+        if (percent >= 20) return {label: "Отличная скидка!", blockClass: "bg-success-soft border-success/30", textClass: "text-success font-bold"};
+        if (percent >= 15) return {label: "Хорошая скидка", blockClass: "bg-accent border-primary/25", textClass: "text-accent-foreground font-bold"};
+        if (percent > 0) return {label: "Небольшая скидка", blockClass: "bg-accent border-border", textClass: "text-accent-foreground"};
+        return {label: "Скидка зависит от дней", blockClass: "bg-muted border-border", textClass: "text-muted-foreground"};
     };
 
     const discountInfo = getDiscountInfo(totalDiscountPercentage);
@@ -141,21 +156,43 @@ export default function DiscountCalculator() {
                         />
                     </div>
                     <div className="w-full md:flex-1">
-                        <Label htmlFor="days-slider" className="mb-2 block text-sm text-gray-700">
-                            Количество дней: <span className="font-bold">{dayCount}</span>
-                            <span className="ml-2 text-xs text-gray-500">(двигайте ползунок для изменения дат)</span>
-                            <span className="ml-2 text-xs text-blue-500">Max: {maxSliderDays}</span>
+                        <Label htmlFor="days-slider" className="mb-2 block text-sm text-foreground">
+                            Количество дней: <span className="font-bold tabular-nums">{dayCount}</span>
+                            <span className="ml-2 text-xs text-muted-foreground">(двигайте ползунок для изменения дат)</span>
+                            <span className="ml-2 text-xs text-primary">Max: {maxSliderDays}</span>
                         </Label>
                         <input id="days-slider" type="range" min="1" max={maxSliderDays} value={dayCount} onChange={handleSliderChange}
-                               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-sky-600"/>
+                               className="h-2 w-full cursor-pointer appearance-none rounded-full bg-muted transition-colors
+                                   [&::-webkit-slider-thumb]:-mt-1 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full
+                                   [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm
+                                   [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150
+                                   hover:[&::-webkit-slider-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-95
+                                   focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-ring
+                                   [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full
+                                   [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary
+                                   [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:duration-150"/>
                     </div>
-                    <div className="flex-shrink-0 text-center bg-sky-50 py-2 px-4 rounded-lg border w-full md:w-auto min-w-[160px]">
+                    <div className={`flex-shrink-0 text-center py-2 px-4 rounded-lg border w-full md:w-auto min-w-[160px] transition-colors duration-300 ${discountInfo.blockClass}`}>
                         {isLoadingTiers ? (
-                            <div className="flex items-center justify-center text-gray-500"><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</div>
+                            <div className="flex items-center justify-center text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</div>
                         ) : (
                             <>
-                                <div className={`text-2xl font-bold transition-colors duration-300 ${discountInfo.className}`}>Скидка: {totalDiscountPercentage}%</div>
-                                <p className={`text-xs mt-1 transition-colors duration-300 ${discountInfo.className}`}>{discountInfo.label}</p>
+                                <div className={`text-3xl font-bold tabular-nums transition-colors duration-300 ${discountInfo.textClass}`}>
+                                    Скидка: <motion.span className="inline-block">{displayPercent}</motion.span>%
+                                </div>
+                                <AnimatePresence mode="wait" initial={false}>
+                                    <motion.p
+                                        key={discountInfo.label}
+                                        initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={reducedMotion ? { duration: 0 } : transitionFast}
+                                        className={`text-xs mt-1 transition-colors duration-300 ${discountInfo.textClass}`}
+                                    >
+                                        {discountInfo.label}
+                                    </motion.p>
+                                </AnimatePresence>
                             </>
                         )}
                     </div>

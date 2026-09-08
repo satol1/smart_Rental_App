@@ -20,7 +20,7 @@ export default function AdminButton() {
             onClick={() => navigate("/admin")}
             variant="secondary"
         >
-            <Shield className="w-4 h-4 mr-2" />
+            <Shield />
             {isAdmin ? "Админ панель" : "Панель менеджера"}
         </Button>
     );

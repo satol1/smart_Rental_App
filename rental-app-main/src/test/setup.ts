@@ -42,6 +42,21 @@ if (typeof Element !== 'undefined') {
     window.scrollTo = (() => undefined) as never;
 }
 
+// PointerEvent отсутствует в jsdom: framer-motion диспатчит его при
+// клавиатурном нажатии (Enter) на элементы с whileTap — подменяем MouseEvent'ом.
+if (typeof globalThis.PointerEvent === 'undefined') {
+    class PointerEventStub extends MouseEvent {
+        pointerId = 0;
+        pointerType = '';
+        isPrimary = false;
+        constructor(type: string, params: PointerEventInit = {}) {
+            super(type, params);
+            this.isPrimary = params.isPrimary ?? false;
+        }
+    }
+    globalThis.PointerEvent = PointerEventStub as unknown as typeof PointerEvent;
+}
+
 if (typeof window !== 'undefined' && !window.matchMedia) {
     Object.defineProperty(window, 'matchMedia', {
         writable: true,

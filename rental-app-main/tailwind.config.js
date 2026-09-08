@@ -25,6 +25,7 @@ export default {
         sm: 'var(--shadow-sm)',
         popover: 'var(--shadow-popover)',
         dialog: 'var(--shadow-dialog)',
+        button: 'var(--shadow-button-hover)',
       },
       transitionDuration: {
         DEFAULT: 'var(--duration-fast)',
@@ -45,6 +46,7 @@ export default {
         success: { DEFAULT: color('success'), soft: color('success-soft') },
         warning: { DEFAULT: color('warning'), soft: color('warning-soft') },
         'danger-soft': color('danger-soft'), 'info-soft': color('info-soft'),
+        reserved: { DEFAULT: color('reserved'), soft: color('reserved-soft'), foreground: color('reserved-foreground') },
         collection: { sky: color('collection-sky'), mint: color('collection-mint'), amber: color('collection-amber') },
         'photo-surface': color('photo-surface'),
         border: color('border'), input: color('input'), ring: color('ring'), overlay: color('overlay'),

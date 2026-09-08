@@ -1,9 +1,9 @@
-﻿// path: rental-app-main/src/components/calendar/CalendarTable.tsx
+// path: rental-app-main/src/components/calendar/CalendarTable.tsx
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ru } from 'date-fns/locale';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from "date-fns";
 import { useCalendarGrid } from "@/hooks/useCalendarGrid";
@@ -50,7 +50,7 @@ export default function CalendarTable({
     onSelectGroup, onShowDetails, onNavigate, isUserActionAllowed
 }: CalendarTableProps) {
     const { t } = useTranslation();
-    const { startDate, endDate } = useDateStore();
+    const { startDate, endDate, setRange } = useDateStore();
     const { data: calendarData, isLoading: isLoadingCalendarData, isError, refetch } = useCalendarGrid(equipmentIds);
 
     const dateRange = useMemo(() => (startDate && endDate ? getDateRange(startDate, endDate) : []), [startDate, endDate]);
@@ -85,21 +85,65 @@ export default function CalendarTable({
         );
     }
 
+    const shiftRangeByWeeks = (weeks: number) => {
+        if (!startDate || !endDate) return;
+        const start = new Date(startDate);
+        start.setDate(start.getDate() + weeks * 7);
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + weeks * 7);
+        setRange(start, end);
+    };
+
+    const jumpToToday = () => {
+        const today = new Date();
+        const start = new Date(today);
+        start.setDate(today.getDate() - 3);
+        const end = new Date(today);
+        end.setDate(today.getDate() + 13);
+        setRange(start, end);
+    };
+
     return (
-        <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t('shell.calendarTitle')}>
+        <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                    {dateRange.length > 0 && (
+                        <>
+                            <time dateTime={format(dateRange[0], 'yyyy-MM-dd')}>{format(dateRange[0], 'd MMM', { locale: ru })}</time>
+                            {' — '}
+                            <time dateTime={format(dateRange[dateRange.length - 1], 'yyyy-MM-dd')}>{format(dateRange[dateRange.length - 1], 'd MMM yyyy', { locale: ru })}</time>
+                        </>
+                    )}
+                </p>
+                <div className="flex items-center gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => shiftRangeByWeeks(-1)} aria-label={t('shell.previousWeek')}>
+                        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                        {t('shell.previousWeek')}
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={jumpToToday}>
+                        {t('shell.today')}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => shiftRangeByWeeks(1)} aria-label={t('shell.nextWeek')}>
+                        {t('shell.nextWeek')}
+                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                </div>
+            </div>
+            <div className="min-w-0 scroll-smooth scroll-pl-56 overflow-x-auto rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:scroll-pl-64" tabIndex={0} role="region" aria-label={t('shell.calendarTitle')}>
             <table className="min-w-full table-auto border-collapse text-sm">
                 <caption className="sr-only">{t('shell.calendarTitle')}</caption>
                 <thead>
                     <tr>
-                        <th scope="col" className="sticky left-0 z-20 min-w-40 border-b border-r border-border bg-muted px-4 py-4 text-left font-semibold sm:min-w-60">
+                        <th scope="col" className="sticky left-0 top-0 z-30 min-w-56 border-b border-r border-border bg-muted px-4 py-4 text-left font-semibold sm:min-w-64">
                             {t('shell.equipment')}
                         </th>
                         {dateRange.map((date) => {
                             const dateStr = formatDateToDayMonthYear(date);
+                            const isToday = dateStr === todayStr;
                             return (
-                                <th scope="col" key={dateStr} className={`min-w-24 border-b border-border px-3 py-3 text-center font-medium ${dateStr === todayStr ? 'bg-pastel-sky text-pastel-sky-fg' : 'bg-muted text-foreground'}`}>
+                                <th scope="col" key={dateStr} className={`sticky top-0 z-20 min-w-24 border-b border-border px-3 py-3 text-center font-medium ${isToday ? 'today-column bg-pastel-sky text-pastel-sky-fg' : 'bg-muted text-foreground'}`}>
                                     <time dateTime={format(date, 'yyyy-MM-dd')} className="block whitespace-nowrap">{format(date, 'd MMM', { locale: ru })}</time>
-                                    <span className="mt-1 block text-xs font-normal opacity-75">{dateStr === todayStr ? t('shell.today') : format(date, 'EEEEEE', { locale: ru })}</span>
+                                    <span className="mt-1 block text-xs font-normal opacity-75">{isToday ? t('shell.today') : format(date, 'EEEEEE', { locale: ru })}</span>
                                 </th>
                             );
                         })}
@@ -108,14 +152,14 @@ export default function CalendarTable({
                 <tbody>
                     {equipment.map((item) => (
                         <tr key={item.id} className="group">
-                            <th scope="row" className="sticky left-0 z-10 border-b border-r border-border bg-card px-4 py-3 text-left text-sm font-medium text-foreground group-hover:bg-muted">
-                                <span className="block max-w-40 truncate sm:max-w-64" title={item.name}>{item.name}</span>
+                            <th scope="row" className="sticky left-0 z-10 min-w-56 border-b border-r border-border bg-card px-4 py-3 text-left align-top text-sm font-medium text-foreground transition-colors group-hover:bg-muted sm:min-w-64">
+                                <span className="line-clamp-2 block whitespace-normal break-words leading-snug" title={item.name}>{item.name}</span>
                             </th>
                             {dateRange.map((date) => {
                                 const dateStr = formatDateToDayMonthYear(date);
                                 const cellData = calendarData[item.id]?.[dateStr];
                                 return (
-                                    <td key={dateStr} className="border-b border-r border-border/60 p-1">
+                                    <td key={dateStr} className={`border-b border-r border-border/60 p-1 transition-colors group-hover:bg-muted/40 ${dateStr === todayStr ? 'today-column' : ''}`}>
                                         <CalendarCell
                                             cellData={cellData}
                                             equipment={item}
@@ -133,6 +177,7 @@ export default function CalendarTable({
                     ))}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 }

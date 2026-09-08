@@ -8,7 +8,7 @@ import type { AvailabilityInfo } from "@/types/availability";
 import { Button } from "@/components/ui/button";
 import { useReserveStore } from "@/store/reserveStore";
 import { useCurrentUser } from "@/hooks/useProfile";
-import { Pencil, Check } from "lucide-react";
+import { Pencil, Check, Plus } from "lucide-react";
 import { isEquipmentAvailableForReservation } from "@/lib/equipmentUtils";
 
 type Props = {
@@ -117,7 +117,7 @@ export default function EquipmentDetailsDialog({ open, onClose, equipment, avail
                             >
                                 {selected
                                     ? <><Check size={16} className="mr-1.5" />Готово</>
-                                    : "➕ Добавить в резерв"
+                                    : <><Plus size={16} className="mr-1.5" />Добавить в резерв</>
                                 }
                             </Button>
                         )}

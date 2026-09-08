@@ -89,6 +89,25 @@ export const listItem: Variants = {
   },
 };
 
+/** Пружинные пресеты для жестов (hover/tap) и появления мелких элементов */
+export const springs = {
+  /** Отзывчивое нажатие кнопок и переключателей */
+  press: { type: 'spring', stiffness: 500, damping: 30, mass: 0.8 },
+  /** Пружинистое появление бейджей, галочек, поповеров */
+  pop: { type: 'spring', stiffness: 400, damping: 22, mass: 0.9 },
+  /** Мягкое раскрытие панелей и акцентных блоков */
+  soft: { type: 'spring', stiffness: 260, damping: 26, mass: 1 },
+  /** Быстрый отклик hover-подсветки */
+  snap: { type: 'spring', stiffness: 700, damping: 35, mass: 0.6 },
+} as const;
+
+/** Стандартный жест кнопки: лёгкий подъём на hover, пружинное вжатие на tap */
+export const buttonGesture = {
+  whileHover: { scale: 1.02, y: -1 },
+  whileTap: { scale: 0.96, y: 0 },
+  transition: springs.press,
+} as const;
+
 /**
  * Варианты без движения — для prefers-reduced-motion.
  * Никаких transform, только мгновенное появление (или чистый fade).

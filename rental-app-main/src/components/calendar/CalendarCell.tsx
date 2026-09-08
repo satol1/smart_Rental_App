@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -24,17 +24,22 @@ interface CalendarCellProps {
 }
 
 const statusSurfaces = {
-  available: 'bg-pastel-mint text-pastel-mint-fg',
-  reserved: 'bg-pastel-amber text-pastel-amber-fg',
-  rented: 'bg-pastel-coral text-pastel-coral-fg',
+  available: 'bg-success-soft',
+  reserved: 'bg-reserved-soft text-reserved-foreground',
+  rented: 'bg-reserved text-white dark:text-red-950',
 };
 
 export function CalendarCell({ cellData, equipment, isHighlighted, isUnderRepair, onSelect, onShowDetails, onNavigate, isActionAllowed }: CalendarCellProps) {
   const { t } = useTranslation();
   if (!cellData || !cellData.group_id || !cellData.order_type || !cellData.user_id) {
+    // Свободный день — только цвет, без подписи; ремонт подписываем текстом.
     return (
-      <div className={cn('flex min-h-11 w-full items-center justify-center rounded-md px-2 text-xs', isUnderRepair ? 'bg-muted text-muted-foreground' : statusSurfaces.available)}>
-        {t(isUnderRepair ? 'shell.underRepair' : 'shell.available')}
+      <div
+        className={cn('flex min-h-11 w-full items-center justify-center rounded-md px-2 text-xs transition-colors duration-150', isUnderRepair ? 'bg-muted text-muted-foreground' : statusSurfaces.available)}
+        aria-label={t(isUnderRepair ? 'shell.underRepair' : 'shell.available')}
+        title={t(isUnderRepair ? 'shell.underRepair' : 'shell.available')}
+      >
+        {isUnderRepair ? t('shell.underRepair') : <span className="sr-only">{t('shell.available')}</span>}
       </div>
     );
   }
@@ -55,7 +60,7 @@ export function CalendarCell({ cellData, equipment, isHighlighted, isUnderRepair
             if (isActionAllowed) onShowDetails({ ...eventInfo, equipment });
           }}
           className={cn(
-            'flex min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-md px-2 py-1.5 text-xs outline-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+            'flex min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-md px-2 py-1.5 text-xs outline-none transition-[transform,filter,box-shadow] duration-150 hover:z-10 hover:scale-[1.04] hover:brightness-95 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset active:scale-[0.98]',
             isUnderRepair ? 'bg-muted text-muted-foreground' : statusSurfaces[status],
             isUserEvent && 'font-semibold',
             isHighlighted && 'ring-2 ring-primary ring-inset',

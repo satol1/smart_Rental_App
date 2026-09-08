@@ -1,4 +1,4 @@
-﻿import { memo } from 'react';
+import { memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -6,12 +6,15 @@ import { Calendar, ChevronUp } from 'lucide-react';
 import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange';
 import { Button } from '@/components/ui/button';
 import { transitionBase } from '@/lib/motion';
+import { cn } from '@/lib/utils';
+import { useHeaderScrolled } from './Header';
 
 interface StickyDateBarProps { isVisible: boolean; }
 
 const StickyDateBar = memo(function StickyDateBar({ isVisible }: StickyDateBarProps) {
   const { t } = useTranslation();
   const reducedMotion = useReducedMotion();
+  const isHeaderCompact = useHeaderScrolled();
   const scrollToCalendar = () => {
     const calendarEl = document.getElementById('main-date-range-selector');
     const behavior = reducedMotion ? 'instant' : 'smooth';
@@ -28,7 +31,12 @@ const StickyDateBar = memo(function StickyDateBar({ isVisible }: StickyDateBarPr
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: reducedMotion ? 0 : -8, opacity: 0 }}
           transition={reducedMotion ? { duration: 0 } : transitionBase}
-          className="fixed inset-x-0 top-20 z-40 border-b border-border bg-card px-4 py-2.5 sm:px-6 lg:px-8"
+          className={cn(
+            'fixed inset-x-0 z-40 border-b px-4 py-2.5 transition-[top,background-color,box-shadow,border-color] duration-slow sm:px-6 lg:px-8',
+            isHeaderCompact
+              ? 'top-16 border-border/70 bg-card/85 shadow-sm backdrop-blur-md'
+              : 'top-20 border-border bg-card',
+          )}
           role="region" aria-label={t('shell.stickyDates')}
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-6">

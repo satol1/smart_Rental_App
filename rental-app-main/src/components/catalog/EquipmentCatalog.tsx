@@ -21,6 +21,33 @@ interface EquipmentCatalogProps {
 }
 
 /**
+ * Каскадное появление карточек каталога (stagger ~50ms, только transform/opacity).
+ * Сама сетка рендерится внутри EquipmentGrid, поэтому вместо motion-variants
+ * используем CSS-анимацию с задержкой по nth-child и отключением при reduced-motion.
+ */
+const gridStaggerCss = `
+@keyframes catalog-card-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.catalog-grid-stagger > .grid > * {
+    animation: catalog-card-enter 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.catalog-grid-stagger > .grid > *:nth-child(2) { animation-delay: 50ms; }
+.catalog-grid-stagger > .grid > *:nth-child(3) { animation-delay: 100ms; }
+.catalog-grid-stagger > .grid > *:nth-child(4) { animation-delay: 150ms; }
+.catalog-grid-stagger > .grid > *:nth-child(5) { animation-delay: 200ms; }
+.catalog-grid-stagger > .grid > *:nth-child(6) { animation-delay: 250ms; }
+.catalog-grid-stagger > .grid > *:nth-child(7) { animation-delay: 300ms; }
+.catalog-grid-stagger > .grid > *:nth-child(8) { animation-delay: 350ms; }
+.catalog-grid-stagger > .grid > *:nth-child(9) { animation-delay: 400ms; }
+.catalog-grid-stagger > .grid > *:nth-child(n+10) { animation-delay: 450ms; }
+@media (prefers-reduced-motion: reduce) {
+    .catalog-grid-stagger > .grid > * { animation: none; }
+}
+`;
+
+/**
  * Компонент каталога оборудования.
  * Инкапсулирует отображение и фильтрацию каталога оборудования.
  */
@@ -103,21 +130,24 @@ export default function EquipmentCatalog({ onOpenPackDetails, collections }: Equ
 
             {!hasActiveFilters && collections}
 
-            <EquipmentGrid
-                isLoading={isLoading}
-                items={combinedItems}
-                hasActiveFilters={hasActiveFilters}
-                getEquipmentStatus={getEquipmentStatus}
-                dailyAvailabilityData={dailyAvailabilityData}
-                availabilityData={availabilityData}
-                onResetFilters={resetFilters}
-                viewMode={viewMode}
-                onOpenPackDetails={onOpenPackDetails}
-                // ✅ ИСПРАВЛЕНИЕ: Передаем правильные props для бесконечной загрузки
-                fetchNextPage={fetchNextPage}
-                hasNextPage={hasNextPage}
-                isFetchingNextPage={isFetchingNextPage}
-            />
+            <style>{gridStaggerCss}</style>
+            <div className="catalog-grid-stagger">
+                <EquipmentGrid
+                    isLoading={isLoading}
+                    items={combinedItems}
+                    hasActiveFilters={hasActiveFilters}
+                    getEquipmentStatus={getEquipmentStatus}
+                    dailyAvailabilityData={dailyAvailabilityData}
+                    availabilityData={availabilityData}
+                    onResetFilters={resetFilters}
+                    viewMode={viewMode}
+                    onOpenPackDetails={onOpenPackDetails}
+                    // ✅ ИСПРАВЛЕНИЕ: Передаем правильные props для бесконечной загрузки
+                    fetchNextPage={fetchNextPage}
+                    hasNextPage={hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                />
+            </div>
         </section>
     );
 }

@@ -1,9 +1,11 @@
 // src/components/CompactEquipmentCard.tsx
 
 import React, { useCallback } from "react";
-import { CheckCircle } from "lucide-react";
+import { Check } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { formatDateRangeEuropean } from "@/lib/utils";
 import { isEquipmentUnderRepair, getEquipmentCardStyles, getEquipmentStatusText } from "@/lib/equipmentUtils";
+import { springs } from "@/lib/motion";
 
 // ViewModel хук
 import { useEquipmentCardViewModel } from "@/hooks/features/useEquipmentCardViewModel";
@@ -24,14 +26,16 @@ type CompactEquipmentCardLegacyProps = EquipmentCardBaseProps;
 // 1. Упрощаем стили, удаляя `ending_today`
 const COMPACT_STATUS_STYLES: Record<EquipmentStatus | "my_reservation" | "added", string> = {
     available: "bg-white border-gray-200 hover:bg-gray-50",
-    reserved: "bg-rose-100 border-rose-300",
-    rented: "bg-red-200 border-red-400",
+    reserved: "bg-reserved-soft border-reserved/40",
+    rented: "bg-reserved-soft border-reserved/60",
     my_reservation: "bg-sky-50 border-sky-200 hover:bg-sky-100",
-    added: "bg-green-100 border-green-300",
+    added: "bg-info-soft border-primary/40",
 };
 // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
-const COMPACT_SELECTED_STYLES = "ring-2 ring-offset-1 ring-green-500 border-green-500 bg-green-100";
+// Современный паттерн выбора: фирменное кольцо + подъём карточки (без заливки зелёным)
+const COMPACT_SELECTED_STYLES = "ring-2 ring-primary ring-offset-1 ring-offset-background border-primary/60 bg-info-soft shadow-md -translate-y-0.5";
+const COMPACT_HOVER_STYLES = "hover:-translate-y-0.5 hover:shadow-md hover:ring-1 hover:ring-primary/40";
 
 const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (props) => {
     const { 
@@ -71,6 +75,7 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
     // Правила хуков: все хуки вызываются до возможного раннего return,
     // иначе смена исхода guard между рендерами роняет React
     const isUnderRepair = equipment ? isEquipmentUnderRepair(equipment) : false;
+    const reducedMotion = useReducedMotion();
 
     const handleCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if ((e.target as HTMLElement).closest("button, a, label, input[type='checkbox']")) return;
@@ -110,13 +115,17 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
             ? cardStyles.background + " " + cardStyles.border
             : COMPACT_STATUS_STYLES[status];
 
+    // Hover-отклик только для выбираемых, но ещё не выбранных карточек
+    const canSelect = !isUnderRepair && (status === 'available' || status === 'added');
+    const hoverClass = !isSelected && canSelect ? COMPACT_HOVER_STYLES : "";
+
     const dateRangeDisplay = (startDate && endDate)
         ? `(${formatDateRangeEuropean(startDate, endDate)})`
         : "";
 
     return (
         <div
-            className={`relative h-full p-4 rounded-xl border transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${backgroundClass}`}
+            className={`relative h-full p-4 rounded-xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${backgroundClass} ${hoverClass}`}
             onClick={handleCardClick}
             tabIndex={0}
             role="button"
@@ -130,11 +139,20 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
                 }
             }}
         >
-            {isSelected && (
-                <div className="absolute top-1 right-1 z-10 bg-green-600 text-white rounded-full p-0.5 shadow">
-                    <CheckCircle className="w-3 h-3" />
-                </div>
-            )}
+            <AnimatePresence>
+                {isSelected && (
+                    <motion.div
+                        key="selected-badge"
+                        initial={{ scale: reducedMotion ? 1 : 0, opacity: reducedMotion ? 1 : 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: reducedMotion ? 1 : 0.6, opacity: 0 }}
+                        transition={reducedMotion ? { duration: 0 } : springs.pop}
+                        className="absolute top-2 right-2 z-10 grid place-items-center rounded-full bg-primary p-1 text-primary-foreground shadow-md"
+                    >
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="space-y-2">
                 <div className="space-y-1">
@@ -186,10 +204,10 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
                                 <span className="text-green-600 font-medium">Свободно</span>
                             )}
                             {status === 'reserved' && (
-                                <span className="text-red-600 font-medium">В резерве</span>
+                                <span className="text-reserved-foreground font-medium">В резерве</span>
                             )}
                             {status === 'rented' && (
-                                <span className="text-red-700 font-medium">В аренде</span>
+                                <span className="text-reserved-foreground font-medium">В аренде</span>
                             )}
                             {status === 'my_reservation' && (
                                 <span className="text-sky-600 font-medium">В этом резерве</span>
@@ -241,7 +259,7 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
 
     return (
         <div className={`relative group rounded-lg shadow-sm transition w-full flex items-center justify-between cursor-pointer overflow-hidden ${backgroundClass} ${selectionClass}`}>
-            {isSelected && <div className="absolute top-1 right-1 z-10 bg-sky-600 text-white rounded-full p-0.5 shadow"><CheckCircle className="w-3 h-3" /></div>}
+            {isSelected && <div className="absolute top-1 right-1 z-10 bg-primary text-primary-foreground rounded-full p-0.5 shadow"><Check className="w-3 h-3" /></div>}
 
             <div className="flex-1 p-3 min-w-0">
                 <div className="flex items-center justify-between mb-1">
@@ -277,8 +295,8 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
                                             onClick={(e) => handleToggleAccessory(e, accessory.id)}
                                             className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${
                                                 isSelected 
-                                                    ? 'bg-green-500 border-green-500 text-white' 
-                                                    : 'border-gray-300 hover:border-green-400'
+                                                    ? 'bg-primary border-primary text-primary-foreground' 
+                                                    : 'border-gray-300 hover:border-primary/60'
                                             }`}
                                         >
                                             {isSelected && '✓'}
@@ -302,10 +320,10 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
                                 <span className="text-green-600 font-medium">Свободно</span>
                             )}
                             {status === 'reserved' && (
-                                <span className="text-red-600 font-medium">В резерве</span>
+                                <span className="text-reserved-foreground font-medium">В резерве</span>
                             )}
                             {status === 'rented' && (
-                                <span className="text-red-700 font-medium">В аренде</span>
+                                <span className="text-reserved-foreground font-medium">В аренде</span>
                             )}
                             {status === 'my_reservation' && (
                                 <span className="text-sky-600 font-medium">В этом резерве</span>

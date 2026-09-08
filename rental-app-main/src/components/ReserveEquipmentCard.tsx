@@ -1,13 +1,17 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Paperclip, ChevronDown, Camera } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MoneyText, formatMoney } from '@/components/ui/money-text';
+import { buttonGesture } from '@/lib/motion';
 import type { Equipment } from '@/types/equipment';
 import type { AvailabilityInfo } from '@/types/availability';
 import { cn, formatDateRangeEuropean } from '@/lib/utils';
+
+const MotionButton = motion.create(Button);
 
 type Props = {
     equipment: Equipment;
@@ -47,14 +51,15 @@ export default function ReserveEquipmentCard({ equipment, availability, onRemove
                         {t('ordersDesign.dailyRate', { amount: formatMoney(equipment.daily_rate) })}
                     </p>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(equipment.id)}
+                <MotionButton type="button" variant="ghost" size="icon" onClick={() => onRemove(equipment.id)}
                     aria-label={t('ordersDesign.removeEquipment', { name: equipment.name })}
-                    className="shrink-0 text-muted-foreground hover:bg-danger-soft hover:text-destructive">
+                    className="shrink-0 text-muted-foreground hover:bg-danger-soft hover:text-destructive"
+                    {...buttonGesture}>
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </Button>
+                </MotionButton>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                <span className={cn('rounded-md px-2 py-1 font-medium', hasConflict ? 'bg-danger-soft text-destructive' : 'bg-success-soft text-success')}>
+                <span className={cn('rounded-md px-2 py-1 font-medium', hasConflict ? 'bg-reserved-soft text-reserved-foreground' : 'bg-success-soft text-success')}>
                     {t('ordersDesign.' + (statusKeys[status] || 'unknownStatus'))}
                 </span>
                 {dateRange && <span className="text-muted-foreground">{dateRange}</span>}

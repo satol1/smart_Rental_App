@@ -4,7 +4,9 @@ import type { Equipment } from "@/types/equipment";
 import { formatDateEuropean } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { Image as ImageIcon, Paperclip, Plus, Check } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { springs } from "@/lib/motion";
 import { useReserveStore } from "@/store/reserveStore";
 
 type Props = {
@@ -30,6 +32,7 @@ export default function EquipmentDetailsView({
     
     // Состояние для управления текущим изображением
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const reducedMotion = useReducedMotion();
 
     // 👇 ИЗМЕНЕНИЕ: Обработчик теперь разделяет логику
     const handleToggleAccessory = (accessoryId: number) => {
@@ -71,7 +74,7 @@ export default function EquipmentDetailsView({
                                     key={index} 
                                     className={`flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border cursor-pointer transition-all ${
                                         index === currentImageIndex 
-                                            ? 'border-blue-500 ring-2 ring-blue-200' 
+                                            ? 'border-primary ring-2 ring-primary/30' 
                                             : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                     onClick={() => handleThumbnailClick(index)}
@@ -123,12 +126,24 @@ export default function EquipmentDetailsView({
                                     <Button
                                         size="icon"
                                         variant={isAdded ? "default" : "outline"}
-                                        className={`h-7 w-7 shrink-0 ${isAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                        className={`h-7 w-7 shrink-0 ${isAdded ? '' : 'hover:border-primary/50 hover:bg-info-soft hover:text-primary'}`}
                                         onClick={() => handleToggleAccessory(acc.id)}
                                         aria-label={isAdded ? "Убрать аксессуар" : "Добавить аксессуар"}
+                                        aria-pressed={isAdded}
                                         disabled={!canToggleAccessories}
                                     >
-                                        {isAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                                        <AnimatePresence mode="wait" initial={false}>
+                                            <motion.span
+                                                key={isAdded ? 'check' : 'plus'}
+                                                initial={{ scale: reducedMotion ? 1 : 0.5, opacity: 0, rotate: reducedMotion ? 0 : -90 }}
+                                                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                                                exit={{ scale: reducedMotion ? 1 : 0.5, opacity: 0, rotate: reducedMotion ? 0 : 90 }}
+                                                transition={reducedMotion ? { duration: 0 } : springs.pop}
+                                                className="grid place-items-center"
+                                            >
+                                                {isAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                                            </motion.span>
+                                        </AnimatePresence>
                                     </Button>
                                 </li>
                             );

@@ -2,11 +2,15 @@
 
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Package } from "lucide-react";
+import { Check, Package } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { buttonGesture, springs } from "@/lib/motion";
 import type { CatalogPackItem } from "@/types/pack";
 import { usePackCardViewModel } from "@/hooks/features/usePackCardViewModel";
+
+const MotionButton = motion.create(Button);
 
 interface CompactPackCardProps {
     pack: CatalogPackItem;
@@ -18,9 +22,11 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
     onOpenDetails 
 }) => {
     const { t } = useTranslation();
+    const reducedMotion = useReducedMotion();
     // Переиспользуем всю бизнес-логику из ViewModel
     const { 
         isAvailable,
+        isAddedToReserve,
         priceDetails, 
         isLoadingPrice,
         handleReserveAction,
@@ -44,7 +50,7 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
         }
         return {
             text: `Доступно: 0 из ${pack.total_count}`,
-            className: "text-red-600"
+            className: "text-reserved-foreground"
         };
     }, [pack.available_count, pack.total_count]);
 
@@ -56,8 +62,16 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
         if (pack.available_count > 0) {
             return "bg-orange-50 border-orange-200 hover:bg-orange-100"; // Оранжевый для частичной доступности
         }
-        return "bg-red-50 border-red-200 hover:bg-red-100"; // Красный для недоступности
+        return "bg-reserved-soft border-reserved/40"; // Красноватый для недоступности
     }, [pack.available_count, pack.total_count]);
+
+    // Выбранная пачка: фирменное кольцо + подъём; невыбранная доступная — hover-отклик
+    const selectionClass = isAddedToReserve
+        ? "ring-2 ring-primary ring-offset-1 ring-offset-background border-primary/60 bg-info-soft shadow-md -translate-y-0.5"
+        : cardBackgroundClass;
+    const hoverClass = !isAddedToReserve && isAvailable
+        ? "hover:-translate-y-0.5 hover:shadow-md hover:ring-1 hover:ring-primary/40"
+        : "";
 
     const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if ((e.target as HTMLElement).closest('button')) return;
@@ -72,11 +86,26 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
     return (
         <div
             className={cn(
-                "relative h-full p-4 rounded-xl border transition-colors duration-200 cursor-pointer",
-                cardBackgroundClass
+                "relative h-full p-4 rounded-xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer",
+                selectionClass,
+                hoverClass
             )}
             onClick={handleCardClick}
         >
+            <AnimatePresence>
+                {isAddedToReserve && (
+                    <motion.div
+                        key="selected-badge"
+                        initial={{ scale: reducedMotion ? 1 : 0, opacity: reducedMotion ? 1 : 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: reducedMotion ? 1 : 0.6, opacity: 0 }}
+                        transition={reducedMotion ? { duration: 0 } : springs.pop}
+                        className="absolute top-2 right-2 z-10 grid place-items-center rounded-full bg-primary p-1 text-primary-foreground shadow-md"
+                    >
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div className="space-y-2">
 
                 {/* Заголовок и индикатор пачки */}
@@ -117,15 +146,16 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
 
                 {/* Кнопка действия */}
                 <div className="pt-1">
-                    <Button
+                    <MotionButton
                         size="sm"
                         className="w-full text-xs"
                         onClick={handleButtonClick}
                         disabled={!isAvailable}
                         variant={buttonVariant}
+                        {...buttonGesture}
                     >
                         {buttonText}
-                    </Button>
+                    </MotionButton>
                 </div>
             </div>
         </div>

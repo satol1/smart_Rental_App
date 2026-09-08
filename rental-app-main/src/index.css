@@ -60,17 +60,17 @@
     --sand-800: 32 40% 23%;
     --sand-900: 32 36% 18%;
     --sand-950: 32 30% 12%;
-    --red-50: 6 42% 98%;
-    --red-100: 6 42% 95%;
-    --red-200: 5 40% 87%;
-    --red-300: 4 40% 74%;
-    --red-400: 4 44% 58%;
-    --red-500: 3 49% 48%;
-    --red-600: 3 54% 43%;
-    --red-700: 3 55% 36%;
-    --red-800: 3 48% 29%;
-    --red-900: 3 42% 23%;
-    --red-950: 3 35% 15%;
+    --red-50: 6 48% 97%;
+    --red-100: 6 50% 94%;
+    --red-200: 5 50% 86%;
+    --red-300: 4 52% 72%;
+    --red-400: 4 56% 58%;
+    --red-500: 3 60% 48%;
+    --red-600: 3 62% 42%;
+    --red-700: 3 62% 35%;
+    --red-800: 3 54% 28%;
+    --red-900: 3 48% 22%;
+    --red-950: 3 42% 15%;
     --background: 40 20% 97%;
     --foreground: 210 8% 15%;
     --card: 0 0% 100%;
@@ -84,26 +84,29 @@
     --secondary-foreground: 210 8% 25%;
     --muted: 40 12% 94%;
     --muted-foreground: 210 5% 42%;
-    --accent: 200 29% 93%;
-    --accent-foreground: 201 54% 29%;
+    --accent: 201 42% 91%;
+    --accent-foreground: 201 62% 27%;
     --destructive: 3 54% 43%;
     --destructive-foreground: 0 0% 100%;
     --border: 40 9% 86%;
     --input: 40 7% 58%;
     --ring: 201 71% 38%;
     --overlay: 210 10% 10%;
-    --success: 145 22% 31%;
-    --success-soft: 140 19% 93%;
-    --warning: 34 45% 32%;
-    --warning-soft: 38 48% 93%;
-    --danger-soft: 6 42% 95%;
-    --info-soft: 200 39% 94%;
-    --collection-sky: 201 46% 85%;
-    --collection-mint: 145 25% 85%;
-    --collection-amber: 36 55% 86%;
+    --success: 145 30% 30%;
+    --success-soft: 142 30% 91%;
+    --warning: 34 56% 30%;
+    --warning-soft: 38 62% 91%;
+    --danger-soft: 5 58% 93%;
+    --info-soft: 200 48% 92%;
+    --reserved: 4 68% 50%;
+    --reserved-soft: 4 62% 92%;
+    --reserved-foreground: 3 60% 36%;
+    --collection-sky: 201 56% 82%;
+    --collection-mint: 146 36% 81%;
+    --collection-amber: 36 66% 83%;
     --photo-surface: 40 20% 96%;
     --pastel-sky: var(--info-soft);
-    --pastel-sky-fg: 201 54% 31%;
+    --pastel-sky-fg: 201 62% 29%;
     --pastel-mint: var(--success-soft);
     --pastel-mint-fg: var(--success);
     --pastel-amber: var(--warning-soft);
@@ -127,6 +130,7 @@
     --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05);
     --shadow-popover: 0 8px 28px -8px hsl(var(--shadow-color) / 0.18), 0 2px 6px hsl(var(--shadow-color) / 0.05);
     --shadow-dialog: 0 24px 72px -20px hsl(var(--shadow-color) / 0.3);
+    --shadow-button-hover: 0 6px 16px -6px hsl(var(--shadow-color) / 0.22);
     --neutral-50: 40 20% 97%;
     --neutral-100: 40 12% 94%;
     --neutral-200: 40 9% 88%;
@@ -169,29 +173,33 @@
     --secondary-foreground: 40 10% 89%;
     --muted: 210 6% 16%;
     --muted-foreground: 40 6% 66%;
-    --accent: 201 18% 21%;
-    --accent-foreground: 201 46% 80%;
+    --accent: 201 30% 23%;
+    --accent-foreground: 201 62% 80%;
     --destructive: 4 63% 69%;
     --destructive-foreground: 210 12% 10%;
     --border: 210 6% 24%;
     --input: 210 5% 42%;
     --ring: 201 62% 61%;
-    --success: 143 28% 70%;
-    --success-soft: 145 14% 18%;
-    --warning: 37 53% 72%;
-    --warning-soft: 35 22% 18%;
-    --danger-soft: 5 22% 19%;
-    --info-soft: 201 25% 19%;
-    --collection-sky: 201 32% 25%;
-    --collection-mint: 145 20% 24%;
-    --collection-amber: 35 28% 24%;
-    --pastel-sky-fg: 201 55% 77%;
+    --success: 144 36% 70%;
+    --success-soft: 145 24% 19%;
+    --warning: 37 62% 71%;
+    --warning-soft: 36 34% 19%;
+    --danger-soft: 5 32% 21%;
+    --info-soft: 201 34% 20%;
+    --reserved: 4 72% 64%;
+    --reserved-soft: 4 38% 23%;
+    --reserved-foreground: 4 72% 80%;
+    --collection-sky: 201 42% 27%;
+    --collection-mint: 145 30% 25%;
+    --collection-amber: 35 38% 25%;
+    --pastel-sky-fg: 201 64% 78%;
     --chart-1: 201 62% 61%;
     --chart-2: 143 28% 65%;
     --chart-3: 37 46% 65%;
     --chart-4: 210 14% 65%;
     --chart-5: 4 47% 64%;
     --shadow-color: 210 15% 2%;
+    --shadow-button-hover: 0 6px 16px -6px hsl(var(--shadow-color) / 0.4);
     --neutral-50: 210 8% 10%;
     --neutral-100: 210 6% 16%;
     --neutral-200: 210 6% 24%;
@@ -254,6 +262,27 @@
   .day-range-end { @apply rounded-l-none; }
   .day-range-start.day-range-end { @apply rounded-md; }
   .day-range-middle { @apply rounded-none bg-accent text-accent-foreground hover:bg-accent/80; }
+
+  /* Мягкий блик на primary-кнопках: только transform/opacity, фирменный hue 201. */
+  .btn-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(100deg, transparent 25%, hsl(201 85% 78% / 0.26) 50%, transparent 75%);
+    opacity: 0;
+    transform: translateX(-30%);
+    transition: transform var(--duration-slow) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
+    pointer-events: none;
+  }
+  .btn-sheen:not(:disabled):hover::after {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,4 @@
-﻿// src/components/DateRangeSelector.tsx
+// src/components/DateRangeSelector.tsx
 
 import { useState, type RefObject, useCallback, useEffect, useRef, useId } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
@@ -194,7 +194,7 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
                             onSelect={handleSelect} month={month} onMonthChange={setMonth}
                             showOutsideDays numberOfMonths={numberOfMonths}
                             disabled={disabledDays} min={2}
-                            modifiers={{ holiday: holidays }}
+                            modifiers={{ holiday: holidays, weekend: (date: Date) => date.getDay() === 0 || date.getDay() === 6 }}
                             labels={{
                                 labelPrevious: () => t('shell.previousMonth'),
                                 labelNext: () => t('shell.nextMonth'),
@@ -220,17 +220,20 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
                                 weekday: 'h-9 text-xs font-medium',
                                 week: 'h-11',
                                 day: 'relative h-11 p-0 text-center text-sm',
-                                day_button: 'flex h-11 w-full items-center justify-center rounded-lg outline-none hover:bg-secondary focus-visible:relative focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-ring',
+                                day_button: 'flex h-11 w-full items-center justify-center rounded-lg outline-none transition-[background-color,color,transform] duration-150 hover:scale-[1.06] hover:bg-secondary focus-visible:relative focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-ring',
                                 today: '[&_button]:font-bold [&_button]:underline [&_button]:underline-offset-4',
                                 selected: '[&_button]:font-semibold',
-                                range_start: 'rounded-l-lg bg-pastel-sky [&_button]:bg-primary [&_button]:text-primary-foreground',
-                                range_end: 'rounded-r-lg bg-pastel-sky [&_button]:bg-primary [&_button]:text-primary-foreground',
-                                range_middle: 'bg-pastel-sky text-pastel-sky-fg [&_button]:rounded-none',
+                                range_start: 'rounded-l-lg bg-pastel-sky transition-colors [&_button]:bg-primary [&_button]:text-primary-foreground [&_button]:hover:bg-primary-hover',
+                                range_end: 'rounded-r-lg bg-pastel-sky transition-colors [&_button]:bg-primary [&_button]:text-primary-foreground [&_button]:hover:bg-primary-hover',
+                                range_middle: 'bg-pastel-sky transition-colors [&_button]:rounded-none [&_button]:text-pastel-sky-fg [&_button]:hover:bg-pastel-sky/70',
                                 outside: 'text-muted-foreground/50',
-                                disabled: '[&_button]:cursor-not-allowed [&_button]:text-muted-foreground/40 [&_button]:hover:bg-transparent',
+                                disabled: '[&_button]:cursor-not-allowed [&_button]:text-muted-foreground/40 [&_button]:hover:bg-transparent [&_button]:hover:scale-100',
                                 hidden: 'invisible',
                             }}
-                            modifiersClassNames={{ holiday: '[&_button]:text-destructive [&_button]:line-through' }}
+                            modifiersClassNames={{
+                                holiday: '[&_button]:text-destructive [&_button]:line-through',
+                                weekend: 'text-muted-foreground/60',
+                            }}
                         />
                     </div>
                     <div className="border-t border-border pt-5">
