@@ -42,7 +42,7 @@ jobs:
       CSRF_SECRET_KEY: ci-csrf-secret-key-for-tests-only-0123456789abcd
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -74,7 +74,7 @@ jobs:
         working-directory: rental-app-main
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -107,7 +107,7 @@ jobs:
       (github.event_name == 'pull_request' && github.base_ref == 'main')
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build backend image
         run: docker build -t rental-backend -f RentalApp_FASTAPI/Dockerfile.backend RentalApp_FASTAPI
