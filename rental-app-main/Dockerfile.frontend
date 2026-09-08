@@ -21,9 +21,12 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # через docker-compose (override / limited-resources).
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Права для запуска nginx от непривилегированного пользователя:
-# - /var/cache/nginx — temp-директории (client_body и т.п.)
-# - /var/run/nginx.pid — pid-файл создаётся заранее и принадлежит nginx
+# Права для temp-директорий и pid-файла: воркеры nginx работают от
+# непривилегированного пользователя nginx (директива `user` в nginx.conf).
+# Мастер-процесс остаётся root — официальная модель образа nginx: он читает
+# приватные TLS-ключи, смонтированные с хоста (./ssl, ./letsencrypt), и
+# занимает порты 80/443. Полный non-root здесь невозможен без переноса
+# nginx на непривилегированные порты и запекания сертификатов в образ.
 RUN chown -R nginx:nginx /var/cache/nginx \
     && touch /var/run/nginx.pid \
     && chown nginx:nginx /var/run/nginx.pid
@@ -37,7 +40,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 \
         || wget -qO- --no-check-certificate https://127.0.0.1/ >/dev/null 2>&1 \
         || exit 1
-
-USER nginx
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -52,7 +52,7 @@
 - Тесты: каждая новая страница/форма/хук — с тестом (vitest); цель — непрерывный рост покрытия.
 
 ### Инфраструктура (Docker / CI)
-- Образы: multistage, non-root USER, HEALTHCHECK, `.dockerignore` в каждом контексте.
+- Образы: multistage, HEALTHCHECK, `.dockerignore` в каждом контексте. Backend — non-root USER; frontend — официальная модель nginx (root-мастер читает TLS-ключи и занимает 80/443, воркеры — непривилегированный nginx).
 - Прод-compose: никаких published-портов у БД, никаких bind-mount исходников, healthchecks у всех сервисов.
 - CI обязателен: ruff + mypy + pytest (backend), eslint + tsc + vitest + build (frontend).
 - Обновление зависимостей — еженедельно через Dependabot, осознанно (security-обновления — сразу).

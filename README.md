@@ -20,7 +20,7 @@
 | Frontend | React 19, TypeScript (strict), Vite, Tailwind CSS, Radix UI, framer-motion, recharts, react-i18next |
 | База данных | PostgreSQL 15 (asyncpg) |
 | Кэш/состояние | Redis 7 (rate limit, denylist токенов, защита от брутфорса, кэш дашборда; graceful fallback в память) |
-| Инфраструктура | Docker Compose (non-root образы, healthchecks), nginx, Let's Encrypt (certbot), GitHub Actions CI |
+| Инфраструктура | Docker Compose (healthchecks; backend non-root; frontend — официальная модель nginx), nginx, Let's Encrypt (certbot), GitHub Actions CI |
 | Безопасность | JWT (типизация + denylist), bcrypt, CSRF-валидация, rate limiting (slowapi + nginx), fail-fast секреты |
 | Тесты | pytest (backend, ~1500+), vitest (frontend, 618) |
 
