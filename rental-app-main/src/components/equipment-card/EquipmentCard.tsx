@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { CheckCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { formatDateRangeEuropean } from "@/lib/utils";
 
 // Подкомпоненты
@@ -22,7 +23,7 @@ import type { EquipmentStatus } from "@/types/availability";
 import type { EquipmentCardSimpleProps, EquipmentCardBaseProps } from "@/types/equipmentCard";
 
 // Упрощенный интерфейс для нового компонента
-interface EquipmentCardProps extends EquipmentCardSimpleProps {}
+type EquipmentCardProps = EquipmentCardSimpleProps;
 
 // Старый интерфейс для обратной совместимости
 interface EquipmentCardLegacyProps extends EquipmentCardBaseProps {
@@ -30,6 +31,7 @@ interface EquipmentCardLegacyProps extends EquipmentCardBaseProps {
 }
 
 const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
+    const { t } = useTranslation();
     const { 
         equipment,
         dailyStatus,
@@ -101,26 +103,25 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
     return (
         <>
             <div
-                className={`relative group rounded-2xl border transition-all duration-200 w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden shadow-xs hover:shadow-md ${backgroundClass} ${selectionClass}`}
+                className={`equipment-tile group ${backgroundClass} ${selectionClass}`}
+                data-selected={isSelected}
                 onClick={handleCardClick}
-                onDoubleClick={handleCardClick}
-                tabIndex={0}
             >
-                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow-sm animate-in zoom-in-75"><CheckCircle className="w-4 h-4" /></div>}
+                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1"><CheckCircle className="w-4 h-4" /></div>}
 
                 <CardImage imageUrl={equipment.image_url} name={equipment.name} />
 
-                <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-semibold mb-1">{equipment.name}</h3>
+                <div className="equipment-tile-body">
+                    <div className="equipment-tile-info">
+                        <h3><button type="button" className="equipment-tile-title" onClick={() => setShowDetails(true)} aria-label={t("catalogDesign.details", { name: equipment.name })}>{equipment.name}</button></h3>
                         <p className="text-sm text-gray-500 mb-2">{equipment.brand} • {equipment.equipment_type}</p>
-                        {equipment.short_description && <p className="text-sm italic text-gray-600 mb-2">"{equipment.short_description}"</p>}
+                        {equipment.short_description && <p className="line-clamp-2">{equipment.short_description}</p>}
                         {isUnderRepair ? (
                             <p className="text-base font-bold text-gray-500 mb-1">{getEquipmentStatusText(equipment)}</p>
                         ) : (
                             <>
-                                <p className="text-sm mb-1">Состояние: <strong>{equipment.condition}</strong></p>
-                                <p className="text-base font-bold mb-1">{equipment.daily_rate} ₽ / день</p>
+                                <p>{t("catalogDesign.condition", { condition: equipment.condition })}</p>
+                                <div className="equipment-price"><strong>{equipment.daily_rate.toLocaleString("ru-RU")} ₽</strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
                             </>
                         )}
                         {isCalculatorVisible && <DiscountInfo {...discountData} />}
@@ -160,6 +161,7 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
 
 // Компонент для обратной совместимости (старый API)
 const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props) => {
+    const { t } = useTranslation();
     const { 
         equipment, 
         status, 
@@ -205,26 +207,25 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
     return (
         <>
             <div
-                className={`relative group rounded-2xl border transition-all duration-200 w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden shadow-xs hover:shadow-md ${backgroundClass} ${selectionClass}`}
+                className={`equipment-tile group ${backgroundClass} ${selectionClass}`}
+                data-selected={isSelected}
                 onClick={handleCardClick}
-                onDoubleClick={handleCardClick}
-                tabIndex={0}
             >
-                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow-sm animate-in zoom-in-75"><CheckCircle className="w-4 h-4" /></div>}
+                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1"><CheckCircle className="w-4 h-4" /></div>}
 
                 <CardImage imageUrl={equipment.image_url} name={equipment.name} />
 
-                <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-semibold mb-1">{equipment.name}</h3>
+                <div className="equipment-tile-body">
+                    <div className="equipment-tile-info">
+                        <h3><button type="button" className="equipment-tile-title" onClick={() => setShowDetails(true)} aria-label={t("catalogDesign.details", { name: equipment.name })}>{equipment.name}</button></h3>
                         <p className="text-sm text-gray-500 mb-2">{equipment.brand} • {equipment.equipment_type}</p>
-                        {equipment.short_description && <p className="text-sm italic text-gray-600 mb-2">"{equipment.short_description}"</p>}
+                        {equipment.short_description && <p className="line-clamp-2">{equipment.short_description}</p>}
                         {isUnderRepair ? (
                             <p className="text-base font-bold text-gray-500 mb-1">{getEquipmentStatusText(equipment)}</p>
                         ) : (
                             <>
-                                <p className="text-sm mb-1">Состояние: <strong>{equipment.condition}</strong></p>
-                                <p className="text-base font-bold mb-1">{equipment.daily_rate} ₽ / день</p>
+                                <p>{t("catalogDesign.condition", { condition: equipment.condition })}</p>
+                                <div className="equipment-price"><strong>{equipment.daily_rate.toLocaleString("ru-RU")} ₽</strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
                             </>
                         )}
                         {isCalculatorVisible && <DiscountInfo {...discountData} />}

@@ -2,213 +2,270 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые стили html/body (токены, чтобы работала тёмная тема) */
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-  Roboto, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  letter-spacing: -0.01em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: 'Onest';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/onest-cyrillic-wght-normal.woff2') format('woff2');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@font-face {
+  font-family: 'Onest';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/onest-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
-
-button {
-  cursor: pointer;
-  font-family: inherit;
-}
-
 
 @layer base {
   :root {
-    /* Современная чистая светлая палитра: благородный фарфор, мягкий сине-стальной primary */
-    --background: 210 20% 98.5%;
-    --foreground: 222 47% 11%;
+    color-scheme: light;
+    --font-sans: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --brand: 201 71% 38%;
+    --brand-ink: var(--foreground);
+    --brand-paper: var(--card);
+    --blue-50: 200 39% 97%;
+    --blue-100: 200 39% 94%;
+    --blue-200: 201 39% 87%;
+    --blue-300: 201 40% 74%;
+    --blue-400: 201 43% 54%;
+    --blue-500: 201 61% 42%;
+    --blue-600: 201 71% 38%;
+    --blue-700: 201 72% 32%;
+    --blue-800: 201 65% 26%;
+    --blue-900: 201 56% 21%;
+    --blue-950: 201 50% 14%;
+    --sage-50: 140 19% 97%;
+    --sage-100: 140 19% 93%;
+    --sage-200: 141 18% 85%;
+    --sage-300: 142 18% 72%;
+    --sage-400: 144 20% 51%;
+    --sage-500: 145 23% 38%;
+    --sage-600: 145 27% 31%;
+    --sage-700: 145 28% 26%;
+    --sage-800: 145 25% 21%;
+    --sage-900: 145 23% 17%;
+    --sage-950: 145 20% 12%;
+    --sand-50: 38 48% 97%;
+    --sand-100: 38 48% 93%;
+    --sand-200: 38 38% 85%;
+    --sand-300: 37 35% 73%;
+    --sand-400: 36 34% 55%;
+    --sand-500: 35 38% 43%;
+    --sand-600: 34 45% 34%;
+    --sand-700: 33 45% 28%;
+    --sand-800: 32 40% 23%;
+    --sand-900: 32 36% 18%;
+    --sand-950: 32 30% 12%;
+    --red-50: 6 42% 98%;
+    --red-100: 6 42% 95%;
+    --red-200: 5 40% 87%;
+    --red-300: 4 40% 74%;
+    --red-400: 4 44% 58%;
+    --red-500: 3 49% 48%;
+    --red-600: 3 54% 43%;
+    --red-700: 3 55% 36%;
+    --red-800: 3 48% 29%;
+    --red-900: 3 42% 23%;
+    --red-950: 3 35% 15%;
+    --background: 40 20% 97%;
+    --foreground: 210 8% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: var(--foreground);
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: var(--foreground);
     --primary: 201 71% 38%;
+    --primary-hover: 201 72% 32%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 204 33% 96%;
-    --secondary-foreground: 201 71% 28%;
-    --muted: 210 20% 95.5%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 202 60% 94%;
-    --accent-foreground: 201 71% 25%;
-    --destructive: 0 72% 51%;
+    --secondary: 40 14% 93%;
+    --secondary-foreground: 210 8% 25%;
+    --muted: 40 12% 94%;
+    --muted-foreground: 210 5% 42%;
+    --accent: 200 29% 93%;
+    --accent-foreground: 201 54% 29%;
+    --destructive: 3 54% 43%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
+    --border: 40 9% 86%;
+    --input: 40 7% 58%;
     --ring: 201 71% 38%;
-
-    /* Пастельные функциональные токены */
-    --pastel-sky: 202 85% 95%;
-    --pastel-sky-fg: 201 71% 32%;
-    --pastel-mint: 152 68% 94%;
-    --pastel-mint-fg: 160 84% 26%;
-    --pastel-amber: 43 92% 94%;
-    --pastel-amber-fg: 38 92% 30%;
-    --pastel-coral: 0 80% 95%;
-    --pastel-coral-fg: 0 72% 40%;
-    --pastel-lavender: 260 70% 95%;
-    --pastel-lavender-fg: 262 70% 38%;
-
+    --overlay: 210 10% 10%;
+    --success: 145 22% 31%;
+    --success-soft: 140 19% 93%;
+    --warning: 34 45% 32%;
+    --warning-soft: 38 48% 93%;
+    --danger-soft: 6 42% 95%;
+    --info-soft: 200 39% 94%;
+    --collection-sky: 201 46% 85%;
+    --collection-mint: 145 25% 85%;
+    --collection-amber: 36 55% 86%;
+    --photo-surface: 40 20% 96%;
+    --pastel-sky: var(--info-soft);
+    --pastel-sky-fg: 201 54% 31%;
+    --pastel-mint: var(--success-soft);
+    --pastel-mint-fg: var(--success);
+    --pastel-amber: var(--warning-soft);
+    --pastel-amber-fg: var(--warning);
+    --pastel-coral: var(--danger-soft);
+    --pastel-coral-fg: var(--destructive);
+    --pastel-lavender: var(--secondary);
+    --pastel-lavender-fg: var(--secondary-foreground);
     --chart-1: 201 71% 38%;
-    --chart-2: 152 68% 40%;
-    --chart-3: 43 92% 50%;
-    --chart-4: 260 70% 55%;
-    --chart-5: 0 72% 55%;
-    --radius: 0.75rem;
+    --chart-2: 145 22% 38%;
+    --chart-3: 34 45% 47%;
+    --chart-4: 210 12% 47%;
+    --chart-5: 3 39% 48%;
+    --radius: 0.875rem;
+    --radius-control: 0.625rem;
+    --duration-fast: 150ms;
+    --duration-base: 200ms;
+    --duration-slow: 300ms;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --shadow-color: 210 10% 15%;
+    --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05);
+    --shadow-popover: 0 8px 28px -8px hsl(var(--shadow-color) / 0.18), 0 2px 6px hsl(var(--shadow-color) / 0.05);
+    --shadow-dialog: 0 24px 72px -20px hsl(var(--shadow-color) / 0.3);
+    --neutral-50: 40 20% 97%;
+    --neutral-100: 40 12% 94%;
+    --neutral-200: 40 9% 88%;
+    --neutral-300: 40 7% 78%;
+    --neutral-400: 210 4% 53%;
+    --neutral-500: 210 5% 44%;
+    --neutral-600: 210 6% 36%;
+    --neutral-700: 210 7% 28%;
+    --neutral-800: 210 8% 21%;
+    --neutral-900: 210 8% 15%;
+    --neutral-950: 210 10% 10%;
   }
+
   .dark {
-    /* Современная глубокая тёмная палитра */
-    --background: 222 47% 8%;
-    --foreground: 210 20% 98%;
-    --card: 222 40% 11%;
-    --card-foreground: 210 20% 98%;
-    --popover: 222 40% 10%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 201 75% 55%;
-    --primary-foreground: 222 47% 8%;
-    --secondary: 222 30% 16%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 222 30% 15%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 222 30% 20%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 68% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 222 30% 19%;
-    --input: 222 30% 19%;
-    --ring: 201 75% 55%;
-
-    --pastel-sky: 201 50% 18%;
-    --pastel-sky-fg: 201 80% 75%;
-    --pastel-mint: 155 45% 16%;
-    --pastel-mint-fg: 152 75% 70%;
-    --pastel-amber: 40 45% 16%;
-    --pastel-amber-fg: 43 85% 70%;
-    --pastel-coral: 0 45% 18%;
-    --pastel-coral-fg: 0 80% 75%;
-    --pastel-lavender: 262 40% 18%;
-    --pastel-lavender-fg: 260 75% 75%;
-
-    --chart-1: 201 75% 55%;
-    --chart-2: 152 68% 50%;
-    --chart-3: 43 92% 55%;
-    --chart-4: 260 70% 65%;
-    --chart-5: 0 68% 60%;
-    --radius: 0.75rem;
+    color-scheme: dark;
+    --blue-50: 201 16% 14%;
+    --blue-100: 201 22% 18%;
+    --blue-200: 201 22% 26%;
+    --blue-300: 201 22% 38%;
+    --sage-50: 145 16% 14%;
+    --sage-100: 145 22% 18%;
+    --sage-200: 145 22% 26%;
+    --sage-300: 145 22% 38%;
+    --sand-50: 35 16% 14%;
+    --sand-100: 35 22% 18%;
+    --sand-200: 35 22% 26%;
+    --sand-300: 35 22% 38%;
+    --red-50: 5 16% 14%;
+    --red-100: 5 22% 18%;
+    --red-200: 5 22% 26%;
+    --red-300: 5 22% 38%;
+    --background: 210 8% 9%;
+    --foreground: 40 12% 94%;
+    --card: 210 7% 12%;
+    --popover: 210 7% 14%;
+    --primary: 201 62% 61%;
+    --primary-hover: 201 66% 70%;
+    --primary-foreground: 210 12% 10%;
+    --secondary: 210 6% 19%;
+    --secondary-foreground: 40 10% 89%;
+    --muted: 210 6% 16%;
+    --muted-foreground: 40 6% 66%;
+    --accent: 201 18% 21%;
+    --accent-foreground: 201 46% 80%;
+    --destructive: 4 63% 69%;
+    --destructive-foreground: 210 12% 10%;
+    --border: 210 6% 24%;
+    --input: 210 5% 42%;
+    --ring: 201 62% 61%;
+    --success: 143 28% 70%;
+    --success-soft: 145 14% 18%;
+    --warning: 37 53% 72%;
+    --warning-soft: 35 22% 18%;
+    --danger-soft: 5 22% 19%;
+    --info-soft: 201 25% 19%;
+    --collection-sky: 201 32% 25%;
+    --collection-mint: 145 20% 24%;
+    --collection-amber: 35 28% 24%;
+    --pastel-sky-fg: 201 55% 77%;
+    --chart-1: 201 62% 61%;
+    --chart-2: 143 28% 65%;
+    --chart-3: 37 46% 65%;
+    --chart-4: 210 14% 65%;
+    --chart-5: 4 47% 64%;
+    --shadow-color: 210 15% 2%;
+    --neutral-50: 210 8% 10%;
+    --neutral-100: 210 6% 16%;
+    --neutral-200: 210 6% 24%;
+    --neutral-300: 210 5% 34%;
+    --neutral-400: 40 5% 59%;
+    --neutral-500: 40 6% 66%;
+    --neutral-600: 40 7% 73%;
+    --neutral-700: 40 9% 82%;
+    --neutral-800: 40 10% 88%;
+    --neutral-900: 40 12% 94%;
+    --neutral-950: 40 15% 97%;
   }
-}
 
-/* === Тёмная тема: маппинг часто используемых «серых» утилит ===
-   Ретрофит без переписывания сотен компонентов: жёстко заданные
-   gray-класси перенаправляются на токены темы. Правила НЕ в @layer,
-   поэтому выигрывают каскад у утилит Tailwind. */
-.dark .text-gray-900,
-.dark .text-gray-800 {
-  color: hsl(var(--foreground));
-}
-.dark .text-gray-700,
-.dark .text-gray-600 {
-  color: hsl(var(--muted-foreground));
-}
-.dark .text-gray-500,
-.dark .text-gray-400 {
-  color: hsl(var(--muted-foreground) / 0.85);
-}
-.dark .bg-white {
-  background-color: hsl(var(--card));
-}
-.dark .bg-gray-50,
-.dark .bg-gray-50\/50 {
-  background-color: hsl(var(--muted) / 0.4);
-}
-.dark .bg-gray-100 {
-  background-color: hsl(var(--muted));
-}
-.dark .bg-gray-200 {
-  background-color: hsl(var(--accent));
-}
-.dark .border-gray-200,
-.dark .border-gray-300 {
-  border-color: hsl(var(--border));
-}
-.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: hsl(var(--border));
-}
-
-@layer base {
-  * {
-    @apply border-border;
+  * { @apply border-border; }
+  html {
+    min-width: 320px;
+    background: hsl(var(--background));
+    scroll-padding-top: 7rem;
+    -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-background text-foreground;
+    margin: 0;
+    min-height: 100vh;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-feature-settings: 'ss01' on;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  h1, h2, h3, h4 { text-wrap: balance; letter-spacing: -0.025em; }
+  a { text-underline-offset: 0.2em; }
+  button, input, textarea, select { font: inherit; }
+  button, [role='button'] { touch-action: manipulation; }
+  button:not(:disabled), [role='button']:not([aria-disabled='true']) { cursor: pointer; }
+  input, textarea { caret-color: hsl(var(--primary)); }
+  input::placeholder, textarea::placeholder { color: hsl(var(--muted-foreground)); opacity: 1; }
+  :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+  ::selection { color: hsl(var(--foreground)); background: hsl(var(--primary) / 0.2); }
+  * { scrollbar-width: thin; scrollbar-color: hsl(var(--neutral-300)) transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--neutral-300)); border: 2px solid hsl(var(--background)); border-radius: 8px; }
+  table, time, [data-numeric] { font-variant-numeric: tabular-nums; }
 }
 
-/* Подсветка вертикального столбца "Сегодня" */
-.today-column {
-  box-shadow: inset -1px 0 0 0 rgba(59, 130, 246, 0.5),
-    /* sky-500 */ inset 1px 0 0 0 rgba(59, 130, 246, 0.5);
+/* Legacy surfaces keep theme semantics while their callers migrate to bg-card. */
+@layer utilities {
+  .dark .bg-white { background-color: hsl(var(--card)); }
 }
 
-/* === СТИЛИ ДЛЯ REACT-DAY-PICKER === */
-/* Удаляем старый блок стилей и заменяем его на этот */
 @layer components {
-  .day-range-start {
-    @apply rounded-r-none;
+  .today-column {
+    box-shadow: inset -1px 0 hsl(var(--primary) / 0.45), inset 1px 0 hsl(var(--primary) / 0.45);
   }
-  .day-range-end {
-    @apply rounded-l-none;
-  }
-  .day-outside {
-    @apply text-muted-foreground opacity-50;
+  .day-outside { @apply text-muted-foreground opacity-50; }
+  .day-selected { @apply rounded-md bg-primary text-primary-foreground hover:bg-primary-hover focus:bg-primary-hover; }
+  .day-range-start { @apply rounded-r-none; }
+  .day-range-end { @apply rounded-l-none; }
+  .day-range-start.day-range-end { @apply rounded-md; }
+  .day-range-middle { @apply rounded-none bg-accent text-accent-foreground hover:bg-accent/80; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* В самый конец файла src/index.css */
-
-.super-test-border {
-  border: 10px dashed lime !important;
-}
-
-
-@layer components {
-  /* Базовый стиль для выбранного дня (кружок) */
-  .day-selected {
-    @apply bg-sky-600 text-white hover:bg-sky-700 focus:bg-sky-700 rounded-full;
-  }
-
-  /* Начало диапазона - скругление только слева */
-  .day-range-start {
-    @apply rounded-r-none;
-  }
-
-  /* Конец диапазона - скругление только справа */
-  .day-range-end {
-    @apply rounded-l-none;
-  }
-
-  /* Дни в середине диапазона - убираем скругление и добавляем фон */
-  .day-range-middle {
-    @apply bg-sky-100 text-gray-800 rounded-none hover:bg-sky-200;
-  }
-}
-
-/* === СТИЛИ ДЛЯ ПЕЧАТИ БЛАНКА АРЕНДЫ === */
+/* The rental receipt remains a paper document in either interface theme. */
 @media print {
   /* 1. Скрываем все элементы страницы, кроме диалога с бланком */
   body > *:not(.rental-receipt-dialog) {

@@ -105,7 +105,7 @@ export function useServerFilters(): UseServerFiltersReturn {
     const hasActiveFilters = !!(
       (query && query.trim()) ||
       type || brandSystemId ||
-      associationId || availableOnly || groupSimilar
+      associationId || availableOnly
     );
 
     return {
@@ -120,7 +120,7 @@ export function useServerFilters(): UseServerFiltersReturn {
       hasActiveFilters,
       totalCount: firstPage.total, // Общее количество берем из ответа API
     };
-  }, [equipmentPages, query, type, brandSystemId, associationId, availableOnly, groupSimilar]);
+  }, [equipmentPages, query, type, brandSystemId, associationId, availableOnly]);
 
   return {
     ...result,

@@ -1,6 +1,7 @@
 // path: rental-app-main/src/components/DiscountCalculator.tsx
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useTranslation } from "react-i18next";
 import { useSandboxCalculatorStore } from '@/store/sandboxCalculatorStore';
 import { combinedDiscountPercentage } from '@/constants/discount';
 import { useDateStore } from '@/store/dateStore';
@@ -15,6 +16,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
 export default function DiscountCalculator() {
+    const { t } = useTranslation();
     const { dayCount } = useDateStore();
     const {
         setDaysFromSlider, isCalculatorVisible, toggleCalculator,
@@ -116,30 +118,16 @@ export default function DiscountCalculator() {
 
     if (!isCalculatorVisible) {
         return (
-            <Card
-                className="my-4 bg-gray-50/50 hover:bg-gray-100 cursor-pointer transition"
-                onClick={toggleCalculator}
-            >
-                <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Percent className="w-5 h-5 text-purple-500"/>
-                            <div className="text-sm">
-                                <p className="text-gray-800">
-                                    <span className="text-base font-bold text-purple-600">Есть промокод?</span>
-                                    <span className="font-medium"> или хотите рассчитать скидку?</span>
-                                </p>
-                            </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400"/>
-                    </div>
-                </CardContent>
-            </Card>
+            <button type="button" className="mb-1 flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-primary focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={toggleCalculator} aria-expanded={false}>
+                <Percent className="size-4" aria-hidden="true" />
+                <span>{t('catalogDesign.promo')}</span>
+                <ChevronRight className="size-4" aria-hidden="true" />
+            </button>
         );
     }
 
     return (
-        <Card className="my-4 bg-white border-sky-200 shadow-md">
+        <Card className="my-4 bg-card border-border shadow-none">
             <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
                     <div className="w-full md:flex-1">

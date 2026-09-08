@@ -32,7 +32,7 @@ export default function HolidayConfirmationDialog({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="text-amber-500" />
+                        <AlertTriangle className="text-warning" />
                         Дата окончания - выходной
                     </DialogTitle>
                 </DialogHeader>
@@ -40,7 +40,7 @@ export default function HolidayConfirmationDialog({
                     <p>{message}</p>
                     <p className="mt-2">
                         Вы хотите автоматически изменить дату окончания на ближайший рабочий день:
-                        <strong className="text-gray-800"> {suggestedDate}</strong>?
+                        <strong className="text-foreground"> {suggestedDate}</strong>?
                     </p>
                 </DialogDescription>
                 <DialogFooter className="pt-4">

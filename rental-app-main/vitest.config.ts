@@ -6,10 +6,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    // TypeScript sources are canonical; adjacent .js files are old compiler output.
+    include: ['src/**/*.{test,spec}.{ts,mts,cts,tsx}'],
     globals: true,
   },
   resolve: {
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
     alias: {
       "@": "/src",
     },

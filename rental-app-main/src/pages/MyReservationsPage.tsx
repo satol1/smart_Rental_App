@@ -1,6 +1,7 @@
 // rental-app-main/src/pages/MyReservationsPage.tsx
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -23,6 +24,7 @@ interface MyReservationsLocationState {
 }
 
 export default function MyReservationsPage() {
+    const { t } = useTranslation();
     const { data: user, isLoading } = useCurrentUser();
     const navigate = useNavigate();
     const location = useLocation();
@@ -48,13 +50,13 @@ export default function MyReservationsPage() {
     }), [searchQuery, statusFilter, sortOption]);
 
     // Данные для аренд по-прежнему загружаются здесь
-    const { 
-        data: rentalsData, 
-        fetchNextPage: fetchNextRentalPage, 
-        hasNextPage: hasNextRentalPage, 
-        isFetchingNextPage: isFetchingNextRentalPage 
+    const {
+        data: rentalsData,
+        fetchNextPage: fetchNextRentalPage,
+        hasNextPage: hasNextRentalPage,
+        isFetchingNextPage: isFetchingNextRentalPage
     } = useMyRentals(apiParams, 10);
-    
+
     // ❌ Логика загрузки резервов отсюда УДАЛЕНА
 
     const { highlightState, getHighlightClasses, elementRef } = useHighlightLogic();
@@ -103,32 +105,35 @@ export default function MyReservationsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Мои заказы</h1>
-                <Button variant="outline" onClick={() => navigate("/")}>На главную</Button>
+        <div className="max-w-6xl mx-auto px-4 py-7 sm:px-6 sm:py-10 space-y-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t('ordersDesign.myOrders')}</h1>
+                    <p className="mt-3 text-sm text-muted-foreground">{t('ordersDesign.myOrdersNote')}</p>
+                </div>
+                <Button variant="outline" onClick={() => navigate("/")}>{t('ordersDesign.home')}</Button>
             </div>
 
             <ToggleGroup
                 type="single"
                 value={activeTab}
                 onValueChange={(value) => { if (value === 'reservations' || value === 'rentals') setActiveTab(value); }}
-                className="w-full"
+                className="w-full justify-start sm:w-auto" aria-label={t('ordersDesign.orderType')}
             >
-                <ToggleGroupItem value="reservations" className="w-1/2 data-[state=on]:bg-sky-100 data-[state=on]:text-sky-800">
+                <ToggleGroupItem value="reservations" className="min-h-11 flex-1 px-5 data-[state=on]:bg-info-soft data-[state=on]:text-primary sm:flex-none">
                     <ClipboardList className="w-4 h-4 mr-2" />
-                    Резервы
+                    {t('ordersDesign.reservations')}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="rentals" className="w-1/2 data-[state=on]:bg-orange-100 data-[state=on]:text-orange-800">
+                <ToggleGroupItem value="rentals" className="min-h-11 flex-1 px-5 data-[state=on]:bg-info-soft data-[state=on]:text-primary sm:flex-none">
                     <Truck className="w-4 h-4 mr-2" />
-                    Аренды
+                    {t('ordersDesign.rentals')}
                 </ToggleGroupItem>
             </ToggleGroup>
-            
+
             <OrderToolbar context={toolbarContext} showHideCompletedCheckbox={true} />
 
             {isFetchingNextRentalPage && activeTab === 'rentals' && (
-                <div className="text-center text-blue-600 py-2 text-sm">Поиск аренды в следующих страницах...</div>
+                <div className="text-center text-primary py-2 text-sm">Поиск аренды в следующих страницах...</div>
             )}
 
             <div>
@@ -139,7 +144,7 @@ export default function MyReservationsPage() {
                         elementRef={elementRef}
                     />
                 ) : (
-                    <MyRentalsList 
+                    <MyRentalsList
                         getHighlightClasses={getHighlightClasses}
                         elementRef={elementRef}
                         highlightId={highlightState.id}

@@ -1,15 +1,17 @@
-// src/components/DateRangeSelector.tsx
+﻿// src/components/DateRangeSelector.tsx
 
-import { useState, type RefObject, useCallback, useEffect, useRef } from 'react';
+import { useState, type RefObject, useCallback, useEffect, useRef, useId } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
 import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { ChevronsDown, ChevronsUp } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
 import { useDateStore } from "@/store/dateStore";
 import { useSandboxCalculatorStore } from "@/store/sandboxCalculatorStore";
 import { useHolidayStore } from "@/store/holidayStore";
 import { DateService } from '@/core/services/DateService';
 import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 
 interface DateRangeSelectorProps {
     containerRef: RefObject<HTMLDivElement | null>;
@@ -17,8 +19,10 @@ interface DateRangeSelectorProps {
     isSticky?: boolean;
 }
 
-export default function DateRangeSelector({ containerRef, collapsed: externalCollapsed, isSticky: _isSticky = false }: DateRangeSelectorProps) {
-    const { startDate, endDate, setRange } = useDateStore();
+export default function DateRangeSelector({ containerRef, collapsed: externalCollapsed }: DateRangeSelectorProps) {
+    const { t } = useTranslation();
+    const calendarId = useId();
+    const { startDate, endDate, dayCount, setRange } = useDateStore();
     const { isCalculatorVisible, syncWithDateStore, refreshCalculator } = useSandboxCalculatorStore();
 
     const [internalCollapsed, setInternalCollapsed] = useState(true);
@@ -37,6 +41,17 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     const showInitialCards = collapsed; // Изначальные крупные карточки
     const showExpandedCalendar = !collapsed; // Развернутый календарь
     const [month, setMonth] = useState(startDate);
+    const [numberOfMonths, setNumberOfMonths] = useState(() =>
+        typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches ? 2 : 1
+    );
+
+    useEffect(() => {
+        const media = window.matchMedia('(min-width: 640px)');
+        const updateMonthCount = () => setNumberOfMonths(media.matches ? 2 : 1);
+        updateMonthCount();
+        media.addEventListener('change', updateMonthCount);
+        return () => media.removeEventListener('change', updateMonthCount);
+    }, []);
 
     const lastChangeSource = useRef<'calendar' | 'slider' | 'manual' | null>(null);
     const [isAutoUpdating, setIsAutoUpdating] = useState(false);
@@ -127,93 +142,102 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     // Удаляем функции форматирования, так как они теперь в CalendarDateInputRange
 
     return (
-        <div className="mb-4 border border-border/80 rounded-2xl p-5 bg-card text-card-foreground shadow-sm transition-all duration-200">
-            <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                    <h2 className="text-sm font-semibold text-foreground tracking-tight">Период аренды фототехники</h2>
-                </div>
-                <button
-                    type="button"
+        <section className="mb-4 rounded-2xl border border-primary/25 bg-card px-4 py-3 text-card-foreground sm:px-5" aria-labelledby={`${calendarId}-title`}>
+            <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 id={`${calendarId}-title`} className="flex items-center gap-2 text-base font-semibold tracking-tight sm:text-lg">
+                    <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
+                    {t('shell.period')}
+                </h2>
+                <Button
+                    type="button" variant="ghost"
                     onClick={() => setInternalCollapsed(!internalCollapsed)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-accent/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer"
-                    title={collapsed ? "Развернуть календарь" : "Свернуть календарь"}
+                    className="h-11 gap-2 bg-pastel-sky px-2 text-sm text-pastel-sky-fg hover:bg-pastel-sky/75 hover:text-pastel-sky-fg sm:px-3"
+                    aria-expanded={!collapsed} aria-controls={`${calendarId}-picker`}
                 >
-                    <span>{collapsed ? "Развернуть календарь" : "Свернуть"}</span>
-                    {collapsed ? <ChevronsDown className="w-4 h-4" /> : <ChevronsUp className="w-4 h-4" />}
-                </button>
+                    <span>{collapsed ? t('shell.expandCalendar') : t('shell.collapseCalendar')}</span>
+                    {collapsed ? <ChevronDown className="h-4 w-4" aria-hidden="true" /> : <ChevronUp className="h-4 w-4" aria-hidden="true" />}
+                </Button>
             </div>
-
             {showInitialCards ? (
-                    <div
-                        className="flex justify-center items-center gap-4 sm:gap-6 mt-3 cursor-pointer group select-none py-2"
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-6">
+                    <button
+                        type="button"
+                        className="group grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring sm:gap-6 md:max-w-xl"
                         onClick={() => setInternalCollapsed(false)}
-                        title="Нажмите, чтобы развернуть календарь и изменить даты"
+                        aria-label={t('shell.expandCalendar')}
+                        aria-expanded={false} aria-controls={`${calendarId}-picker`}
                     >
-                        <div className="text-center p-4 rounded-xl bg-pastel-sky/50 border border-sky-200/70 w-36 sm:w-44 transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md group-hover:-translate-y-0.5">
-                            <div className="text-xs font-semibold text-pastel-sky-fg uppercase tracking-wider mb-1">Начало аренды</div>
-                            <div className="text-3xl sm:text-4xl font-extrabold text-foreground leading-none my-1 tracking-tight">{format(startDate, "dd")}</div>
-                            <div className="text-sm sm:text-base font-medium text-foreground/80 capitalize">{format(startDate, "LLLL", { locale: ru })}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{format(startDate, "yyyy")}</div>
-                        </div>
-                        <div className="text-2xl font-light text-muted-foreground/50 pb-4">→</div>
-                        <div className={`text-center p-4 rounded-xl w-36 sm:w-44 transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${
-                            isAutoUpdating
-                                ? 'bg-pastel-mint/60 border border-emerald-300/80 animate-pulse'
-                                : 'bg-pastel-sky/50 border border-sky-200/70 group-hover:border-primary/50'
-                        }`}>
-                            <div className="text-xs font-semibold text-pastel-sky-fg uppercase tracking-wider mb-1">
-                                {isAutoUpdating ? 'Обновляется...' : 'Окончание'}
-                            </div>
-                            <div className="text-3xl sm:text-4xl font-extrabold text-foreground leading-none my-1 tracking-tight">{format(endDate, "dd")}</div>
-                            <div className="text-sm sm:text-base font-medium text-foreground/80 capitalize">{format(endDate, "LLLL", { locale: ru })}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{format(endDate, "yyyy")}</div>
-                        </div>
+                        <span className="min-w-0">
+                            <span className="mb-1 block text-xs font-medium text-muted-foreground">{t('shell.pickup')}</span>
+                            <time dateTime={format(startDate, 'yyyy-MM-dd')} className="block whitespace-nowrap text-xl font-semibold tracking-tight text-primary">
+                                {format(startDate, 'd MMM', { locale: ru })}
+                            </time>
+                            <span className="mt-1 block text-xs text-muted-foreground">{format(startDate, 'EEEE, yyyy', { locale: ru })}</span>
+                        </span>
+                        <ArrowRight className="h-5 w-5 text-muted-foreground/70" aria-hidden="true" />
+                        <span className="min-w-0">
+                            <span className="mb-1 block text-xs font-medium text-muted-foreground">{isAutoUpdating ? t('shell.updating') : t('shell.return')}</span>
+                            <time dateTime={format(endDate, 'yyyy-MM-dd')} className="block whitespace-nowrap text-xl font-semibold tracking-tight text-primary">
+                                {format(endDate, 'd MMM', { locale: ru })}
+                            </time>
+                            <span className="mt-1 block text-xs text-muted-foreground">{format(endDate, 'EEEE, yyyy', { locale: ru })}</span>
+                        </span>
+                    </button>
+                    <p className="w-fit shrink-0 rounded-md bg-pastel-sky px-2 py-0.5 text-sm font-medium text-pastel-sky-fg" aria-live="polite">{t('shell.rentalDays', { count: dayCount })}</p>
+                </div>
+            ) : showExpandedCalendar ? (
+                <div id={`${calendarId}-picker`} className="space-y-5">
+                    <div className="flex justify-center">
+                        <DayPicker
+                            mode="range" locale={ru}
+                            selected={{ from: startDate, to: endDate }}
+                            onSelect={handleSelect} month={month} onMonthChange={setMonth}
+                            showOutsideDays numberOfMonths={numberOfMonths}
+                            disabled={disabledDays} min={2}
+                            modifiers={{ holiday: holidays }}
+                            labels={{
+                                labelPrevious: () => t('shell.previousMonth'),
+                                labelNext: () => t('shell.nextMonth'),
+                                labelNav: () => t('shell.monthNavigation'),
+                                labelDayButton: (date, modifiers) => [
+                                    format(date, 'PPPP', { locale: ru }),
+                                    modifiers.today ? t('shell.today') : null,
+                                    modifiers.selected ? t('shell.selectedDate') : null,
+                                ].filter(Boolean).join(', '),
+                            }}
+                            classNames={{
+                                root: 'relative w-full max-w-[42rem]',
+                                months: 'relative grid gap-6 sm:grid-cols-2 sm:gap-8',
+                                month: 'min-w-0',
+                                month_caption: 'flex h-11 items-center justify-center mb-2',
+                                caption_label: 'text-sm font-semibold capitalize',
+                                nav: 'absolute inset-x-0 top-0 z-10 flex justify-between pointer-events-none',
+                                button_previous: 'pointer-events-auto flex h-11 w-11 items-center justify-center rounded-lg hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40',
+                                button_next: 'pointer-events-auto flex h-11 w-11 items-center justify-center rounded-lg hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40',
+                                chevron: 'h-4 w-4 fill-current text-muted-foreground',
+                                month_grid: 'w-full table-fixed border-collapse',
+                                weekdays: 'text-muted-foreground',
+                                weekday: 'h-9 text-xs font-medium',
+                                week: 'h-11',
+                                day: 'relative h-11 p-0 text-center text-sm',
+                                day_button: 'flex h-11 w-full items-center justify-center rounded-lg outline-none hover:bg-secondary focus-visible:relative focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-ring',
+                                today: '[&_button]:font-bold [&_button]:underline [&_button]:underline-offset-4',
+                                selected: '[&_button]:font-semibold',
+                                range_start: 'rounded-l-lg bg-pastel-sky [&_button]:bg-primary [&_button]:text-primary-foreground',
+                                range_end: 'rounded-r-lg bg-pastel-sky [&_button]:bg-primary [&_button]:text-primary-foreground',
+                                range_middle: 'bg-pastel-sky text-pastel-sky-fg [&_button]:rounded-none',
+                                outside: 'text-muted-foreground/50',
+                                disabled: '[&_button]:cursor-not-allowed [&_button]:text-muted-foreground/40 [&_button]:hover:bg-transparent',
+                                hidden: 'invisible',
+                            }}
+                            modifiersClassNames={{ holiday: '[&_button]:text-destructive [&_button]:line-through' }}
+                        />
                     </div>
-                ) : showExpandedCalendar ? (
-                    <>
-                        <div className="flex justify-center mb-4">
-                            <DayPicker
-                                mode="range"
-                                locale={ru}
-                                selected={{ from: startDate, to: endDate }}
-                                onSelect={handleSelect}
-                                month={month}
-                                onMonthChange={setMonth}
-                                showOutsideDays
-                                numberOfMonths={2}
-                                disabled={disabledDays}
-                                min={2}
-                                modifiers={{ holiday: holidays }}
-                                classNames={{
-                                    months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-6 sm:space-y-0',
-                                    month: 'space-y-4',
-                                    table: 'w-full border-collapse space-y-1',
-                                    head_row: 'flex',
-                                    head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
-                                    row: 'flex w-full mt-2',
-                                    cell: 'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-pastel-sky/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-                                    day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md transition-colors hover:bg-accent',
-                                    nav: 'space-x-1 flex items-center',
-                                    caption: 'flex justify-center pt-1 relative items-center',
-                                    caption_label: 'text-sm font-semibold tracking-tight',
-                                    nav_button: 'h-7 w-7 bg-transparent p-0 opacity-60 hover:opacity-100 hover:bg-accent rounded-md transition-all'
-                                }}
-                                modifiersClassNames={{
-                                    today: 'bg-accent font-semibold text-accent-foreground',
-                                    selected: 'bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:bg-primary',
-                                    range_start: 'rounded-l-full',
-                                    range_end: 'rounded-r-full',
-                                    range_middle: 'aria-selected:bg-pastel-sky aria-selected:text-pastel-sky-fg',
-                                    outside: 'day-outside text-muted-foreground opacity-40',
-                                    disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
-                                    holiday: 'text-destructive bg-pastel-coral/60 border border-destructive/20 font-semibold',
-                                }}
-                            />
-                        </div>
+                    <div className="border-t border-border pt-5">
                         <CalendarDateInputRange />
-                    </>
-                ) : null}
-        </div>
+                    </div>
+                </div>
+            ) : null}
+        </section>
     );
 }

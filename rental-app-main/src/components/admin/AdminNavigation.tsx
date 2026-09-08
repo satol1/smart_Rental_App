@@ -1,140 +1,51 @@
-// src/components/admin/AdminNavigation.tsx
+import { useTranslation } from 'react-i18next';
+import { Link, NavLink } from 'react-router-dom';
+import { Users, Package, LayoutDashboard, ArrowUpRight, Paperclip, ClipboardList, TicketPercent, CalendarDays, Tags, Truck, PackagePlus, Settings } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/useProfile';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-import { useCurrentUser } from "@/hooks/useProfile";
-import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Users, Package, Shield, Home, Paperclip, ClipboardList, TicketPercent, CalendarDays, Tags, Truck, PackagePlus, Settings } from "lucide-react"; // <-- Добавлена иконка Settings
+const navigationItems = [
+    { path: '/admin', key: 'overview', icon: LayoutDashboard, adminOnly: false },
+    { path: '/admin/reservations', key: 'reservations', icon: ClipboardList, adminOnly: false },
+    { path: '/admin/rentals', key: 'rentals', icon: Truck, adminOnly: false },
+    { path: '/admin/users', key: 'users', icon: Users, adminOnly: false },
+    { path: '/admin/equipment', key: 'equipmentAdmin', icon: Package, adminOnly: false },
+    { path: '/admin/accessories', key: 'accessoriesAdmin', icon: Paperclip, adminOnly: false },
+    { path: '/admin/associations', key: 'associations', icon: Tags, adminOnly: false },
+    { path: '/admin/packs', key: 'packs', icon: PackagePlus, adminOnly: false },
+    { path: '/admin/promocodes', key: 'discounts', icon: TicketPercent, adminOnly: false },
+    { path: '/admin/holidays', key: 'holidays', icon: CalendarDays, adminOnly: true },
+    { path: '/admin/settings', key: 'settings', icon: Settings, adminOnly: true },
+];
 
 export default function AdminNavigation() {
     const { data: user } = useCurrentUser();
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const isAdmin = user?.role === "admin";
-    const isManager = user?.role === "manager" || isAdmin;
-
-    if (!isManager) return null;
-
-    const navigationItems = [
-        {
-            path: "/admin",
-            label: "Обзор",
-            icon: <Shield className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/reservations",
-            label: "Все резервы",
-            icon: <ClipboardList className="w-4 h-4" />,
-            accessible: isManager
-        },
-        // +++ НОВЫЙ ПУНКТ МЕНЮ +++
-        {
-            path: "/admin/rentals",
-            label: "Аренды",
-            icon: <Truck className="w-4 h-4" />,
-            accessible: isManager
-        },
-        // ++++++++++++++++++++++++
-        {
-            path: "/admin/users",
-            label: "Пользователи",
-            icon: <Users className="w-4 h-4" />,
-            accessible: isManager,
-        },
-        {
-            path: "/admin/equipment",
-            label: "Оборудование",
-            icon: <Package className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/accessories",
-            label: "Аксессуары",
-            icon: <Paperclip className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/associations",
-            label: "Ассоциации",
-            icon: <Tags className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/packs",
-            label: "Управление пачками",
-            icon: <PackagePlus className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/promocodes",
-            label: "Промокоды и Скидки",
-            icon: <TicketPercent className="w-4 h-4" />,
-            accessible: isManager
-        },
-        {
-            path: "/admin/holidays",
-            label: "Выходные дни",
-            icon: <CalendarDays className="w-4 h-4" />,
-            accessible: isAdmin
-        },
-        {
-            path: "/admin/settings",
-            label: "Настройки",
-            icon: <Settings className="w-4 h-4" />,
-            accessible: isAdmin
-        }
-    ];
-
-    const isActive = (path: string) => {
-        if (path === "/admin") {
-            return location.pathname === "/admin";
-        }
-        return location.pathname.startsWith(path);
-    };
-
+    const { t } = useTranslation();
+    const isAdmin = user?.role === 'admin';
+    if (!isAdmin && user?.role !== 'manager') return null;
     return (
-        <div className="bg-white border rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                    Панель управления
-                </h2>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/")}
-                >
-                    <Home className="w-4 h-4 mr-2" aria-hidden="true" />
-                    На главную
-                </Button>
+        <nav aria-label={t('ordersDesign.adminNav')} className="mb-8 min-w-0 border-b border-border pb-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">{t('ordersDesign.management')}</h2>
+                    <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">{t(isAdmin ? 'ordersDesign.admin' : 'ordersDesign.manager')}</span>
+                </div>
+                <Link to="/" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground')}>
+                    {t('ordersDesign.home')}<ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
             </div>
-
-            <div className="flex items-center text-sm text-gray-600 mb-4">
-                <span>Роль: </span>
-                <span className={`ml-1 font-medium ${
-                    isAdmin ? "text-red-600" : "text-blue-600"
-                }`}>
-                    {user?.role === "admin" ? "Администратор" : "Менеджер"}
-                </span>
+            <div className="flex flex-wrap gap-1">
+                {navigationItems.filter(item => !item.adminOnly || isAdmin).map(({ path, key, icon: Icon }) => (
+                    <NavLink key={path} to={path} end={path === '/admin'}
+                        className={({ isActive }) => cn(
+                            'inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            isActive ? 'bg-info-soft text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        )}>
+                        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />{t('ordersDesign.' + key)}
+                    </NavLink>
+                ))}
             </div>
-
-            <div className="flex flex-wrap gap-2">
-                {navigationItems
-                    .filter(item => item.accessible)
-                    .map((item) => (
-                        <Button
-                            key={item.path}
-                            variant={isActive(item.path) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => navigate(item.path)}
-                            className="flex items-center gap-2"
-                        >
-                            <span aria-hidden="true">{item.icon}</span>
-                            <span>{item.label}</span>
-                        </Button>
-                    ))
-                }
-            </div>
-        </div>
+        </nav>
     );
 }

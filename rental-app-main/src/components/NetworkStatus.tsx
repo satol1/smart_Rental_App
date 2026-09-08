@@ -5,19 +5,17 @@ import { Circle } from "lucide-react"
 export default function NetworkStatus() {
     const isOnline = useNetworkStatus()
 
+    if (isOnline) return null
+
     return (
         <div
-            className={`fixed bottom-4 left-4 z-50 text-xs font-medium px-3 py-1.5 rounded-md shadow-lg transition
-      ${isOnline ? "bg-green-100 text-green-700 border border-green-300" : "bg-red-100 text-red-700 border border-red-300"}
-      `}
+            role="status"
+            aria-live="polite"
+            className="fixed bottom-4 left-4 z-40 rounded-md bg-danger-soft px-3 py-2 text-xs font-medium text-destructive shadow-sm"
         >
             <div className="flex items-center gap-2">
-                <Circle 
-                    className={`w-3 h-3 fill-current ${
-                        isOnline ? "text-green-500" : "text-red-500"
-                    }`}
-                />
-                {isOnline ? "В сети" : "Нет подключения"}
+                <Circle className="h-2 w-2 fill-current" aria-hidden="true" />
+                {"Нет подключения"}
             </div>
         </div>
     )

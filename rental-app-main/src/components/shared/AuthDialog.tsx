@@ -32,15 +32,15 @@ export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-2xl font-semibold">
             {t("auth.welcomeTitle")}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="max-w-md">
             {t("auth.welcomeDescription")}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <AuthForm onSuccess={handleAuthSuccess} />
+        <div className="pt-1">
+          <AuthForm embedded onSuccess={handleAuthSuccess} />
         </div>
       </DialogContent>
     </Dialog>

@@ -1,0 +1,27 @@
+- generic [ref=f20e2]:
+  - generic [ref=f20e3]:
+    - link "Перейти к содержимому" [ref=f20e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f20e5]:
+      - generic [ref=f20e6]:
+        - link "Сбросить фильтры" [ref=f20e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f20e8]: Цифровой
+        - generic [ref=f20e18]:
+          - button "Войти" [ref=f20e19] [cursor=pointer]
+          - button "Открыть меню" [ref=f20e20] [cursor=pointer]
+    - main [ref=f20e21]:
+      - generic [ref=f20e24]:
+        - generic [ref=f20e25]:
+          - heading "Всё для следующей съёмки." [level=1] [ref=f20e26]
+          - paragraph [ref=f20e27]: Камеры, оптика, свет и звук. Выберите даты и соберите технику под свою задачу.
+        - region "Даты аренды" [ref=f20e29]:
+          - generic [ref=f20e30]
+          - generic [ref=f20e36]
+        - button "Промокод и скидка за срок аренды" [ref=f20e49] [cursor=pointer]
+        - region "Каталог техники" [ref=f20e57]:
+          - generic [ref=f20e58]
+          - generic [ref=f20e65]
+          - region "Под вашу съёмку" [ref=f20e119]
+          - generic [ref=f20e190]
+  - region "Notifications alt+T"

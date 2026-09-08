@@ -1,0 +1,59 @@
+- generic [ref=f29e2]:
+  - generic [ref=f29e3]:
+    - link "Перейти к содержимому" [ref=f29e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f29e5]:
+      - generic [ref=f29e6]:
+        - link "На главную" [ref=f29e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f29e16]:
+            - generic [ref=f29e17]: Цифровой
+            - generic [ref=f29e18]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f29e19]:
+          - link "Каталог" [ref=f29e20] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f29e21] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f29e22] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f29e23] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f29e24] [cursor=pointer]
+        - generic [ref=f29e25]:
+          - 'button "Тема оформления: Светлое" [ref=f29e27] [cursor=pointer]'
+          - button "Мои заказы" [ref=f29e28] [cursor=pointer]
+          - button "Личный кабинет" [ref=f29e29] [cursor=pointer]:
+            - generic [ref=f29e30]: П
+            - generic [ref=f29e32]: Проверка макета
+    - main [ref=f29e33]:
+      - generic [ref=f29e35]:
+        - generic [ref=f29e36]:
+          - generic [ref=f29e37]:
+            - heading "Мои заказы" [level=1] [ref=f29e38]
+            - paragraph [ref=f29e39]: Резервы, выданная техника и история аренды.
+          - button "Каталог" [ref=f29e40] [cursor=pointer]
+        - group "Тип заказа" [ref=f29e41]:
+          - radio "Резервы" [checked] [ref=f29e42] [cursor=pointer]
+          - radio "Аренды" [ref=f29e43] [cursor=pointer]
+        - group "Фильтры заказов" [ref=f29e44]:
+          - generic [ref=f29e45]:
+            - text: Поиск
+            - searchbox "Поиск" [ref=f29e47]
+          - generic [ref=f29e48]:
+            - checkbox "Скрыть завершённые" [checked] [ref=f29e49] [cursor=pointer]
+            - generic [ref=f29e50] [cursor=pointer]: Скрыть завершённые
+          - generic [ref=f29e51]:
+            - text: Сортировка
+            - combobox "Сортировка" [ref=f29e52] [cursor=pointer]
+        - generic [ref=f29e57]:
+          - generic [ref=f29e61]:
+            - generic [ref=f29e62]
+            - generic [ref=f29e67]
+            - generic [ref=f29e76]: "До начала резерва: 6 дн."
+            - generic [ref=f29e78]
+            - generic [ref=f29e91]
+          - generic [ref=f29e100]:
+            - generic [ref=f29e101]
+            - generic [ref=f29e106]
+            - generic [ref=f29e115]
+  - region "Notifications alt+T"

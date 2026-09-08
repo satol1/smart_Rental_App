@@ -12,12 +12,12 @@ import { Command, CommandList, CommandItem } from "@/components/ui/command"; // 
 import { Command as CommandPrimitive } from "cmdk";
 
 const multiSelectVariants = cva(
-    "m-0 flex flex-wrap gap-1 rounded-md border border-input bg-background p-1 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+    "m-0 flex flex-wrap gap-1 rounded-md border border-input bg-card p-1.5 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
     {
         variants: {
             variant: {
-                default: "h-10",
-                compact: "h-auto min-h-10",
+                default: "min-h-11",
+                compact: "h-auto min-h-11",
             },
         },
         defaultVariants: {
@@ -54,12 +54,14 @@ const MultiSelect = React.forwardRef<
             onValueChange,
             disabled,
             variant,
-            maxCount = 5,
+            maxCount: _maxCount = 5,
             className,
             ...props
         },
         ref
     ) => {
+        // Retained for compatibility; all selected values remain visible.
+        void _maxCount;
         const [open, setOpen] = React.useState(false);
         const [inputValue, setInputValue] = React.useState("");
 
@@ -135,7 +137,7 @@ const MultiSelect = React.forwardRef<
                 </div>
                 <div className="relative mt-2">
                     {open && unselected.length > 0 ? (
-                        <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+                        <div className="absolute top-0 z-10 w-full rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
                             <CommandList>
                                 {unselected.map((option) => (
                                     <CommandItem

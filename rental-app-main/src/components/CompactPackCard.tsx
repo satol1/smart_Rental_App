@@ -1,6 +1,7 @@
 // src/components/CompactPackCard.tsx
 
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
     pack, 
     onOpenDetails 
 }) => {
+    const { t } = useTranslation();
     // Переиспользуем всю бизнес-логику из ViewModel
     const { 
         isAvailable,
@@ -70,11 +72,10 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
     return (
         <div
             className={cn(
-                "relative p-3 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-md",
+                "relative h-full p-4 rounded-xl border transition-colors duration-200 cursor-pointer",
                 cardBackgroundClass
             )}
             onClick={handleCardClick}
-            tabIndex={0}
         >
             <div className="space-y-2">
 
@@ -82,11 +83,9 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span className="text-xs font-medium text-gray-600">Пачка</span>
+                        <span className="text-xs font-medium text-gray-600">{t("catalogDesign.group")}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 truncate" title={pack.name}>
-                        {pack.name}
-                    </h3>
+                    <h3><button type="button" className="equipment-tile-title" onClick={() => onOpenDetails?.(pack)}>{pack.name}</button></h3>
                     <p className="text-xs text-gray-500">
                         {pack.brand} • {pack.equipment_type}
                     </p>
@@ -109,7 +108,7 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
                             <span className="font-bold text-gray-900">
                                 {priceDetails.final_total.toLocaleString('ru-RU')} ₽
                             </span>
-                            <span className="text-gray-600 text-xs">/день</span>
+                            <span className="text-gray-600 text-xs">{t("catalogDesign.periodPrice")}</span>
                         </div>
                     ) : (
                         <span className="text-gray-500 font-medium">Нет доступных</span>

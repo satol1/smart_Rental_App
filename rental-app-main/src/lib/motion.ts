@@ -12,8 +12,8 @@ export const motionDurations = {
   slow: 0.3,
 } as const;
 
-/** Стандартная кривая ускорения (Material standard easing) */
-export const easeStandard: [number, number, number, number] = [0.4, 0, 0.2, 1];
+/** Стандартная кривая ускорения (responsive ease-out) */
+export const easeStandard: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 /** Базовые transition-параметры для большинства анимаций */
 export const transitionBase = {

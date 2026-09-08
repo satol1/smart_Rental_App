@@ -59,7 +59,7 @@ export function MoneyText({
   ...props
 }: MoneyTextProps) {
   return (
-    <span className={cn("whitespace-nowrap", className)} {...props}>
+    <span className={cn("whitespace-nowrap tabular-nums", className)} {...props}>
       {formatMoney(value, withKopecks)}
     </span>
   );

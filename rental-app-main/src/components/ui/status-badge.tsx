@@ -19,7 +19,7 @@ import {
  *  - статусы пользователей (UserStatus): Новый | Постоянный | VIP | Заблокирован | Персона НонГрата
  *
  * Цветовая карта построена на CSS-переменных-токенах темы
- * (primary / secondary / muted / destructive / chart-*) и автоматически
+ * (info / success / warning / destructive / muted) и автоматически
  * адаптируется к тёмной теме.
  */
 
@@ -36,7 +36,7 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
   active: {
     label: STATUS_CONFIG.active.text,
     className:
-      "border-primary/30 bg-primary/10 text-primary",
+      "border-transparent bg-info-soft text-pastel-sky-fg",
   },
   completed: {
     label: STATUS_CONFIG.completed.text,
@@ -46,12 +46,12 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
   overdue: {
     label: STATUS_CONFIG.overdue.text,
     className:
-      "border-destructive/40 bg-destructive/10 text-destructive",
+      "border-transparent bg-danger-soft text-destructive",
   },
   fulfilled: {
     label: STATUS_CONFIG.fulfilled.text,
     className:
-      "border-chart-2/40 bg-chart-2/10 text-chart-2",
+      "border-transparent bg-success-soft text-success",
   },
   cancelled: {
     label: STATUS_CONFIG.cancelled.text,
@@ -69,17 +69,17 @@ const USER_STATUS_STYLES: Record<UserStatus, StatusStyle> = {
   [USER_STATUS.REGULAR]: {
     label: USER_STATUS.REGULAR,
     className:
-      "border-primary/30 bg-primary/10 text-primary",
+      "border-transparent bg-info-soft text-pastel-sky-fg",
   },
   [USER_STATUS.VIP]: {
     label: USER_STATUS.VIP,
     className:
-      "border-chart-4/50 bg-chart-4/15 text-chart-4",
+      "border-transparent bg-warning-soft text-warning",
   },
   [USER_STATUS.BLOCKED]: {
     label: USER_STATUS.BLOCKED,
     className:
-      "border-destructive/40 bg-destructive/10 text-destructive",
+      "border-transparent bg-danger-soft text-destructive",
   },
   [USER_STATUS.PERSONA_NON_GRATA]: {
     label: USER_STATUS.PERSONA_NON_GRATA,

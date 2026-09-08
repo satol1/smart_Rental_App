@@ -4,6 +4,7 @@
 
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 interface SkeletonCardProps {
   /** Компактная карточка (для плотных сеток) */
@@ -20,6 +21,7 @@ export function SkeletonCard({ compact, className, ...rest }: SkeletonCardProps)
   return (
     <div
       data-testid={rest["data-testid"] ?? "skeleton-card"}
+      aria-hidden="true"
       className={cn(
         "rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
         compact ? "p-3 space-y-2" : "p-4 space-y-3",
@@ -63,6 +65,7 @@ export function SkeletonList({
   columns = "catalog",
   testId,
 }: SkeletonListProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -71,6 +74,9 @@ export function SkeletonList({
         className,
       )}
       data-testid="skeleton-list"
+      role="status"
+      aria-label={t('common.loading')}
+      aria-busy="true"
     >
       {Array.from({ length: count }).map((_, index) => (
         <SkeletonCard key={index} compact={compact} data-testid={testId} />
@@ -92,8 +98,9 @@ interface SkeletonTableProps {
  * Для админ-таблиц.
  */
 export function SkeletonTable({ rows = 8, columns = 5, className }: SkeletonTableProps) {
+  const { t } = useTranslation();
   return (
-    <div className={cn("w-full space-y-2", className)} data-testid="skeleton-table">
+    <div className={cn("w-full space-y-2", className)} data-testid="skeleton-table" role="status" aria-label={t('common.loading')} aria-busy="true">
       {/* Заголовок */}
       <div className="flex items-center gap-4 border-b pb-2">
         {Array.from({ length: columns }).map((_, index) => (

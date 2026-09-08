@@ -18,8 +18,7 @@ export default function AdminButton() {
     return (
         <Button
             onClick={() => navigate("/admin")}
-            variant="default"
-            className="bg-gray-800 hover:bg-gray-700"
+            variant="secondary"
         >
             <Shield className="w-4 h-4 mr-2" />
             {isAdmin ? "Админ панель" : "Панель менеджера"}

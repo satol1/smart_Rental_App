@@ -31,7 +31,7 @@ export default function ReservationItemsList({
                                                  onToggleAccessory,
                                              }: Props) {
     return (
-        <div className="space-y-4 pt-4">
+        <div className="space-y-4">
             {items.map((item) => {
                 const selectedAccessoryIds = selectedAccessories[item.id] || [];
                 const selectedAccessoryDetails = item.accessories?.filter(acc =>
@@ -41,10 +41,10 @@ export default function ReservationItemsList({
                 return (
                     <div
                         key={item.id}
-                        className={`border rounded-lg overflow-hidden shadow-sm transition-all ${
+                        className={`border rounded-2xl overflow-hidden ${
                             unavailableIdsFromAPI.includes(item.id) || invalidItems.includes(item.id)
-                                ? "border-red-400 bg-red-50"
-                                : "border-gray-200 bg-white"
+                                ? "border-destructive/30 bg-card"
+                                : "border-border bg-card"
                         }`}
                     >
                         <ReserveEquipmentCard
@@ -57,21 +57,21 @@ export default function ReservationItemsList({
                         />
 
                         {selectedAccessoryDetails.length > 0 && (
-                            <div className="px-4 pb-3 pt-2 bg-slate-50 border-t border-dashed">
-                                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 mb-2">
+                            <div className="px-4 pb-3 pt-2 bg-muted border-t">
+                                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
                                     <Paperclip className="h-3.5 w-3.5" />
                                     Доп. аксессуары:
                                 </h4>
                                 <ul className="space-y-1.5">
                                     {selectedAccessoryDetails.map(acc => (
-                                        <li key={acc.id} className="flex items-center justify-between text-xs hover:bg-slate-100 p-1 rounded-md">
-                                            <span className="text-gray-800">{acc.name}</span>
+                                        <li key={acc.id} className="flex items-center justify-between text-sm hover:bg-muted p-1 rounded-md">
+                                            <span className="text-foreground">{acc.name}</span>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-gray-500 font-medium">{acc.price} ₽</span>
+                                                <span className="text-muted-foreground font-medium">{acc.price} ₽</span>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-5 w-5 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                                    className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-danger-soft"
                                                     onClick={() => onRemoveAccessory(item.id, acc.id)}
                                                     title="Удалить аксессуар"
                                                     aria-label={`Удалить аксессуар ${acc.name}`}
@@ -86,7 +86,7 @@ export default function ReservationItemsList({
                         )}
 
                         {(unavailableIdsFromAPI.includes(item.id) || invalidItems.includes(item.id)) && (
-                            <p className="text-sm text-red-600 px-4 pb-2 pt-0">
+                            <p className="text-sm text-destructive px-4 pb-2 pt-0">
                                 Это оборудование недоступно на выбранные даты.
                             </p>
                         )}

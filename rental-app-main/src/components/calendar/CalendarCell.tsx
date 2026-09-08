@@ -1,114 +1,83 @@
-// path: rental-app-main/src/components/calendar/CalendarCell.tsx
+﻿import { useTranslation } from 'react-i18next';
+import { ArrowRight } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import type { DayStatus } from '@/types/availability';
+import type { Equipment } from '@/types/equipment';
 
-import React from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { DayStatus } from "@/types/availability";
-import type { Equipment } from "@/types/equipment";
-
-// Типы для колбэков
 interface CellEventDataBase {
-    orderType: 'reservation' | 'rental';
-    orderId: number;
-    userId: number;
+  orderType: 'reservation' | 'rental';
+  orderId: number;
+  userId: number;
 }
-interface CellEventDataWithEquipment extends CellEventDataBase {
-    equipment: Equipment;
-}
-
+interface CellEventDataWithEquipment extends CellEventDataBase { equipment: Equipment; }
 interface CalendarCellProps {
-    cellData?: DayStatus; // ✅ Сделаем cellData опциональным
-    equipment: Equipment;
-    isHighlighted: boolean;
-    isUnderRepair: boolean;
-    onSelect: (groupId: string | null) => void;
-    onShowDetails: (data: CellEventDataWithEquipment) => void;
-    onNavigate: (data: CellEventDataBase) => void;
-    isActionAllowed: boolean;
+  cellData?: DayStatus;
+  equipment: Equipment;
+  isHighlighted: boolean;
+  isUnderRepair: boolean;
+  onSelect: (groupId: string | null) => void;
+  onShowDetails: (data: CellEventDataWithEquipment) => void;
+  onNavigate: (data: CellEventDataBase) => void;
+  isActionAllowed: boolean;
 }
 
-// --- НОВАЯ КОРРЕКТНАЯ ПАЛИТРА ---
-// Цвета для событий других пользователей
-const cellBgMap = {
-    available: "bg-emerald-100", // Светло-салатовый для свободных ячеек
-    reserved: "bg-amber-200",    // Менее яркий оранжевый для чужих резервов
-    rented: "bg-rose-200"        // Светло-красный для чужих аренд
+const statusSurfaces = {
+  available: 'bg-pastel-mint text-pastel-mint-fg',
+  reserved: 'bg-pastel-amber text-pastel-amber-fg',
+  rented: 'bg-pastel-coral text-pastel-coral-fg',
 };
 
-// Цвета для событий ТЕКУЩЕГО пользователя (более яркие)
-const userCellBgMap = {
-    available: "bg-emerald-100", // Такой же, как у всех
-    reserved: "bg-amber-400",    // Яркий оранжевый для МОИХ резервов
-    rented: "bg-rose-400"        // Более темный красный для МОИХ аренд
-};
-
-const grayscaleCellBgMap = {
-    available: "bg-gray-200",
-    reserved: "bg-gray-300",
-    rented: "bg-gray-400"
-};
-
-export function CalendarCell({
-    cellData, equipment, isHighlighted, isUnderRepair,
-    onSelect, onShowDetails, onNavigate, isActionAllowed
-}: CalendarCellProps) {
-
-    // ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: "Ранний выход" для пустых ячеек
-    // Если нет данных о событии, рендерим простую ячейку и выходим из компонента.
-    // Это гарантирует, что код ниже никогда не выполнится для пустой ячейки.
-    if (!cellData || !cellData.group_id || !cellData.order_type || !cellData.user_id) {
-        const bgColor = isUnderRepair ? grayscaleCellBgMap.available : cellBgMap.available;
-        return <div className={`w-full h-6 rounded-md ${bgColor}`} />;
-    }
-
-    // Этот код выполнится только если cellData - валидный объект события
-    const { status, group_id, is_user_reservation: isUserEvent, user_id, order_type } = cellData;
-    const orderId = parseInt(group_id.split('-')[1]);
-    
-    const eventInfo = { orderType: order_type, orderId, userId: user_id };
-    
-    const handleSingleClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onSelect(group_id);
-    };
-    
-    const handleDoubleClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isActionAllowed) {
-            onShowDetails({ ...eventInfo, equipment });
-        }
-    };
-    
-    // ✅ Логика выбора цвета теперь будет работать корректно
-    const currentBgMap = isUnderRepair ? grayscaleCellBgMap : isUserEvent ? userCellBgMap : cellBgMap;
-    const bgColor = currentBgMap[status] || currentBgMap.available;
-
+export function CalendarCell({ cellData, equipment, isHighlighted, isUnderRepair, onSelect, onShowDetails, onNavigate, isActionAllowed }: CalendarCellProps) {
+  const { t } = useTranslation();
+  if (!cellData || !cellData.group_id || !cellData.order_type || !cellData.user_id) {
     return (
-        <Popover>
-            <PopoverTrigger asChild>
-                <div
-                    onClick={handleSingleClick}
-                    onDoubleClick={handleDoubleClick}
-                    className={cn(
-                        "w-full h-6 rounded-md transition-colors cursor-pointer",
-                        bgColor,
-                        isHighlighted && "ring-2 ring-sky-500 ring-inset"
-                    )}
-                    title={`${status} #${orderId}`}
-                />
-            </PopoverTrigger>
-            {isActionAllowed && (
-                <PopoverContent side="top" align="center" className="w-auto p-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="space-y-2">
-                        <div className="text-sm font-medium">{order_type === 'reservation' ? 'Резерв' : 'Аренда'} #{orderId}</div>
-                        <Button onClick={() => onNavigate(eventInfo)} size="sm" className="w-full">
-                            <ArrowRight className="w-3 h-3 mr-1" /> Перейти
-                        </Button>
-                    </div>
-                </PopoverContent>
-            )}
-        </Popover>
+      <div className={cn('flex min-h-11 w-full items-center justify-center rounded-md px-2 text-xs', isUnderRepair ? 'bg-muted text-muted-foreground' : statusSurfaces.available)}>
+        {t(isUnderRepair ? 'shell.underRepair' : 'shell.available')}
+      </div>
     );
+  }
+
+  const { status, group_id, is_user_reservation: isUserEvent, user_id, order_type } = cellData;
+  const orderId = parseInt(group_id.split('-')[1]);
+  const eventInfo = { orderType: order_type, orderId, userId: user_id };
+  const eventLabel = t('shell.eventLabel', { status: t(order_type === 'reservation' ? 'shell.reserved' : 'shell.rented'), id: orderId });
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(event) => { event.stopPropagation(); onSelect(group_id); }}
+          onDoubleClick={(event) => {
+            event.stopPropagation();
+            if (isActionAllowed) onShowDetails({ ...eventInfo, equipment });
+          }}
+          className={cn(
+            'flex min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-md px-2 py-1.5 text-xs outline-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+            isUnderRepair ? 'bg-muted text-muted-foreground' : statusSurfaces[status],
+            isUserEvent && 'font-semibold',
+            isHighlighted && 'ring-2 ring-primary ring-inset',
+          )}
+          aria-pressed={isHighlighted}
+          aria-label={isUserEvent ? `${eventLabel}, ${t('shell.ownEvent')}` : eventLabel}
+        >
+          <span className="whitespace-nowrap">{eventLabel}</span>
+          {isUserEvent && <span className="text-xs font-normal opacity-80">{t('shell.ownEvent')}</span>}
+        </button>
+      </PopoverTrigger>
+      {isActionAllowed && (
+        <PopoverContent side="top" align="center" className="w-56 p-3" onClick={(event) => event.stopPropagation()}>
+          <p className="mb-3 text-sm font-semibold">{eventLabel}</p>
+          <div className="grid gap-2">
+            <Button variant="outline" onClick={() => onShowDetails({ ...eventInfo, equipment })}>{t('shell.details')}</Button>
+            <Button onClick={() => onNavigate(eventInfo)}>
+              {t('shell.openOrder')}<ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+        </PopoverContent>
+      )}
+    </Popover>
+  );
 }

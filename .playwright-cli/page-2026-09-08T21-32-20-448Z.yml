@@ -1,0 +1,32 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Перейти к содержимому" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link "Сбросить фильтры" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e16]:
+            - generic [ref=e17]: Цифровой
+            - generic [ref=e18]: Аренда фототехники
+        - navigation "Основная навигация" [ref=e19]:
+          - link "Каталог" [ref=e20] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=e21] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=e22] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=e23] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=e24] [cursor=pointer]
+        - 'button "Тема оформления: Светлое" [ref=e27] [cursor=pointer]'
+    - main [ref=e29]:
+      - status "Страница загружается" [ref=e30]
+  - region "Notifications alt+T"
+  - dialog "Согласие на обработку cookie" [ref=e105]:
+    - generic [ref=e108]:
+      - paragraph [ref=e114]:
+        - text: Мы используем файлы cookie, чтобы вам было удобнее пользоваться сайтом. Используя наш сайт, вы соглашаетесь с нашей
+        - button "политикой в отношении файлов cookie" [ref=e115] [cursor=pointer]
+        - text: .
+      - button "Принять" [ref=e117] [cursor=pointer]

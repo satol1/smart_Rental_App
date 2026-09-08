@@ -45,14 +45,14 @@ export default function HowItWorksPage() {
   const stepsToShow = isAuthenticated ? allSteps : allSteps.slice(0, 2);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
+    <div className="bg-background min-h-screen">
+      <div className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
         {/* Заголовок страницы */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        <div className="mb-10 max-w-3xl">
+          <h1 className="text-3xl sm:text-[2.75rem] font-semibold leading-tight text-foreground mb-4">
             Как это работает: Ваш гид по аренде
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg leading-relaxed text-muted-foreground max-w-2xl">
             {isAuthenticated 
               ? "Четыре простых шага к идеальной съемке"
               : "Два простых шага для начала работы с нашим сервисом"
@@ -61,7 +61,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* Сетка шагов */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 divide-y divide-border border-t border-border mb-12">
           {stepsToShow.map((step) => (
             <StepCard
               key={step.stepNumber}
@@ -76,7 +76,7 @@ export default function HowItWorksPage() {
 
         {/* CTA блок для неавторизованных пользователей */}
         {!isAuthenticated && (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <AuthCallToAction />
           </div>
         )}
@@ -84,24 +84,24 @@ export default function HowItWorksPage() {
         {/* Дополнительная информация для авторизованных пользователей */}
         {isAuthenticated && (
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-white rounded-xl p-8 shadow-sm border">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 Готовы начать?
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Теперь вы знаете, как работает наш сервис. Переходите к каталогу оборудования 
                 и начните создавать свой первый резерв!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
                   href="/" 
-                  className="inline-flex items-center justify-center px-6 py-3 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
                 >
                   Перейти к каталогу
                 </a>
                 <a 
                   href="/calendar" 
-                  className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-input bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                 >
                   Посмотреть календарь
                 </a>
@@ -113,30 +113,30 @@ export default function HowItWorksPage() {
         {/* Блок с информацией о статусах пользователей */}
         {isAuthenticated && (
           <div className="max-w-4xl mx-auto mt-8">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-card border-border">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Info className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-xl font-semibold text-blue-900">
+                  <Info className="w-5 h-5 text-foreground" />
+                  <h3 className="text-xl font-semibold text-foreground">
                     Система статусов пользователей
                   </h3>
                 </div>
-                <p className="text-blue-800 mb-4">
+                <p className="text-foreground mb-4">
                   Ваш статус определяет возможности по работе с резервами. Статус автоматически повышается при успешных арендах.
                 </p>
                 
                 <div className="space-y-4">
                   {/* Статус "Новый" */}
-                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs font-medium rounded">
                         {USER_STATUS.NEW}
                       </div>
-                      <span className="text-sm text-gray-600">(по умолчанию для новых пользователей)</span>
+                      <span className="text-sm text-muted-foreground">(по умолчанию для новых пользователей)</span>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-foreground mt-0.5 flex-shrink-0" />
                         <span>Максимум <strong>{MAX_RESERVATIONS_BY_STATUS[USER_STATUS.NEW]}</strong> активных резерва одновременно</span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -144,23 +144,23 @@ export default function HowItWorksPage() {
                         <span>Редактирование и отмена резерва возможны только за <strong>более чем {EDIT_RESTRICTION_DAYS[USER_STATUS.NEW]} дня</strong> до начала</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                         <span>После <strong>3 успешных аренд</strong> статус автоматически повышается до "Постоянный"</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* Статус "Постоянный" */}
-                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-blue-100 text-foreground text-xs font-medium rounded">
                         {USER_STATUS.REGULAR}
                       </div>
-                      <span className="text-sm text-gray-600">(от 3 успешных аренд)</span>
+                      <span className="text-sm text-muted-foreground">(от 3 успешных аренд)</span>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-foreground mt-0.5 flex-shrink-0" />
                         <span>Максимум <strong>{MAX_RESERVATIONS_BY_STATUS[USER_STATUS.REGULAR]}</strong> активных резервов одновременно</span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -168,27 +168,27 @@ export default function HowItWorksPage() {
                         <span>Редактирование и отмена резерва возможны только за <strong>более чем {EDIT_RESTRICTION_DAYS[USER_STATUS.REGULAR]} день</strong> до начала</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                         <span>После <strong>7 успешных аренд</strong> статус автоматически повышается до "VIP"</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* Статус "VIP" */}
-                  <div className="bg-white rounded-lg p-4 border border-purple-200 bg-gradient-to-r from-purple-50 to-white">
+                  <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-purple-100 text-foreground text-xs font-medium rounded">
                         {USER_STATUS.VIP}
                       </div>
-                      <span className="text-sm text-gray-600">(от 7 успешных аренд)</span>
+                      <span className="text-sm text-muted-foreground">(от 7 успешных аренд)</span>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-foreground mt-0.5 flex-shrink-0" />
                         <span>Максимум <strong>{MAX_RESERVATIONS_BY_STATUS[USER_STATUS.VIP]}</strong> активных резервов одновременно</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                         <span><strong>Нет ограничений</strong> на редактирование и отмену резервов</span>
                       </li>
                     </ul>
@@ -196,7 +196,7 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-xs text-amber-800">
+                  <p className="text-xs text-warning">
                     <strong>Важно:</strong> Если вы не можете отредактировать или отменить резерв самостоятельно, 
                     обратитесь к менеджеру через кнопку "Написать менеджеру" в карточке резерва.
                   </p>
@@ -207,18 +207,18 @@ export default function HowItWorksPage() {
         )}
 
         {/* Блок с ссылкой на правила */}
-        <div className="max-w-2xl mx-auto mt-8">
-          <Card className="bg-amber-50 border-amber-200">
+        <div className="max-w-4xl mx-auto mt-8">
+          <Card className="bg-muted border-border">
             <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold text-amber-900 mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Важная информация
               </h3>
-              <p className="text-amber-800 mb-4">
+              <p className="text-warning mb-4">
                 Перед началом работы рекомендуем ознакомиться с нашими правилами аренды
               </p>
               <a 
                 href="/rules" 
-                className="inline-flex items-center justify-center px-6 py-3 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 Прочитать правила
               </a>

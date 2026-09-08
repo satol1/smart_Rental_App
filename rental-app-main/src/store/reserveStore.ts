@@ -44,9 +44,11 @@ const normalizeEquipment = (equipment: Equipment): Equipment => ({
     equipment_type: equipment.equipment_type,
     daily_rate: equipment.daily_rate,
     condition: equipment.condition,
+    image_url: equipment.image_url,
+    image_urls: equipment.image_urls,
     // Аксессуары важны для расчетов, оставляем их
     accessories: equipment.accessories || [],
-    // Все остальные поля (image_url, notes, description и т.д.) намеренно отбрасываются
+    // Фотографии нужны в оформлении; заметки и полное описание не сохраняем.
 });
 
 export const useReserveStore = create<ReserveStore>()(

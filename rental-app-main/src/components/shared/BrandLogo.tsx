@@ -1,6 +1,7 @@
-// src/components/shared/BrandLogo.tsx
-import React from 'react';
-import { motion } from 'framer-motion';
+﻿import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { transitionBase, transitionFast } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 interface BrandLogoProps {
   className?: string;
@@ -9,107 +10,74 @@ interface BrandLogoProps {
   animated?: boolean;
 }
 
-export const BrandLogo: React.FC<BrandLogoProps> = ({
-  className = '',
-  size = 42,
-  showText = true,
-  animated = true,
-}) => {
+/** Circular lens and shutter mark, redrawn from the supplied brand artwork. */
+export function BrandLogo({ className, size = 44, showText = true, animated = true }: BrandLogoProps) {
+  const { t } = useTranslation();
+  const reducedMotion = useReducedMotion();
+  const canAnimate = animated && !reducedMotion;
+
   return (
-    <motion.div
-      className={`inline-flex items-center gap-2.5 select-none ${className}`}
-      whileHover={animated ? 'hover' : undefined}
-      whileTap={animated ? 'tap' : undefined}
-      initial="initial"
+    <motion.span
+      className={cn('inline-flex select-none items-center gap-2.5', className)}
+      initial="rest"
+      animate="rest"
+      whileHover={canAnimate ? 'active' : undefined}
+      whileFocus={canAnimate ? 'active' : undefined}
+      whileTap={canAnimate ? 'pressed' : undefined}
     >
-      <motion.svg
+      <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1024 990"
-        style={{ width: size, height: 'auto', display: 'block' }}
-        className="flex-shrink-0"
-        variants={{
-          initial: { scale: 1 },
-          hover: { scale: 1.04 },
-          tap: { scale: 0.96 },
-        }}
-        transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+        viewBox="0 0 1600 1547"
+        role={showText ? undefined : 'img'}
+        aria-label={showText ? undefined : t('shell.brandName')}
+        aria-hidden={showText ? true : undefined}
+        focusable="false"
+        style={{ width: size, height: 'auto', color: 'hsl(var(--brand, var(--primary)))' }}
+        className="block shrink-0 overflow-visible"
       >
-        {/* Внешний контур видоискателя / диафрагмы */}
         <path
-          d="M 966,480 L 966,488 L 966,496 L 966,504 L 966,512 L 965,520 L 965,528 L 965,536 L 964,544 L 963,552 L 962,560 L 961,567 L 960,575 L 959,583 L 957,591 L 956,599 L 954,607 L 952,615 L 949,622 L 947,630 L 944,638 L 942,646 L 939,653 L 935,660 L 932,668 L 929,675 L 925,682 L 922,689 L 918,696 L 930,712 L 937,726 L 939,737 L 934,744 L 929,752 L 925,759 L 920,766 L 783,898 L 775,903 L 768,908 L 760,912 L 753,916 L 745,921 L 736,921 L 723,914 L 709,905 L 702,908 L 694,912 L 687,916 L 679,919 L 672,923 L 664,925 L 657,929 L 649,931 L 641,934 L 633,936 L 625,938 L 617,939 L 609,941 L 601,942 L 593,943 L 585,944 L 576,945 L 568,946 L 560,947 L 552,947 L 544,947 L 536,948 L 527,948 L 519,948 L 511,948 L 503,948 L 495,948 L 487,947 L 478,947 L 470,946 L 462,945 L 454,944 L 446,943 L 438,942 L 430,940 L 422,939 L 414,938 L 406,936 L 398,934 L 390,931 L 382,929 L 374,927 L 367,924 L 359,922 L 351,919 L 344,916 L 336,913 L 329,910 L 321,906 L 314,903 L 307,899 L 299,895 L 292,892 L 285,888 L 278,884 L 271,879 L 264,875 L 258,870 L 250,866 L 244,861 L 238,856 L 231,852 L 225,846 L 218,841 L 212,836 L 207,830 L 201,825 L 195,819 L 189,814 L 183,808 L 177,802 L 172,796 L 167,790 L 161,784 L 156,778 L 151,771 L 147,764 L 142,758 L 137,752 L 133,745 L 128,738 L 124,732 L 120,724 L 116,717 L 112,710 L 108,703 L 104,696 L 100,689 L 97,682 L 94,674 L 91,667 L 88,660 L 85,652 L 82,645 L 79,637 L 77,629 L 75,622 L 72,614 L 71,606 L 69,599 L 67,591 L 65,583 L 64,575 L 62,567 L 61,559 L 60,551 L 59,543 L 58,536 L 57,528 L 57,520 L 57,512 L 56,504 L 56,496 L 56,488 L 56,480 L 57,472 L 57,464 L 58,456 L 58,448 L 59,440 L 60,433 L 61,425 L 62,417 L 64,409 L 65,401 L 67,394 L 69,386 L 71,378 L 72,371 L 75,363 L 77,356 L 80,348 L 82,341 L 85,333 L 88,326 L 91,319 L 94,311 L 97,304 L 101,297 L 104,290 L 108,284 L 111,276 L 115,269 L 119,263 L 123,256 L 127,249 L 131,243 L 135,236 L 140,229 L 145,224 L 149,217 L 154,211 L 159,205 L 164,199 L 169,193 L 174,187 L 180,182 L 185,176 L 191,171 L 196,165 L 202,160 L 207,154 L 213,149 L 219,144 L 225,139 L 231,134 L 238,130 L 244,125 L 250,121 L 256,116 L 263,112 L 269,108 L 276,103 L 283,100 L 289,96 L 296,92 L 303,89 L 310,85 L 317,82 L 324,79 L 331,75 L 338,72 L 345,70 L 353,67 L 359,64 L 367,61 L 374,59 L 382,57 L 389,55 L 397,53 L 404,51 L 412,49 L 419,48 L 427,46 L 434,45 L 442,43 L 449,42 L 457,42 L 465,40 L 472,40 L 480,39 L 488,39 L 496,38 L 503,38 L 511,38 L 519,38 L 526,38 L 534,39 L 542,39 L 550,40 L 557,40 L 565,42 L 573,42 L 580,43 L 588,45 L 595,46 L 603,48 L 610,49 L 618,51 L 625,53 L 633,55 L 640,57 L 648,59 L 655,61 L 663,64 L 669,67 L 677,70 L 684,72 L 691,75 L 698,79 L 705,82 L 712,85 L 719,89 L 726,92 L 732,96 L 739,100 L 746,103 L 753,108 L 759,112 L 766,116 L 772,121 L 778,125 L 784,130 L 791,134 L 797,139 L 803,144 L 808,150 L 815,154 L 820,160 L 826,165 L 831,171 L 837,176 L 842,182 L 847,188 L 853,193 L 858,199 L 863,205 L 867,212 L 872,218 L 877,224 L 882,230 L 886,237 L 891,243 L 895,249 L 899,256 L 903,263 L 907,269 L 911,276 L 914,284 L 918,290 L 921,297 L 925,304 L 928,311 L 931,319 L 934,326 L 937,333 L 940,341 L 942,348 L 945,356 L 947,363 L 949,371 L 951,378 L 953,386 L 955,394 L 957,401 L 958,409 L 959,417 L 961,425 L 962,433 L 963,440 L 963,448 L 964,456 L 965,464 L 965,472 Z M 937,473 L 937,465 L 936,458 L 935,450 L 935,443 L 934,436 L 933,428 L 932,421 L 930,414 L 929,406 L 927,399 L 925,392 L 924,385 L 922,377 L 920,371 L 918,363 L 915,357 L 913,349 L 910,343 L 908,336 L 905,329 L 902,322 L 899,316 L 896,309 L 893,302 L 889,295 L 886,289 L 882,283 L 878,276 L 875,270 L 871,264 L 867,257 L 863,251 L 859,245 L 854,240 L 850,234 L 845,228 L 841,222 L 836,217 L 831,211 L 826,206 L 822,200 L 817,195 L 811,190 L 806,185 L 801,180 L 795,175 L 790,170 L 785,165 L 778,161 L 773,157 L 767,152 L 761,148 L 756,143 L 750,139 L 744,135 L 738,131 L 731,127 L 725,124 L 719,120 L 712,117 L 706,114 L 699,110 L 693,107 L 686,104 L 680,101 L 673,98 L 666,95 L 659,93 L 653,91 L 646,88 L 639,86 L 632,84 L 625,82 L 618,80 L 611,78 L 604,77 L 597,75 L 590,74 L 583,72 L 576,71 L 569,70 L 561,69 L 554,68 L 547,68 L 540,67 L 533,67 L 525,67 L 518,66 L 511,66 L 504,66 L 497,67 L 489,67 L 482,67 L 475,68 L 468,68 L 461,69 L 453,70 L 446,71 L 439,72 L 432,74 L 425,75 L 418,77 L 411,78 L 404,80 L 397,82 L 390,84 L 383,86 L 376,88 L 369,91 L 363,93 L 356,95 L 349,98 L 342,101 L 336,104 L 329,107 L 323,110 L 316,113 L 310,117 L 303,121 L 297,124 L 291,127 L 284,131 L 278,135 L 272,139 L 266,143 L 260,147 L 255,152 L 249,157 L 243,161 L 237,165 L 232,170 L 227,175 L 221,180 L 216,185 L 211,190 L 205,195 L 200,200 L 195,205 L 191,211 L 186,217 L 181,222 L 177,228 L 172,234 L 168,240 L 163,245 L 159,251 L 155,257 L 151,264 L 147,270 L 144,276 L 140,283 L 136,289 L 133,295 L 129,302 L 126,309 L 123,316 L 120,322 L 117,329 L 114,336 L 112,343 L 109,349 L 107,357 L 104,363 L 102,371 L 100,377 L 98,385 L 96,392 L 95,399 L 93,406 L 92,414 L 90,421 L 89,428 L 88,436 L 87,443 L 86,450 L 86,458 L 85,465 L 85,473 L 85,480 L 84,487 L 84,495 L 84,502 L 85,510 L 85,517 L 85,525 L 86,532 L 87,540 L 88,547 L 89,554 L 90,562 L 91,569 L 93,577 L 94,584 L 96,591 L 98,599 L 99,606 L 102,613 L 104,620 L 106,627 L 108,635 L 111,641 L 113,649 L 116,656 L 119,663 L 122,670 L 126,676 L 129,683 L 132,690 L 136,696 L 140,703 L 143,710 L 147,716 L 151,723 L 155,729 L 160,735 L 164,741 L 168,748 L 173,754 L 178,760 L 182,766 L 187,772 L 193,777 L 197,783 L 203,788 L 208,794 L 214,799 L 219,804 L 225,809 L 230,815 L 236,820 L 242,824 L 248,829 L 254,834 L 260,838 L 266,843 L 272,847 L 279,851 L 285,855 L 292,859 L 299,863 L 305,867 L 312,870 L 319,874 L 325,878 L 332,881 L 339,884 L 347,887 L 354,890 L 361,893 L 368,895 L 375,898 L 383,900 L 390,902 L 397,904 L 405,906 L 412,908 L 420,910 L 427,911 L 435,913 L 442,914 L 450,915 L 457,916 L 465,917 L 473,918 L 480,919 L 488,919 L 496,919 L 503,920 L 511,920 L 519,920 L 526,919 L 534,919 L 542,919 L 549,918 L 557,917 L 565,916 L 572,915 L 580,914 L 587,913 L 595,911 L 602,910 L 610,908 L 617,906 L 625,904 L 632,902 L 639,900 L 647,898 L 654,895 L 661,892 L 668,889 L 675,887 L 683,884 L 690,881 L 696,877 L 703,874 L 710,870 L 717,867 L 732,878 L 746,887 L 759,892 L 771,896 L 782,898 L 915,763 L 912,751 L 907,737 L 901,724 L 890,708 L 886,696 L 890,690 L 893,683 L 896,676 L 900,670 L 903,663 L 906,656 L 908,648 L 911,641 L 914,635 L 916,627 L 918,620 L 920,613 L 922,606 L 924,599 L 926,591 L 928,584 L 929,577 L 931,569 L 932,562 L 933,554 L 934,547 L 935,540 L 936,532 L 937,525 L 937,517 L 937,510 L 938,502 L 938,495 L 938,487 L 937,480 Z"
-          fill="currentColor"
-          className="text-[#1C74A4] dark:text-[#38BDF8]"
-          fillRule="evenodd"
-        />
-
-        {/* Центральная диафрагма / объектив */}
-        <motion.circle
-          cx="511"
-          cy="480"
-          r="222"
-          fill="currentColor"
-          className="text-[#1C74A4] dark:text-[#38BDF8]"
-          variants={{
-            initial: { rotate: 0, scale: 1 },
-            hover: { rotate: 15, scale: 1.02 },
-          }}
-          style={{ originX: '511px', originY: '480px' }}
-          transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-        />
-
-        {/* Стрелка-уголок фотокамеры */}
-        <motion.path
-          d="M 512,572 L 513,568 L 513,564 L 513,560 L 513,556 L 513,552 L 513,548 L 513,544 L 513,540 L 513,536 L 514,532 L 515,528 L 517,524 L 518,520 L 521,516 L 524,512 L 527,508 L 531,505 L 535,502 L 539,500 L 543,498 L 547,496 L 551,495 L 555,494 L 559,494 L 563,494 L 567,494 L 571,494 L 575,494 L 579,494 L 583,494 L 587,494 L 591,494 L 595,494 L 599,494 L 603,494 L 607,494 L 611,494 L 615,494 L 619,494 L 623,494 L 627,494 L 631,494 L 635,494 L 639,494 L 643,494 L 647,494 L 651,494 L 655,494 L 659,494 L 663,494 L 667,494 L 671,494 L 675,494 L 679,494 L 683,494 L 687,494 L 691,494 L 695,494 L 699,494 L 703,494 L 707,494 L 711,494 L 715,494 L 719,494 L 723,494 L 727,494 L 731,494 L 735,494 L 739,494 L 743,494 L 747,494 L 751,494 L 755,495 L 759,496 L 763,497 L 767,499 L 771,501 L 775,503 L 779,507 L 783,510 L 786,514 L 788,518 L 790,522 L 792,526 L 794,530 L 794,534 L 795,538 L 795,542 L 795,546 L 795,550 L 794,554 L 793,558 L 792,562 L 790,566 L 788,570 L 785,574 L 782,578 L 778,582 L 774,585 L 770,587 L 766,589 L 762,591 L 758,592 L 754,593 L 750,593 L 746,593 L 742,593 L 738,593 L 734,593 L 730,593 L 726,593 L 722,593 L 718,593 L 714,593 L 710,593 L 706,593 L 702,593 L 698,593 L 694,593 L 690,593 L 686,593 L 682,593 L 678,593 L 674,593 L 670,593 L 666,593 L 662,593 L 658,593 L 654,593 L 650,593 L 646,593 L 642,593 L 638,593 L 634,593 L 630,593 L 626,593 L 622,593 L 618,593 L 614,593 L 611,595 L 611,599 L 611,603 L 611,607 L 611,611 L 611,615 L 611,619 L 611,623 L 611,627 L 611,631 L 611,635 L 611,639 L 611,643 L 611,647 L 611,651 L 611,655 L 611,659 L 611,663 L 611,667 L 611,671 L 611,675 L 611,679 L 611,683 L 611,687 L 611,691 L 611,695 L 611,699 L 611,703 L 611,707 L 611,711 L 611,715 L 611,719 L 611,723 L 611,727 L 611,731 L 611,735 L 611,739 L 610,743 L 609,747 L 608,751 L 606,755 L 604,759 L 601,763 L 597,767 L 594,770 L 590,773 L 586,776 L 582,778 L 578,779 L 574,780 L 570,781 L 566,782 L 562,782 L 558,782 L 554,781 L 550,781 L 546,779 L 542,778 L 538,776 L 534,774 L 530,771 L 526,767 L 523,763 L 520,759 L 517,755 L 516,751 L 514,747 L 513,743 L 513,739 L 512,735 L 512,731 L 512,727 L 512,723 L 512,719 L 512,715 L 512,711 L 512,707 L 512,703 L 512,699 L 512,695 L 512,691 L 512,687 L 512,683 L 512,679 L 512,675 L 512,671 L 512,667 L 512,663 L 512,659 L 512,655 L 512,651 L 512,647 L 512,643 L 512,639 L 512,635 L 512,631 L 512,627 L 512,623 L 512,619 L 512,615 L 512,611 L 512,607 L 512,603 L 512,599 L 512,595 L 512,591 L 512,587 L 512,583 L 512,579 L 512,575 Z"
-          fill="currentColor"
-          className="text-[#0F172A] dark:text-slate-100"
-          variants={{
-            initial: { x: 0, y: 0 },
-            hover: { x: 3, y: -3 },
-          }}
-          transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-        />
-
-        {/* Две акцентные точки */}
-        <motion.circle
-          cx="697"
-          cy="679"
-          r="57"
-          fill="currentColor"
-          className="text-[#0F172A] dark:text-slate-100"
-          variants={{
-            initial: { scale: 1 },
-            hover: { scale: 1.12 },
-          }}
-          style={{ originX: '697px', originY: '679px' }}
-          transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.03 }}
+          d="M 1418.56 1077.75 A 690 690 0 1 0 1104.35 1391.25 A 224 224 0 0 0 1418.56 1077.75 Z"
+          fill="hsl(var(--brand-paper, var(--card)))"
+          stroke="currentColor"
+          strokeWidth="46"
+          strokeLinejoin="round"
         />
         <motion.circle
-          cx="793"
-          cy="775"
-          r="57"
-          fill="currentColor"
-          className="text-[#0F172A] dark:text-slate-100"
-          variants={{
-            initial: { scale: 1 },
-            hover: { scale: 1.16 },
-          }}
-          style={{ originX: '793px', originY: '775px' }}
-          transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.06 }}
+          cx="800" cy="772" r="349" fill="currentColor"
+          variants={{ rest: { scale: 1 }, active: { scale: 0.975 }, pressed: { scale: 0.93 } }}
+          style={{ transformOrigin: '800px 772px' }}
+          transition={reducedMotion ? { duration: 0 } : transitionBase}
         />
-      </motion.svg>
-
+        <motion.g
+          fill="hsl(var(--brand-ink, var(--foreground)))"
+          variants={{ rest: { rotate: 0 }, active: { rotate: 0 }, pressed: { rotate: -2.5 } }}
+          style={{ transformOrigin: '800px 772px' }}
+          transition={reducedMotion ? { duration: 0 } : transitionFast}
+        >
+          <path
+            d="M 878 1145 V 850 H 1165"
+            fill="none"
+            stroke="hsl(var(--brand-ink, var(--foreground)))"
+            strokeWidth="158"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="1090" cy="1062" r="92" />
+          <circle cx="1240" cy="1212" r="92" />
+        </motion.g>
+      </svg>
       {showText && (
-        <div className="flex flex-col leading-tight text-left">
-          <span className="font-bold text-sm sm:text-base md:text-lg tracking-tight text-slate-900 dark:text-white">
-            Цифровой
+        <span className="flex flex-col text-left">
+          <span className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+            {t('shell.brandName')}
           </span>
-          <span className="hidden sm:block text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide uppercase">
-            Умная аренда техники
+          <span className="hidden text-xs leading-relaxed text-muted-foreground sm:block">
+            {t('shell.brandDescription')}
           </span>
-        </div>
+        </span>
       )}
-    </motion.div>
+    </motion.span>
   );
-};
+}
 
 export default BrandLogo;

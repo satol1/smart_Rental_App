@@ -25,24 +25,24 @@ export function ContactDialog({ open, onOpenChange, contextMessage }: ContactDia
             Вы можете связаться с нами любым удобным способом.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <ul className="space-y-3 text-sm text-gray-800">
-            <li className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-gray-500" />
+        <div className="py-1">
+          <ul className="divide-y divide-border text-sm text-foreground">
+            <li className="flex min-h-14 flex-wrap items-center gap-3 py-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
               <span>Email: </span>
-              <a href="mailto:info@digital30.ru" className="font-medium text-sky-600 hover:underline">
+              <a href="mailto:info@digital30.ru" className="inline-flex min-h-11 items-center font-medium text-primary hover:underline">
                 info@digital30.ru
               </a>
             </li>
-            <li className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-gray-500" />
+            <li className="flex min-h-14 flex-wrap items-center gap-3 py-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
               <span>Телефон:</span>
-              <span className="font-semibold">+7 (908) 617-71-77</span>
+              <a href="tel:+79086177177" className="inline-flex min-h-11 items-center font-medium text-primary hover:underline">+7 (908) 617-71-77</a>
             </li>
-            <li className="flex items-center gap-3">
-              <Send className="h-4 w-4 text-gray-500" />
+            <li className="flex min-h-14 flex-wrap items-center gap-3 py-2">
+              <Send className="h-4 w-4 text-muted-foreground" />
               <span>Telegram:</span>
-              <a href={`https://t.me/${telegramBot}`} target="_blank" rel="noopener noreferrer" className="font-medium text-sky-600 hover:underline">
+              <a href={`https://t.me/${telegramBot}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-medium text-primary hover:underline">
                 @{telegramBot}
               </a>
             </li>

@@ -1,11 +1,12 @@
 // src/components/reservation/EditableReservationCard.tsx
 
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Plus, Save, X, AlertTriangle, Sparkles, Info } from "lucide-react";
+import { Loader2, Plus, Save, X, AlertTriangle, Info } from "lucide-react";
 import EditableDateRange from "./EditableDateRange";
 import FinancialSummaryBlock from "@/components/shared/FinancialSummaryBlock";
 import EditableEquipmentItem from "./EditableEquipmentItem";
@@ -18,6 +19,7 @@ import { canUserEditReservation, mapLegacyUserStatus, EDIT_RESTRICTION_DAYS } fr
 import { daysUntilDate } from "@/utils/dates";
 
 export default function EditableReservationCard() {
+    const { t } = useTranslation();
     const {
         reservationId,
         editState,
@@ -105,27 +107,27 @@ export default function EditableReservationCard() {
 
     return (
         <>
-            <Card className="w-full px-5 py-4 rounded-2xl border shadow-md bg-blue-50 border-blue-300 transition-all">
+            <Card className="w-full px-5 py-5 rounded-2xl border border-primary/30 bg-card shadow-none">
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-wrap justify-between items-center gap-3">
                         <div className="flex items-center gap-2">
-                            <div className="text-base font-semibold text-blue-700">
-                                ✏️ Редактирование резерва #{reservationId}
+                            <div className="text-base font-semibold text-primary">
+                                {t('ordersDesign.editing', { id: reservationId })}
                             </div>
                             {isCheckingAvailability && (
-                                <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <div className="flex items-center gap-1 text-xs text-primary">
                                     <Loader2 className="w-3 h-3 animate-spin" />
                                     Проверка доступности...
                                 </div>
                             )}
                         </div>
                         <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                            <Badge variant="outline" className="bg-info-soft text-primary border-primary/20">
                                 Редактирование
                             </Badge>
                             {displayNewItemsCount > 0 && (
-                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                    <Sparkles className="w-3 h-3 mr-1" />
+                                <Badge variant="outline" className="bg-success-soft text-success border-success/20">
+                                    <Plus className="w-3 h-3 mr-1" />
                                     +{displayNewItemsCount} новых
                                 </Badge>
                             )}
@@ -135,17 +137,17 @@ export default function EditableReservationCard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-2 space-y-4">
                             {editRestrictionMessage && (
-                                <Alert variant="default" className="border-amber-200 bg-amber-50">
-                                    <Info className="h-4 w-4 text-amber-600" />
-                                    <AlertDescription className="text-amber-800">
+                                <Alert variant="default" className="border-warning/20 bg-warning-soft">
+                                    <Info className="h-4 w-4 text-warning" />
+                                    <AlertDescription className="text-warning">
                                         {editRestrictionMessage}
                                     </AlertDescription>
                                 </Alert>
                             )}
                             {hasConflicts && (
-                                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                                    <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                                    <div className="text-sm text-red-700">
+                                <div className="flex items-start gap-2 p-3 bg-danger-soft border border-destructive/20 rounded-md">
+                                    <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                                    <div className="text-sm text-destructive">
                                         <div className="font-medium">Обнаружены конфликты!</div>
                                         <div className="text-xs mt-1">
                                             Некоторое оборудование недоступно на выбранные даты.
@@ -163,11 +165,11 @@ export default function EditableReservationCard() {
                             />
 
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <div className="text-sm font-medium text-gray-700">
+                                <div className="flex flex-wrap justify-between items-center gap-3">
+                                    <div className="text-sm font-medium text-foreground">
                                         Оборудование ({totalItemsInEdit} поз.
                                         {displayNewItemsCount > 0 && (
-                                            <span className="text-green-600">
+                                            <span className="text-success">
                                                 , из них {displayNewItemsCount} новых
                                             </span>
                                         )}
@@ -185,12 +187,12 @@ export default function EditableReservationCard() {
                                     </Button>
                                 </div>
                                 {totalItemsInEdit === 0 ? (
-                                    <div className="text-sm text-gray-500 text-center py-6 border border-dashed border-gray-300 rounded-md">
+                                    <div className="text-sm text-muted-foreground text-center py-6 border border-border rounded-md">
                                         Нет оборудования в резерве.{" "}
                                         <button
                                             onClick={onAddEquipment}
                                             disabled={isLoading}
-                                            className="text-blue-600 hover:underline"
+                                            className="text-primary hover:underline"
                                         >
                                             Добавить оборудование
                                         </button>
@@ -240,7 +242,7 @@ export default function EditableReservationCard() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-blue-200 mt-4">
+                    <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-primary/20 mt-4">
                         <Button
                             variant="ghost"
                             onClick={cancelEdit}
@@ -269,16 +271,7 @@ export default function EditableReservationCard() {
                         </Button>
                     </div>
 
-                    <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded p-2 space-y-1 mt-4">
-                        <div>💡 Подсказки:</div>
-                        <ul className="space-y-0.5 ml-3">
-                            <li>• Зеленым отмечены новые позиции, добавленные при текущем редактировании.</li>
-                            <li>• Желтым/красным отмечены конфликты с другими резервами.</li>
-                            <li>• Нажмите "Добавить оборудование" для выбора дополнительных позиций.</li>
-                            <li>• Кнопка "Сохранить" активна только при наличии изменений, отсутствии конфликтов и валидных датах.</li>
-                            <li>• После сохранения новые позиции станут обычными частями резерва.</li>
-                        </ul>
-                    </div>
+                    <p className="border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">{t('ordersDesign.editHelp')}</p>
                 </div>
             </Card>
 

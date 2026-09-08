@@ -1,6 +1,10 @@
-// path: rental-app-main/src/components/calendar/CalendarTable.tsx
+﻿// path: rental-app-main/src/components/calendar/CalendarTable.tsx
 
-import { useMemo } from "react";
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ru } from 'date-fns/locale';
+import { CalendarDays } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from "date-fns";
 import { useCalendarGrid } from "@/hooks/useCalendarGrid";
 import { useDateStore } from "@/store/dateStore";
@@ -32,7 +36,7 @@ interface CalendarTableProps {
 
 const getDateRange = (start: Date, end: Date): Date[] => {
     const days = []; 
-    let d = new Date(start);
+    const d = new Date(start);
     while (d <= end) { 
         days.push(new Date(d)); 
         d.setDate(d.getDate() + 1); 
@@ -45,50 +49,57 @@ export default function CalendarTable({
     equipment, equipmentIds, isLoading, selectedGroupId,
     onSelectGroup, onShowDetails, onNavigate, isUserActionAllowed
 }: CalendarTableProps) {
+    const { t } = useTranslation();
     const { startDate, endDate } = useDateStore();
     const { data: calendarData, isLoading: isLoadingCalendarData, isError, refetch } = useCalendarGrid(equipmentIds);
 
     const dateRange = useMemo(() => (startDate && endDate ? getDateRange(startDate, endDate) : []), [startDate, endDate]);
     const todayStr = useMemo(() => formatDateToDayMonthYear(new Date()), []);
 
-    if (isLoading || isLoadingCalendarData) return <p className="text-center py-4">Загрузка календаря...</p>;
-    
-    if (isError) {
+    if (isLoading || isLoadingCalendarData) {
         return (
-            <div className="text-center py-8 text-red-600 bg-red-50 rounded-lg border border-red-200">
-                <div className="space-y-3">
-                    <p className="text-lg font-medium">Ошибка загрузки данных календаря</p>
-                    <p className="text-sm text-red-500">
-                        Произошла ошибка при получении данных с сервера. 
-                        Пожалуйста, попробуйте обновить страницу или повторить запрос.
-                    </p>
-                    <Button 
-                        onClick={() => refetch()} 
-                        variant="outline" 
-                        className="mt-2 border-red-300 text-red-700 hover:bg-red-100"
-                    >
-                        Попробовать снова
-                    </Button>
-                </div>
+            <div className="space-y-3 rounded-xl border border-border bg-card p-4" role="status" aria-label={t('shell.calendarLoading')}>
+                <span className="sr-only">{t('shell.calendarLoading')}</span>
+                <Skeleton className="h-10 w-full" />
+                {Array.from({ length: 5 }, (_, index) => <Skeleton key={index} className="h-11 w-full" />)}
             </div>
         );
     }
-    
-    if (!equipment.length || !calendarData) return <p className="text-center py-4 text-gray-500">Нет данных для отображения.</p>;
+    if (isError) {
+        return (
+            <div className="rounded-xl border border-border bg-card px-4 py-10 text-center" role="alert">
+                <CalendarDays className="mx-auto mb-3 h-6 w-6 text-destructive" aria-hidden="true" />
+                <p className="text-base font-semibold text-foreground">{t('shell.calendarError')}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('shell.calendarErrorHint')}</p>
+                <Button onClick={() => refetch()} variant="outline" className="mt-5">{t('shell.retry')}</Button>
+            </div>
+        );
+    }
+    if (!equipment.length || !calendarData) {
+        return (
+            <div className="rounded-xl border border-border bg-card px-4 py-12 text-center">
+                <CalendarDays className="mx-auto mb-3 h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                <p className="font-medium text-foreground">{t('shell.calendarEmpty')}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('shell.calendarEmptyHint')}</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="overflow-x-auto rounded-xl border bg-white shadow">
-            <table className="min-w-max table-auto border-collapse">
+        <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0} role="region" aria-label={t('shell.calendarTitle')}>
+            <table className="min-w-full table-auto border-collapse text-sm">
+                <caption className="sr-only">{t('shell.calendarTitle')}</caption>
                 <thead>
                     <tr>
-                        <th className="sticky left-0 z-20 bg-white border-b px-4 py-2 text-sm font-semibold min-w-[220px]" style={{ boxShadow: "2px 0 6px -2px #e0e7ef" }}>
-                            Оборудование
+                        <th scope="col" className="sticky left-0 z-20 min-w-40 border-b border-r border-border bg-muted px-4 py-4 text-left font-semibold sm:min-w-60">
+                            {t('shell.equipment')}
                         </th>
                         {dateRange.map((date) => {
                             const dateStr = formatDateToDayMonthYear(date);
                             return (
-                                <th key={dateStr} className={`sticky top-0 z-10 border-b px-2 py-1 text-xs font-medium min-w-[90px] truncate ${dateStr === todayStr ? "bg-sky-100 text-sky-800 border-sky-400 border-b-2" : "bg-white"}`}>
-                                    {dateStr}
+                                <th scope="col" key={dateStr} className={`min-w-24 border-b border-border px-3 py-3 text-center font-medium ${dateStr === todayStr ? 'bg-pastel-sky text-pastel-sky-fg' : 'bg-muted text-foreground'}`}>
+                                    <time dateTime={format(date, 'yyyy-MM-dd')} className="block whitespace-nowrap">{format(date, 'd MMM', { locale: ru })}</time>
+                                    <span className="mt-1 block text-xs font-normal opacity-75">{dateStr === todayStr ? t('shell.today') : format(date, 'EEEEEE', { locale: ru })}</span>
                                 </th>
                             );
                         })}
@@ -96,15 +107,17 @@ export default function CalendarTable({
                 </thead>
                 <tbody>
                     {equipment.map((item) => (
-                        <tr key={item.id}>
-                            <td className="sticky left-0 bg-white border-r px-3 py-1 z-10 min-w-[220px] text-xs text-gray-800 truncate">{item.name}</td>
+                        <tr key={item.id} className="group">
+                            <th scope="row" className="sticky left-0 z-10 border-b border-r border-border bg-card px-4 py-3 text-left text-sm font-medium text-foreground group-hover:bg-muted">
+                                <span className="block max-w-40 truncate sm:max-w-64" title={item.name}>{item.name}</span>
+                            </th>
                             {dateRange.map((date) => {
                                 const dateStr = formatDateToDayMonthYear(date);
                                 const cellData = calendarData[item.id]?.[dateStr];
                                 return (
-                                    <td key={dateStr} className="p-[2px] border border-white">
+                                    <td key={dateStr} className="border-b border-r border-border/60 p-1">
                                         <CalendarCell
-                                            cellData={cellData} // ✅ Просто передаем cellData, даже если он undefined
+                                            cellData={cellData}
                                             equipment={item}
                                             isHighlighted={cellData?.group_id === selectedGroupId}
                                             isUnderRepair={isEquipmentUnderRepair(item)}

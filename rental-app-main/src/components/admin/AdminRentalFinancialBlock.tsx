@@ -11,44 +11,44 @@ interface AdminRentalFinancialBlockProps {
 
 const AdminRentalFinancialBlock = React.memo(({ rental }: AdminRentalFinancialBlockProps) => {
     return (
-        <div className="flex-shrink-0 md:w-64 bg-slate-50 p-3 rounded-lg border space-y-2">
-            <h4 className="font-semibold text-sm text-slate-800 flex items-center gap-2">
+        <div className="min-w-0 space-y-3 tabular-nums xl:w-64 xl:shrink-0">
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
                 <ReceiptText className="w-4 h-4"/>Финансы
             </h4>
-            <div className="text-xs space-y-1.5 text-slate-700">
-                <div className="flex justify-between">
-                    <span>Общая стоимость:</span> 
+            <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex justify-between gap-3">
+                    <span>Общая стоимость:</span>
                     <span className="font-medium"><MoneyText value={rental.total_cost} /></span>
                 </div>
                 {rental.accessories_cost > 0 && (
-                    <div className="flex justify-between">
-                        <span>В т.ч. аксессуары:</span> 
+                    <div className="flex justify-between gap-3">
+                        <span>В т.ч. аксессуары:</span>
                         <span className="font-medium"><MoneyText value={rental.accessories_cost} /></span>
                     </div>
                 )}
                 {rental.discount_amount > 0 && (
-                    <div className="flex justify-between">
-                        <span>Скидка:</span> 
-                        <span className="font-medium text-green-600">-<MoneyText value={rental.discount_amount} /></span>
+                    <div className="flex justify-between gap-3">
+                        <span>Скидка:</span>
+                        <span className="font-medium text-success">-<MoneyText value={rental.discount_amount} /></span>
                     </div>
                 )}
                 {rental.prepayment_amount > 0 && (
-                    <div className="flex justify-between">
-                        <span>Предоплата:</span> 
-                        <span className="font-medium text-blue-600"><MoneyText value={rental.prepayment_amount} /></span>
+                    <div className="flex justify-between gap-3">
+                        <span>Предоплата:</span>
+                        <span className="font-medium text-primary"><MoneyText value={rental.prepayment_amount} /></span>
                     </div>
                 )}
-                <div className="flex justify-between pt-1 border-t">
-                    <span className="font-semibold text-base">Остаток к оплате:</span>
-                    <span className="font-bold text-base"><MoneyText value={rental.remaining_amount} /></span>
+                <div className="flex justify-between gap-3 pt-1 border-t">
+                    <span className="font-medium text-foreground">Остаток к оплате:</span>
+                    <span className="font-semibold text-lg text-foreground"><MoneyText value={rental.remaining_amount} /></span>
                 </div>
                 {rental.status === 'completed' && rental.final_cost !== null && (
-                    <div className="flex justify-between pt-1 border-t border-dashed">
+                    <div className="flex justify-between gap-3 pt-1 border-t border-border">
                         <span className="font-semibold">Итоговая стоимость:</span>
                         <span className="font-bold"><MoneyText value={rental.final_cost} /></span>
                     </div>
                 )}
-                <div className="flex justify-between pt-2 border-t text-slate-500">
+                <div className="flex justify-between gap-3 pt-2 border-t text-muted-foreground">
                     <span>Внесенный залог:</span>
                     <span className="font-medium"><MoneyText value={rental.deposit_amount} /></span>
                 </div>

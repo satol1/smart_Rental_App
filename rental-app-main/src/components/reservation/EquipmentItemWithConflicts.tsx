@@ -1,6 +1,6 @@
 // src/components/reservation/EquipmentItemWithConflicts.tsx
 import { Button } from "@/components/ui/button";
-import { MinusCircle, AlertTriangle, CheckCircle, Sparkles } from "lucide-react";
+import { MinusCircle, AlertTriangle, CheckCircle, PlusCircle } from "lucide-react";
 import { formatDateRangeEuropean } from "@/lib/utils";
 import type { AvailabilityInfo } from "@/types/availability";
 import { EQUIPMENT_UNDER_REPAIR_CONDITION } from "@/lib/equipmentUtils";
@@ -30,8 +30,8 @@ export default function EquipmentItemWithConflicts({
         if (equipmentCondition === EQUIPMENT_UNDER_REPAIR_CONDITION) {
             return {
                 icon: <AlertTriangle className="w-4 h-4" />,
-                color: "text-amber-700",
-                bgColor: "bg-amber-50 border-amber-200",
+                color: "text-warning",
+                bgColor: "bg-warning-soft border-warning/20",
                 status: "Временно недоступно",
                 dateText: ""
             };
@@ -45,16 +45,16 @@ export default function EquipmentItemWithConflicts({
             if (availability.status === "reserved") {
                 return {
                     icon: <AlertTriangle className="w-4 h-4" />,
-                    color: "text-yellow-600",
-                    bgColor: "bg-yellow-50 border-yellow-200",
+                    color: "text-warning",
+                    bgColor: "bg-warning-soft border-warning/20",
                     status: "Зарезервировано",
                     dateText: dateRange
                 };
             } else if (availability.status === "rented") {
                 return {
                     icon: <AlertTriangle className="w-4 h-4" />,
-                    color: "text-red-600",
-                    bgColor: "bg-red-50 border-red-200",
+                    color: "text-destructive",
+                    bgColor: "bg-danger-soft border-destructive/20",
                     status: "В аренде",
                     dateText: dateRange
                 };
@@ -63,9 +63,9 @@ export default function EquipmentItemWithConflicts({
 
         if (isNew) {
             return {
-                icon: <Sparkles className="w-4 h-4" />,
-                color: "text-green-600",
-                bgColor: "bg-green-50 border-green-200",
+                icon: <PlusCircle className="w-4 h-4" />,
+                color: "text-success",
+                bgColor: "bg-success-soft border-success/20",
                 status: "Новая позиция",
                 dateText: ""
             };
@@ -73,8 +73,8 @@ export default function EquipmentItemWithConflicts({
 
         return {
             icon: <CheckCircle className="w-4 h-4" />,
-            color: "text-gray-600",
-            bgColor: "bg-gray-50 border-gray-200",
+            color: "text-muted-foreground",
+            bgColor: "bg-muted border-border",
             status: "Доступно",
             dateText: ""
         };
@@ -83,7 +83,7 @@ export default function EquipmentItemWithConflicts({
     const statusInfo = getStatusInfo();
 
     return (
-        <div className={`flex justify-between items-start p-3 rounded-md border transition-colors ${statusInfo.bgColor}`}>
+        <div className={`flex justify-between items-start gap-2 py-2`}>
             <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2">
                     <div className={`flex-shrink-0 mt-0.5 ${statusInfo.color}`}>
@@ -91,7 +91,7 @@ export default function EquipmentItemWithConflicts({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="text-sm font-medium text-foreground break-words">
                             {item.label}
                         </div>
 
@@ -105,8 +105,8 @@ export default function EquipmentItemWithConflicts({
                         </div>
 
                         {hasConflict && (
-                            <div className="text-xs text-red-600 mt-1 font-medium">
-                                ⚠️ Конфликт: оборудование недоступно на выбранные даты
+                            <div className="text-xs text-destructive mt-1 font-medium">
+                                Конфликт: оборудование недоступно на выбранные даты
                             </div>
                         )}
                     </div>
@@ -120,12 +120,12 @@ export default function EquipmentItemWithConflicts({
                     onClick={() => onRemove(item.id)}
                     disabled={disabled}
                     aria-label={`Удалить ${item.label} из резерва`}
-                    className={`ml-2 h-8 w-8 flex-shrink-0 hover:text-red-700 ${
+                    className={`ml-2 h-8 w-8 flex-shrink-0 hover:text-destructive ${
                         disabled
-                            ? "text-gray-400 cursor-not-allowed"
+                            ? "text-muted-foreground cursor-not-allowed"
                             : hasConflict
-                                ? "text-red-500 hover:bg-red-100"
-                                : "text-gray-500 hover:bg-gray-100"
+                                ? "text-destructive hover:bg-danger-soft"
+                                : "text-muted-foreground hover:bg-muted"
                     }`}
                     title="Удалить из резерва"
                 >

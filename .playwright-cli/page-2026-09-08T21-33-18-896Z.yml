@@ -1,0 +1,912 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - link "Перейти к содержимому" [ref=f1e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - link "Сбросить фильтры" [ref=f1e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f1e16]:
+            - generic [ref=f1e17]: Цифровой
+            - generic [ref=f1e18]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f1e19]:
+          - link "Каталог" [ref=f1e20] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f1e21] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f1e22] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f1e23] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f1e24] [cursor=pointer]
+        - generic [ref=f1e25]:
+          - 'button "Тема оформления: Светлое" [ref=f1e27] [cursor=pointer]'
+          - button "Войти" [ref=f1e28] [cursor=pointer]
+    - main [ref=f1e29]:
+      - generic [ref=f1e32]:
+        - generic [ref=f1e33]:
+          - heading "Всё для следующей съёмки." [level=1] [ref=f1e34]
+          - paragraph [ref=f1e35]: Камеры, оптика, свет и звук. Выберите даты и соберите технику под свою задачу.
+        - region [ref=f1e37]:
+          - generic [ref=f1e38]:
+            - heading "Даты аренды" [level=2] [ref=f1e39]
+            - button "Свернуть календарь" [expanded] [active] [ref=f1e42] [cursor=pointer]
+          - generic [ref=f1e44]:
+            - generic [ref=f1e47]:
+              - navigation:
+                - button "Go to the Previous Month" [ref=f1e48] [cursor=pointer]
+                - button "Go to the Next Month" [ref=f1e51] [cursor=pointer]
+              - generic [ref=f1e54]:
+                - status [ref=f1e56]: сентябрь 2026
+                - grid "сентябрь 2026" [ref=f1e57]:
+                  - rowgroup [aria-hidden] [ref=f1e58]:
+                    - row [ref=f1e59]:
+                      - columnheader [ref=f1e60]: пн
+                      - columnheader [ref=f1e61]: вт
+                      - columnheader [ref=f1e62]: ср
+                      - columnheader [ref=f1e63]: чт
+                      - columnheader [ref=f1e64]: пт
+                      - columnheader [ref=f1e65]: сб
+                      - columnheader [ref=f1e66]: вс
+                  - rowgroup [ref=f1e67]:
+                    - row [ref=f1e68]:
+                      - gridcell [ref=f1e69]:
+                        - button "понедельник, 31 августа 2026 г." [disabled] [ref=f1e70]: "31"
+                      - gridcell [ref=f1e71]:
+                        - button "вторник, 1 сентября 2026 г." [disabled] [ref=f1e72]: "1"
+                      - gridcell [ref=f1e73]:
+                        - button "среда, 2 сентября 2026 г." [disabled] [ref=f1e74]: "2"
+                      - gridcell [ref=f1e75]:
+                        - button "четверг, 3 сентября 2026 г." [disabled] [ref=f1e76]: "3"
+                      - gridcell [ref=f1e77]:
+                        - button "пятница, 4 сентября 2026 г." [disabled] [ref=f1e78]: "4"
+                      - gridcell [ref=f1e79]:
+                        - button "суббота, 5 сентября 2026 г." [disabled] [ref=f1e80]: "5"
+                      - gridcell [ref=f1e81]:
+                        - button "воскресенье, 6 сентября 2026 г." [disabled] [ref=f1e82]: "6"
+                    - row [ref=f1e83]:
+                      - gridcell [ref=f1e84]:
+                        - button "понедельник, 7 сентября 2026 г." [disabled] [ref=f1e85]: "7"
+                      - gridcell [ref=f1e86]:
+                        - button "вторник, 8 сентября 2026 г." [disabled] [ref=f1e87]: "8"
+                      - gridcell [selected] [ref=f1e88]:
+                        - button "Today, среда, 9 сентября 2026 г., selected" [ref=f1e89] [cursor=pointer]: "9"
+                      - gridcell [selected] [ref=f1e90]:
+                        - button "четверг, 10 сентября 2026 г., selected" [ref=f1e91] [cursor=pointer]: "10"
+                      - gridcell [ref=f1e92]:
+                        - button "пятница, 11 сентября 2026 г." [ref=f1e93] [cursor=pointer]: "11"
+                      - gridcell [ref=f1e94]:
+                        - button "суббота, 12 сентября 2026 г." [ref=f1e95] [cursor=pointer]: "12"
+                      - gridcell [ref=f1e96]:
+                        - button "воскресенье, 13 сентября 2026 г." [ref=f1e97] [cursor=pointer]: "13"
+                    - row [ref=f1e98]:
+                      - gridcell [ref=f1e99]:
+                        - button "понедельник, 14 сентября 2026 г." [ref=f1e100] [cursor=pointer]: "14"
+                      - gridcell [ref=f1e101]:
+                        - button "вторник, 15 сентября 2026 г." [ref=f1e102] [cursor=pointer]: "15"
+                      - gridcell [ref=f1e103]:
+                        - button "среда, 16 сентября 2026 г." [ref=f1e104] [cursor=pointer]: "16"
+                      - gridcell [ref=f1e105]:
+                        - button "четверг, 17 сентября 2026 г." [ref=f1e106] [cursor=pointer]: "17"
+                      - gridcell [ref=f1e107]:
+                        - button "пятница, 18 сентября 2026 г." [ref=f1e108] [cursor=pointer]: "18"
+                      - gridcell [ref=f1e109]:
+                        - button "суббота, 19 сентября 2026 г." [ref=f1e110] [cursor=pointer]: "19"
+                      - gridcell [ref=f1e111]:
+                        - button "воскресенье, 20 сентября 2026 г." [ref=f1e112] [cursor=pointer]: "20"
+                    - row [ref=f1e113]:
+                      - gridcell [ref=f1e114]:
+                        - button "понедельник, 21 сентября 2026 г." [ref=f1e115] [cursor=pointer]: "21"
+                      - gridcell [ref=f1e116]:
+                        - button "вторник, 22 сентября 2026 г." [ref=f1e117] [cursor=pointer]: "22"
+                      - gridcell [ref=f1e118]:
+                        - button "среда, 23 сентября 2026 г." [ref=f1e119] [cursor=pointer]: "23"
+                      - gridcell [ref=f1e120]:
+                        - button "четверг, 24 сентября 2026 г." [ref=f1e121] [cursor=pointer]: "24"
+                      - gridcell [ref=f1e122]:
+                        - button "пятница, 25 сентября 2026 г." [ref=f1e123] [cursor=pointer]: "25"
+                      - gridcell [ref=f1e124]:
+                        - button "суббота, 26 сентября 2026 г." [ref=f1e125] [cursor=pointer]: "26"
+                      - gridcell [ref=f1e126]:
+                        - button "воскресенье, 27 сентября 2026 г." [ref=f1e127] [cursor=pointer]: "27"
+                    - row [ref=f1e128]:
+                      - gridcell [ref=f1e129]:
+                        - button "понедельник, 28 сентября 2026 г." [ref=f1e130] [cursor=pointer]: "28"
+                      - gridcell [ref=f1e131]:
+                        - button "вторник, 29 сентября 2026 г." [ref=f1e132] [cursor=pointer]: "29"
+                      - gridcell [ref=f1e133]:
+                        - button "среда, 30 сентября 2026 г." [ref=f1e134] [cursor=pointer]: "30"
+                      - gridcell [ref=f1e135]:
+                        - button "четверг, 1 октября 2026 г." [ref=f1e136] [cursor=pointer]: "1"
+                      - gridcell [ref=f1e137]:
+                        - button "пятница, 2 октября 2026 г." [ref=f1e138] [cursor=pointer]: "2"
+                      - gridcell [ref=f1e139]:
+                        - button "суббота, 3 октября 2026 г." [ref=f1e140] [cursor=pointer]: "3"
+                      - gridcell [ref=f1e141]:
+                        - button "воскресенье, 4 октября 2026 г." [ref=f1e142] [cursor=pointer]: "4"
+              - generic [ref=f1e143]:
+                - status [ref=f1e145]: октябрь 2026
+                - grid "октябрь 2026" [ref=f1e146]:
+                  - rowgroup [aria-hidden] [ref=f1e147]:
+                    - row [ref=f1e148]:
+                      - columnheader [ref=f1e149]: пн
+                      - columnheader [ref=f1e150]: вт
+                      - columnheader [ref=f1e151]: ср
+                      - columnheader [ref=f1e152]: чт
+                      - columnheader [ref=f1e153]: пт
+                      - columnheader [ref=f1e154]: сб
+                      - columnheader [ref=f1e155]: вс
+                  - rowgroup [ref=f1e156]:
+                    - row [ref=f1e157]:
+                      - gridcell [ref=f1e158]:
+                        - button "понедельник, 28 сентября 2026 г." [ref=f1e159] [cursor=pointer]: "28"
+                      - gridcell [ref=f1e160]:
+                        - button "вторник, 29 сентября 2026 г." [ref=f1e161] [cursor=pointer]: "29"
+                      - gridcell [ref=f1e162]:
+                        - button "среда, 30 сентября 2026 г." [ref=f1e163] [cursor=pointer]: "30"
+                      - gridcell [ref=f1e164]:
+                        - button "четверг, 1 октября 2026 г." [ref=f1e165] [cursor=pointer]: "1"
+                      - gridcell [ref=f1e166]:
+                        - button "пятница, 2 октября 2026 г." [ref=f1e167] [cursor=pointer]: "2"
+                      - gridcell [ref=f1e168]:
+                        - button "суббота, 3 октября 2026 г." [ref=f1e169] [cursor=pointer]: "3"
+                      - gridcell [ref=f1e170]:
+                        - button "воскресенье, 4 октября 2026 г." [ref=f1e171] [cursor=pointer]: "4"
+                    - row [ref=f1e172]:
+                      - gridcell [ref=f1e173]:
+                        - button "понедельник, 5 октября 2026 г." [ref=f1e174] [cursor=pointer]: "5"
+                      - gridcell [ref=f1e175]:
+                        - button "вторник, 6 октября 2026 г." [ref=f1e176] [cursor=pointer]: "6"
+                      - gridcell [ref=f1e177]:
+                        - button "среда, 7 октября 2026 г." [ref=f1e178] [cursor=pointer]: "7"
+                      - gridcell [ref=f1e179]:
+                        - button "четверг, 8 октября 2026 г." [ref=f1e180] [cursor=pointer]: "8"
+                      - gridcell [ref=f1e181]:
+                        - button "пятница, 9 октября 2026 г." [ref=f1e182] [cursor=pointer]: "9"
+                      - gridcell [ref=f1e183]:
+                        - button "суббота, 10 октября 2026 г." [ref=f1e184] [cursor=pointer]: "10"
+                      - gridcell [ref=f1e185]:
+                        - button "воскресенье, 11 октября 2026 г." [ref=f1e186] [cursor=pointer]: "11"
+                    - row [ref=f1e187]:
+                      - gridcell [ref=f1e188]:
+                        - button "понедельник, 12 октября 2026 г." [ref=f1e189] [cursor=pointer]: "12"
+                      - gridcell [ref=f1e190]:
+                        - button "вторник, 13 октября 2026 г." [ref=f1e191] [cursor=pointer]: "13"
+                      - gridcell [ref=f1e192]:
+                        - button "среда, 14 октября 2026 г." [ref=f1e193] [cursor=pointer]: "14"
+                      - gridcell [ref=f1e194]:
+                        - button "четверг, 15 октября 2026 г." [ref=f1e195] [cursor=pointer]: "15"
+                      - gridcell [ref=f1e196]:
+                        - button "пятница, 16 октября 2026 г." [ref=f1e197] [cursor=pointer]: "16"
+                      - gridcell [ref=f1e198]:
+                        - button "суббота, 17 октября 2026 г." [ref=f1e199] [cursor=pointer]: "17"
+                      - gridcell [ref=f1e200]:
+                        - button "воскресенье, 18 октября 2026 г." [ref=f1e201] [cursor=pointer]: "18"
+                    - row [ref=f1e202]:
+                      - gridcell [ref=f1e203]:
+                        - button "понедельник, 19 октября 2026 г." [ref=f1e204] [cursor=pointer]: "19"
+                      - gridcell [ref=f1e205]:
+                        - button "вторник, 20 октября 2026 г." [ref=f1e206] [cursor=pointer]: "20"
+                      - gridcell [ref=f1e207]:
+                        - button "среда, 21 октября 2026 г." [ref=f1e208] [cursor=pointer]: "21"
+                      - gridcell [ref=f1e209]:
+                        - button "четверг, 22 октября 2026 г." [ref=f1e210] [cursor=pointer]: "22"
+                      - gridcell [ref=f1e211]:
+                        - button "пятница, 23 октября 2026 г." [ref=f1e212] [cursor=pointer]: "23"
+                      - gridcell [ref=f1e213]:
+                        - button "суббота, 24 октября 2026 г." [ref=f1e214] [cursor=pointer]: "24"
+                      - gridcell [ref=f1e215]:
+                        - button "воскресенье, 25 октября 2026 г." [ref=f1e216] [cursor=pointer]: "25"
+                    - row [ref=f1e217]:
+                      - gridcell [ref=f1e218]:
+                        - button "понедельник, 26 октября 2026 г." [ref=f1e219] [cursor=pointer]: "26"
+                      - gridcell [ref=f1e220]:
+                        - button "вторник, 27 октября 2026 г." [ref=f1e221] [cursor=pointer]: "27"
+                      - gridcell [ref=f1e222]:
+                        - button "среда, 28 октября 2026 г." [ref=f1e223] [cursor=pointer]: "28"
+                      - gridcell [ref=f1e224]:
+                        - button "четверг, 29 октября 2026 г." [ref=f1e225] [cursor=pointer]: "29"
+                      - gridcell [ref=f1e226]:
+                        - button "пятница, 30 октября 2026 г." [ref=f1e227] [cursor=pointer]: "30"
+                      - gridcell [ref=f1e228]:
+                        - button "суббота, 31 октября 2026 г." [ref=f1e229] [cursor=pointer]: "31"
+                      - gridcell [ref=f1e230]:
+                        - button "воскресенье, 1 ноября 2026 г." [ref=f1e231] [cursor=pointer]: "1"
+            - generic [ref=f1e234]:
+              - generic [ref=f1e235]:
+                - generic [ref=f1e236]: Начало аренды
+                - textbox "Начало аренды" [ref=f1e237]: 2026-09-09
+              - generic [ref=f1e238]:
+                - generic [ref=f1e239]: Окончание аренды
+                - textbox "Окончание аренды" [ref=f1e240]: 2026-09-10
+        - button "Промокод и скидка за срок аренды" [ref=f1e241] [cursor=pointer]
+        - region [ref=f1e249]:
+          - generic [ref=f1e250]:
+            - generic [ref=f1e251]:
+              - heading "Под вашу съёмку" [level=2] [ref=f1e252]
+              - paragraph [ref=f1e253]: Подборки техники для разных задач — от первого кадра до большой съёмки.
+            - generic [ref=f1e254]:
+              - button "Предыдущие подборки" [disabled]
+              - button "Следующие подборки" [ref=f1e255] [cursor=pointer]
+          - generic [ref=f1e256]:
+            - 'button "Для новичка (Быстрый старт) В подборке: 8 Смотреть подборку" [ref=f1e257] [cursor=pointer]':
+              - generic [ref=f1e258]:
+                - heading "Для новичка (Быстрый старт)" [level=3] [ref=f1e259]
+                - generic [ref=f1e260]: "В подборке: 8"
+              - generic [ref=f1e262]: Смотреть подборку
+            - 'button "Для профессионала (Pro Photo) В подборке: 16 Смотреть подборку" [ref=f1e266] [cursor=pointer]':
+              - generic [ref=f1e267]:
+                - heading "Для профессионала (Pro Photo)" [level=3] [ref=f1e268]
+                - generic [ref=f1e269]: "В подборке: 16"
+              - generic [ref=f1e271]: Смотреть подборку
+            - 'button "Для съемки видео и клипов В подборке: 17 Смотреть подборку" [ref=f1e275] [cursor=pointer]':
+              - generic [ref=f1e276]:
+                - heading "Для съемки видео и клипов" [level=3] [ref=f1e277]
+                - generic [ref=f1e278]: "В подборке: 17"
+              - generic [ref=f1e280]: Смотреть подборку
+            - 'button "Для путешествий и влогов В подборке: 13 Смотреть подборку" [ref=f1e284] [cursor=pointer]':
+              - generic [ref=f1e285]:
+                - heading "Для путешествий и влогов" [level=3] [ref=f1e286]
+                - generic [ref=f1e287]: "В подборке: 13"
+              - generic [ref=f1e289]: Смотреть подборку
+            - 'button "Для портретной съемки В подборке: 17 Смотреть подборку" [ref=f1e293] [cursor=pointer]':
+              - generic [ref=f1e294]:
+                - heading "Для портретной съемки" [level=3] [ref=f1e295]
+                - generic [ref=f1e296]: "В подборке: 17"
+              - generic [ref=f1e298]: Смотреть подборку
+            - 'button "Для подкастов и стримов В подборке: 12 Смотреть подборку" [ref=f1e302] [cursor=pointer]':
+              - generic [ref=f1e303]:
+                - heading "Для подкастов и стримов" [level=3] [ref=f1e304]
+                - generic [ref=f1e305]: "В подборке: 12"
+              - generic [ref=f1e307]: Смотреть подборку
+            - 'button "Студийный свет и спецэффекты В подборке: 14 Смотреть подборку" [ref=f1e311] [cursor=pointer]':
+              - generic [ref=f1e312]:
+                - heading "Студийный свет и спецэффекты" [level=3] [ref=f1e313]
+                - generic [ref=f1e314]: "В подборке: 14"
+              - generic [ref=f1e316]: Смотреть подборку
+        - region [ref=f1e320]:
+          - generic [ref=f1e321]:
+            - generic [ref=f1e322]:
+              - heading "Каталог техники" [level=2] [ref=f1e323]
+              - status [ref=f1e324]: "Позиций: 212"
+            - group "Переключатель вида карточек" [ref=f1e325]:
+              - radio "Стандартный вид" [checked] [ref=f1e326] [cursor=pointer]
+              - radio "Компактный вид" [ref=f1e327] [cursor=pointer]
+          - generic [ref=f1e328]:
+            - generic [ref=f1e329]:
+              - searchbox "Поиск техники" [ref=f1e331]
+              - generic [ref=f1e332]:
+                - generic [ref=f1e333]:
+                  - checkbox "Только доступное" [ref=f1e334] [cursor=pointer]
+                  - generic [ref=f1e335] [cursor=pointer]: Только доступное
+                - generic [ref=f1e336]:
+                  - checkbox "Объединять одинаковые" [checked] [ref=f1e337] [cursor=pointer]
+                  - generic [ref=f1e338] [cursor=pointer]: Объединять одинаковые
+            - generic [ref=f1e339]:
+              - generic [ref=f1e340]: Категория
+              - group "Категория" [ref=f1e342]:
+                - button "Вся техника" [pressed] [ref=f1e343] [cursor=pointer]
+                - button "Фотокамеры" [ref=f1e344] [cursor=pointer]
+                - button "Объективы" [ref=f1e345] [cursor=pointer]
+                - button "Видеокамеры и экшн-камеры" [ref=f1e346] [cursor=pointer]
+                - button "Студийный свет" [ref=f1e347] [cursor=pointer]
+                - button "Запись звука" [ref=f1e348] [cursor=pointer]
+                - button "Аккумуляторы и питание" [ref=f1e349] [cursor=pointer]
+                - button "Видеосендеры" [ref=f1e350] [cursor=pointer]
+                - button "Вспышки и синхронизаторы" [ref=f1e351] [cursor=pointer]
+                - button "Карты памяти" [ref=f1e352] [cursor=pointer]
+                - button "Мобильный свет" [ref=f1e353] [cursor=pointer]
+                - button "Светоформирующие насадки" [ref=f1e354] [cursor=pointer]
+                - button "Студийное оборудование и фоны" [ref=f1e355] [cursor=pointer]
+                - button "Штативы и стабилизаторы" [ref=f1e356] [cursor=pointer]
+            - generic [ref=f1e357]:
+              - generic [ref=f1e358]: Бренд
+              - group "Бренд" [ref=f1e359]:
+                - button "Все бренды" [pressed] [ref=f1e360] [cursor=pointer]
+                - button "Aputure / Amaran" [ref=f1e361] [cursor=pointer]
+                - button "Canon" [ref=f1e362] [cursor=pointer]
+                - button "DJI" [ref=f1e363] [cursor=pointer]
+                - button "Fujifilm" [ref=f1e364] [cursor=pointer]
+                - button "GoPro" [ref=f1e365] [cursor=pointer]
+                - button "Godox" [ref=f1e366] [cursor=pointer]
+                - button "Nikon" [ref=f1e367] [cursor=pointer]
+                - button "Sony" [ref=f1e368] [cursor=pointer]
+                - button "Звук и аудио" [ref=f1e369] [cursor=pointer]
+                - button "Штативы и риги" [ref=f1e370] [cursor=pointer]
+            - generic [ref=f1e371]:
+              - generic [ref=f1e372]: Подборка
+              - group "Подборка" [ref=f1e373]:
+                - button "Все подборки" [pressed] [ref=f1e374] [cursor=pointer]
+                - button "Для новичка (Быстрый старт)" [ref=f1e375] [cursor=pointer]
+                - button "Для профессионала (Pro Photo)" [ref=f1e376] [cursor=pointer]
+                - button "Для съемки видео и клипов" [ref=f1e377] [cursor=pointer]
+                - button "Для путешествий и влогов" [ref=f1e378] [cursor=pointer]
+                - button "Для портретной съемки" [ref=f1e379] [cursor=pointer]
+                - button "Для подкастов и стримов" [ref=f1e380] [cursor=pointer]
+                - button "Студийный свет и спецэффекты" [ref=f1e381] [cursor=pointer]
+          - generic [ref=f1e382]:
+            - generic [ref=f1e384]:
+              - img "Canon EF 16-35mm f/2.8L II USM" [ref=f1e386]
+              - generic [ref=f1e387]:
+                - generic [ref=f1e388]:
+                  - heading [level=3] [ref=f1e389]:
+                    - button "Подробнее о Canon EF 16-35mm f/2.8L II USM" [ref=f1e390] [cursor=pointer]: Canon EF 16-35mm f/2.8L II USM
+                  - paragraph [ref=f1e391]: Canon • Объективы
+                  - paragraph [ref=f1e392]: Широкоугольный зум f/2.8 для пейзажей, интерьеров, архитектуры и динамичных планов.
+                  - paragraph [ref=f1e393]: "Состояние: Великолепно"
+                  - generic [ref=f1e394]:
+                    - strong [ref=f1e395]: 1 000 ₽
+                    - generic [ref=f1e396]: / в день
+                - button "Аксессуары (6)" [ref=f1e398] [cursor=pointer]
+                - generic [ref=f1e405]:
+                  - generic [ref=f1e406]:
+                    - paragraph [ref=f1e407]: Свободно
+                    - button "В резерв" [ref=f1e408] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e409] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e410]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e411]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e412]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e413]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e414]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e415]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e416]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e417]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e418]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e419]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e420]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e421]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e422]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e423]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e424]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e425]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e426]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e427]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e428]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e429]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e430]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e431]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e432]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e433]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e434]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e435]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e436]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e437]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e438]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e439]'
+            - generic [ref=f1e441]:
+              - img "Canon EF 16-35mm f/2.8L III USM" [ref=f1e443]
+              - generic [ref=f1e444]:
+                - generic [ref=f1e445]:
+                  - heading [level=3] [ref=f1e446]:
+                    - button "Подробнее о Canon EF 16-35mm f/2.8L III USM" [ref=f1e447] [cursor=pointer]: Canon EF 16-35mm f/2.8L III USM
+                  - paragraph [ref=f1e448]: Canon • Объективы
+                  - paragraph [ref=f1e449]: Широкоугольный зум f/2.8 для пейзажей, интерьеров, архитектуры и динамичных планов.
+                  - paragraph [ref=f1e450]: "Состояние: Великолепно"
+                  - generic [ref=f1e451]:
+                    - strong [ref=f1e452]: 1 500 ₽
+                    - generic [ref=f1e453]: / в день
+                - button "Аксессуары (6)" [ref=f1e455] [cursor=pointer]
+                - generic [ref=f1e462]:
+                  - generic [ref=f1e463]:
+                    - paragraph [ref=f1e464]: Свободно
+                    - button "В резерв" [ref=f1e465] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e466] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e467]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e468]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e469]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e470]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e471]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e472]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e473]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e474]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e475]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e476]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e477]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e478]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e479]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e480]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e481]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e482]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e483]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e484]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e485]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e486]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e487]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e488]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e489]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e490]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e491]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e492]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e493]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e494]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e495]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e496]'
+            - generic [ref=f1e498]:
+              - img "Cветодиодный осветитель Zhiyun FIVERAY M40 белый" [ref=f1e500]
+              - generic [ref=f1e501]:
+                - generic [ref=f1e502]:
+                  - heading [level=3] [ref=f1e503]:
+                    - button "Подробнее о Cветодиодный осветитель Zhiyun FIVERAY M40 белый" [ref=f1e504] [cursor=pointer]: Cветодиодный осветитель Zhiyun FIVERAY M40 белый
+                  - paragraph [ref=f1e505]: Zhiyun • Мобильный свет
+                  - paragraph [ref=f1e506]: Сверхкомпактный накамерный свет высокой мощности для мобильного продакшна.
+                  - paragraph [ref=f1e507]: "Состояние: Великолепно"
+                  - generic [ref=f1e508]:
+                    - strong [ref=f1e509]: 700 ₽
+                    - generic [ref=f1e510]: / в день
+                - button "Аксессуары (3)" [ref=f1e512] [cursor=pointer]
+                - generic [ref=f1e519]:
+                  - generic [ref=f1e520]:
+                    - paragraph [ref=f1e521]: Свободно
+                    - button "В резерв" [ref=f1e522] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e523] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e524]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e525]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e526]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e527]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e528]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e529]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e530]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e531]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e532]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e533]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e534]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e535]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e536]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e537]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e538]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e539]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e540]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e541]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e542]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e543]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e544]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e545]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e546]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e547]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e548]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e549]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e550]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e551]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e552]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e553]'
+            - generic [ref=f1e555]:
+              - img "Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт" [ref=f1e557]
+              - generic [ref=f1e558]:
+                - generic [ref=f1e559]:
+                  - heading [level=3] [ref=f1e560]:
+                    - button "Подробнее о Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт" [ref=f1e561] [cursor=pointer]: Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт
+                  - paragraph [ref=f1e562]: Amaran • Мобильный свет
+                  - paragraph [ref=f1e563]: Цветной RGB-осветитель с регулировкой оттенка, насыщенности и спецэффектами.
+                  - paragraph [ref=f1e564]: "Состояние: Великолепно"
+                  - generic [ref=f1e565]:
+                    - strong [ref=f1e566]: 1 000 ₽
+                    - generic [ref=f1e567]: / в день
+                - button "Аксессуары (3)" [ref=f1e569] [cursor=pointer]
+                - generic [ref=f1e576]:
+                  - generic [ref=f1e577]:
+                    - paragraph [ref=f1e578]: Свободно
+                    - button "В резерв" [ref=f1e579] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e580] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e581]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e582]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e583]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e584]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e585]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e586]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e587]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e588]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e589]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e590]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e591]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e592]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e593]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e594]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e595]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e596]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e597]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e598]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e599]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e600]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e601]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e602]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e603]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e604]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e605]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e606]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e607]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e608]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e609]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e610]'
+            - generic [ref=f1e612]:
+              - img "Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт" [ref=f1e614]
+              - generic [ref=f1e615]:
+                - generic [ref=f1e616]:
+                  - heading [level=3] [ref=f1e617]:
+                    - button "Подробнее о Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт" [ref=f1e618] [cursor=pointer]: Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт
+                  - paragraph [ref=f1e619]: Amaran • Мобильный свет
+                  - paragraph [ref=f1e620]: Сверхкомпактный накамерный свет высокой мощности для мобильного продакшна.
+                  - paragraph [ref=f1e621]: "Состояние: Великолепно"
+                  - generic [ref=f1e622]:
+                    - strong [ref=f1e623]: 700 ₽
+                    - generic [ref=f1e624]: / в день
+                - button "Аксессуары (3)" [ref=f1e626] [cursor=pointer]
+                - generic [ref=f1e633]:
+                  - generic [ref=f1e634]:
+                    - paragraph [ref=f1e635]: Свободно
+                    - button "В резерв" [ref=f1e636] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e637] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e638]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e639]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e640]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e641]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e642]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e643]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e644]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e645]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e646]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e647]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e648]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e649]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e650]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e651]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e652]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e653]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e654]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e655]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e656]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e657]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e658]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e659]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e660]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e661]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e662]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e663]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e664]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e665]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e666]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e667]'
+            - generic [ref=f1e669]:
+              - img "Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens" [ref=f1e671]
+              - generic [ref=f1e672]:
+                - generic [ref=f1e673]:
+                  - heading [level=3] [ref=f1e674]:
+                    - button "Подробнее о Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens" [ref=f1e675] [cursor=pointer]: Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens
+                  - paragraph [ref=f1e676]: Amaran • Студийный свет
+                  - paragraph [ref=f1e677]: Осветительный прибор Amaran с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e678]: "Состояние: Великолепно"
+                  - generic [ref=f1e679]:
+                    - strong [ref=f1e680]: 1 500 ₽
+                    - generic [ref=f1e681]: / в день
+                - button "Аксессуары (3)" [ref=f1e683] [cursor=pointer]
+                - generic [ref=f1e690]:
+                  - generic [ref=f1e691]:
+                    - paragraph [ref=f1e692]: Свободно
+                    - button "В резерв" [ref=f1e693] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e694] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e695]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e696]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e697]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e698]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e699]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e700]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e701]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e702]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e703]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e704]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e705]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e706]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e707]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e708]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e709]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e710]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e711]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e712]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e713]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e714]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e715]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e716]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e717]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e718]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e719]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e720]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e721]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e722]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e723]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e724]'
+            - generic [ref=f1e726]:
+              - img "Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens" [ref=f1e728]
+              - generic [ref=f1e729]:
+                - generic [ref=f1e730]:
+                  - heading [level=3] [ref=f1e731]:
+                    - button "Подробнее о Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens" [ref=f1e732] [cursor=pointer]: Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens
+                  - paragraph [ref=f1e733]: Amaran • Студийный свет
+                  - paragraph [ref=f1e734]: Мощный светодиодный моноблок с байонетом Bowens для студии и локаций.
+                  - paragraph [ref=f1e735]: "Состояние: Великолепно"
+                  - generic [ref=f1e736]:
+                    - strong [ref=f1e737]: 3 500 ₽
+                    - generic [ref=f1e738]: / в день
+                - button "Аксессуары (3)" [ref=f1e740] [cursor=pointer]
+                - generic [ref=f1e747]:
+                  - generic [ref=f1e748]:
+                    - paragraph [ref=f1e749]: Свободно
+                    - button "В резерв" [ref=f1e750] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e751] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e752]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e753]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e754]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e755]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e756]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e757]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e758]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e759]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e760]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e761]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e762]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e763]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e764]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e765]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e766]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e767]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e768]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e769]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e770]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e771]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e772]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e773]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e774]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e775]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e776]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e777]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e778]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e779]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e780]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e781]'
+            - generic [ref=f1e783]:
+              - img "Cветодиодный осветитель Aputure Amaran TRI-8S (1)" [ref=f1e785]
+              - generic [ref=f1e786]:
+                - generic [ref=f1e787]:
+                  - heading [level=3] [ref=f1e788]:
+                    - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (1)" [ref=f1e789] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (1)
+                  - paragraph [ref=f1e790]: Aputure • Студийный свет
+                  - paragraph [ref=f1e791]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e792]: "Состояние: Великолепно"
+                  - generic [ref=f1e793]:
+                    - strong [ref=f1e794]: 500 ₽
+                    - generic [ref=f1e795]: / в день
+                - button "Аксессуары (3)" [ref=f1e797] [cursor=pointer]
+                - generic [ref=f1e804]:
+                  - generic [ref=f1e805]:
+                    - paragraph [ref=f1e806]: Свободно
+                    - button "В резерв" [ref=f1e807] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e808] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e809]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e810]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e811]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e812]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e813]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e814]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e815]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e816]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e817]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e818]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e819]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e820]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e821]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e822]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e823]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e824]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e825]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e826]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e827]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e828]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e829]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e830]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e831]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e832]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e833]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e834]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e835]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e836]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e837]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e838]'
+            - generic [ref=f1e840]:
+              - img "Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)" [ref=f1e842]
+              - generic [ref=f1e843]:
+                - generic [ref=f1e844]:
+                  - heading [level=3] [ref=f1e845]:
+                    - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)" [ref=f1e846] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)
+                  - paragraph [ref=f1e847]: Aputure • Студийный свет
+                  - paragraph [ref=f1e848]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e849]: "Состояние: Великолепно"
+                  - generic [ref=f1e850]:
+                    - strong [ref=f1e851]: 500 ₽
+                    - generic [ref=f1e852]: / в день
+                - button "Аксессуары (3)" [ref=f1e854] [cursor=pointer]
+                - generic [ref=f1e861]:
+                  - generic [ref=f1e862]:
+                    - paragraph [ref=f1e863]: Свободно
+                    - button "В резерв" [ref=f1e864] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e865] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e866]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e867]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e868]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e869]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e870]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e871]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e872]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e873]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e874]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e875]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e876]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e877]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e878]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e879]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e880]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e881]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e882]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e883]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e884]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e885]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e886]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e887]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e888]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e889]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e890]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e891]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e892]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e893]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e894]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e895]'
+            - generic [ref=f1e897]:
+              - img "Cветодиодный осветитель Aputure Amaran TRI-8S (2)" [ref=f1e899]
+              - generic [ref=f1e900]:
+                - generic [ref=f1e901]:
+                  - heading [level=3] [ref=f1e902]:
+                    - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (2)" [ref=f1e903] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (2)
+                  - paragraph [ref=f1e904]: Aputure • Студийный свет
+                  - paragraph [ref=f1e905]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e906]: "Состояние: Великолепно"
+                  - generic [ref=f1e907]:
+                    - strong [ref=f1e908]: 500 ₽
+                    - generic [ref=f1e909]: / в день
+                - button "Аксессуары (3)" [ref=f1e911] [cursor=pointer]
+                - generic [ref=f1e918]:
+                  - generic [ref=f1e919]:
+                    - paragraph [ref=f1e920]: Свободно
+                    - button "В резерв" [ref=f1e921] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e922] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e923]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e924]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e925]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e926]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e927]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e928]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e929]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e930]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e931]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e932]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e933]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e934]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e935]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e936]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e937]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e938]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e939]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e940]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e941]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e942]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e943]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e944]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e945]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e946]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e947]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e948]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e949]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e950]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e951]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e952]'
+            - generic [ref=f1e954]:
+              - img "Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)" [ref=f1e956]
+              - generic [ref=f1e957]:
+                - generic [ref=f1e958]:
+                  - heading [level=3] [ref=f1e959]:
+                    - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)" [ref=f1e960] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)
+                  - paragraph [ref=f1e961]: Aputure • Студийный свет
+                  - paragraph [ref=f1e962]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e963]: "Состояние: Великолепно"
+                  - generic [ref=f1e964]:
+                    - strong [ref=f1e965]: 700 ₽
+                    - generic [ref=f1e966]: / в день
+                - button "Аксессуары (3)" [ref=f1e968] [cursor=pointer]
+                - generic [ref=f1e975]:
+                  - generic [ref=f1e976]:
+                    - paragraph [ref=f1e977]: Свободно
+                    - button "В резерв" [ref=f1e978] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e979] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e980]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e981]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e982]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e983]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e984]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e985]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e986]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e987]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e988]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e989]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e990]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e991]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e992]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e993]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e994]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e995]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e996]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e997]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e998]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e999]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e1000]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e1001]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e1002]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e1003]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e1004]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e1005]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e1006]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e1007]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e1008]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e1009]'
+            - generic [ref=f1e1011]:
+              - img "Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)" [ref=f1e1013]
+              - generic [ref=f1e1014]:
+                - generic [ref=f1e1015]:
+                  - heading [level=3] [ref=f1e1016]:
+                    - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)" [ref=f1e1017] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)
+                  - paragraph [ref=f1e1018]: Aputure • Студийный свет
+                  - paragraph [ref=f1e1019]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                  - paragraph [ref=f1e1020]: "Состояние: Великолепно"
+                  - generic [ref=f1e1021]:
+                    - strong [ref=f1e1022]: 700 ₽
+                    - generic [ref=f1e1023]: / в день
+                - button "Аксессуары (3)" [ref=f1e1025] [cursor=pointer]
+                - generic [ref=f1e1032]:
+                  - generic [ref=f1e1033]:
+                    - paragraph [ref=f1e1034]: Свободно
+                    - button "В резерв" [ref=f1e1035] [cursor=pointer]
+                  - generic "Посмотреть доступность и выбрать даты" [ref=f1e1036] [cursor=pointer]:
+                    - 'button "Статус на 09.09.2026: Свободно" [ref=f1e1037]'
+                    - 'button "Статус на 10.09.2026: Свободно" [ref=f1e1038]'
+                    - 'button "Статус на 11.09.2026: Свободно" [ref=f1e1039]'
+                    - 'button "Статус на 12.09.2026: Свободно" [ref=f1e1040]'
+                    - 'button "Статус на 13.09.2026: Свободно" [ref=f1e1041]'
+                    - 'button "Статус на 14.09.2026: Свободно" [ref=f1e1042]'
+                    - 'button "Статус на 15.09.2026: Свободно" [ref=f1e1043]'
+                    - 'button "Статус на 16.09.2026: Свободно" [ref=f1e1044]'
+                    - 'button "Статус на 17.09.2026: Свободно" [ref=f1e1045]'
+                    - 'button "Статус на 18.09.2026: Свободно" [ref=f1e1046]'
+                    - 'button "Статус на 19.09.2026: Свободно" [ref=f1e1047]'
+                    - 'button "Статус на 20.09.2026: Свободно" [ref=f1e1048]'
+                    - 'button "Статус на 21.09.2026: Свободно" [ref=f1e1049]'
+                    - 'button "Статус на 22.09.2026: Свободно" [ref=f1e1050]'
+                    - 'button "Статус на 23.09.2026: Свободно" [ref=f1e1051]'
+                    - 'button "Статус на 24.09.2026: Свободно" [ref=f1e1052]'
+                    - 'button "Статус на 25.09.2026: Свободно" [ref=f1e1053]'
+                    - 'button "Статус на 26.09.2026: Свободно" [ref=f1e1054]'
+                    - 'button "Статус на 27.09.2026: Свободно" [ref=f1e1055]'
+                    - 'button "Статус на 28.09.2026: Свободно" [ref=f1e1056]'
+                    - 'button "Статус на 29.09.2026: Свободно" [ref=f1e1057]'
+                    - 'button "Статус на 30.09.2026: Свободно" [ref=f1e1058]'
+                    - 'button "Статус на 01.10.2026: Свободно" [ref=f1e1059]'
+                    - 'button "Статус на 02.10.2026: Свободно" [ref=f1e1060]'
+                    - 'button "Статус на 03.10.2026: Свободно" [ref=f1e1061]'
+                    - 'button "Статус на 04.10.2026: Свободно" [ref=f1e1062]'
+                    - 'button "Статус на 05.10.2026: Свободно" [ref=f1e1063]'
+                    - 'button "Статус на 06.10.2026: Свободно" [ref=f1e1064]'
+                    - 'button "Статус на 07.10.2026: Свободно" [ref=f1e1065]'
+                    - 'button "Статус на 08.10.2026: Свободно" [ref=f1e1066]'
+  - region "Notifications alt+T"
+  - dialog "Согласие на обработку cookie" [ref=f1e1068]:
+    - generic [ref=f1e1071]:
+      - paragraph [ref=f1e1077]:
+        - text: Мы используем файлы cookie, чтобы вам было удобнее пользоваться сайтом. Используя наш сайт, вы соглашаетесь с нашей
+        - button "политикой в отношении файлов cookie" [ref=f1e1078] [cursor=pointer]
+        - text: .
+      - button "Принять" [ref=f1e1080] [cursor=pointer]
+  - button "Open Tanstack query devtools" [ref=f1e1131] [cursor=pointer]

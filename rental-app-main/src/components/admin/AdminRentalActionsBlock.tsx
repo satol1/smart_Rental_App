@@ -16,25 +16,25 @@ interface AdminRentalActionsBlockProps {
     onRevert: () => void;
 }
 
-const AdminRentalActionsBlock = React.memo(({ 
-    rental, 
-    isAdmin, 
-    canRevert, 
-    isDeleting, 
-    onEdit, 
-    onReturn, 
-    onDelete, 
-    onRevert 
+const AdminRentalActionsBlock = React.memo(({
+    rental,
+    isAdmin,
+    canRevert,
+    isDeleting,
+    onEdit,
+    onReturn,
+    onDelete,
+    onRevert
 }: AdminRentalActionsBlockProps) => {
     return (
-        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 border-t md:border-t-0 md:border-l pt-3 md:pt-0 md:pl-4">
-            <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4 xl:flex-col xl:items-stretch xl:border-t-0 xl:border-l xl:pl-5 xl:pt-0">
+            <div className="flex flex-wrap gap-2 xl:flex-col">
                 {canRevert && (
-                    <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={onRevert} 
-                        className="text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={onRevert}
+                        className="text-warning border-border hover:bg-warning-soft hover:text-warning"
                     >
                         <RotateCcw className="mr-2 h-4 w-4" />
                         Отменить выдачу

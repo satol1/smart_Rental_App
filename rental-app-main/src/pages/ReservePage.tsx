@@ -6,7 +6,10 @@ import CancelReservationDialog from "@/components/CancelReservationDialog";
 import { Button } from "@/components/ui/button";
 import { useReserveSubmission } from "@/hooks/reservation/submission/useReserveSubmission";
 import { formatDate } from "@/lib/utils";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import ReservationItemsList from "@/components/reservation/ReservationItemsList";
 import FinancialSummaryBlock from "@/components/shared/FinancialSummaryBlock";
@@ -16,6 +19,7 @@ import { daysUntilDate } from "@/utils/dates";
 
 export default function ReservePage() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const {
         items,
@@ -118,142 +122,102 @@ export default function ReservePage() {
         return formatDate(nextDay);
     }, [startDate]);
 
+    const returnToCatalog = () => navigate("/", {
+        state: {
+            intent: "add_to_new_reservation",
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+        },
+    });
+
     if (items.length === 0 && !reservationSuccess) {
         return (
-            <div className="text-center mt-12 p-4">
-                <ShoppingCart className="mx-auto h-16 w-16 text-gray-300" />
-                <p className="mt-4 text-lg text-gray-700">Ваша корзина пуста.</p>
-                <p className="mt-1 text-sm text-gray-500">Вы еще не выбрали оборудование для резерва.</p>
-                <Button
-                    variant="default"
-                    className="mt-6"
-                    onClick={() => navigate("/", { 
-                        state: { 
-                            intent: "add_to_new_reservation",
-                            startDate: startDate.toISOString(),
-                            endDate: endDate.toISOString()
-                        } 
-                    })}
-                >
-                    Перейти к выбору оборудования
-                </Button>
-            </div>
+            <section className="mx-auto flex max-w-xl flex-col items-center px-5 py-20 text-center">
+                <ShoppingCart className="mb-5 h-10 w-10 text-muted-foreground" aria-hidden="true" />
+                <h1 className="text-2xl font-semibold tracking-tight">{t('ordersDesign.empty')}</h1>
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">{t('ordersDesign.emptyNote')}</p>
+                <Button className="mt-6" onClick={returnToCatalog}>{t('ordersDesign.chooseEquipment')}</Button>
+            </section>
         );
     }
 
-    // Блок успешного оформления удален: редирект и toast происходят в useReservations
-
     return (
         <>
-            <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Оформление резерва</h1>
-                    <button
-                        onClick={() => navigate("/", { 
-                            state: { 
-                                intent: "add_to_new_reservation",
-                                startDate: startDate.toISOString(),
-                                endDate: endDate.toISOString()
-                            } 
-                        })}
-                        className="text-sm text-sky-600 hover:underline"
-                    >
-                        ← Вернуться к выбору
-                    </button>
+            <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
+                <Button variant="ghost" size="sm" onClick={returnToCatalog} className="-ml-3 mb-5 text-muted-foreground">
+                    <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />{t('ordersDesign.backToCatalog')}
+                </Button>
+                <header className="mb-8">
+                    <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t('ordersDesign.checkout')}</h1>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t('ordersDesign.checkoutNote')}</p>
+                </header>
+                <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+                    <div className="min-w-0 space-y-7">
+                        {shouldShowAuthForm ? (
+                            <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                                <h2 className="text-lg font-semibold">{t('ordersDesign.authTitle')}</h2>
+                                <p className="mb-5 mt-2 text-sm leading-relaxed text-muted-foreground">{t('ordersDesign.authNote')}</p>
+                                <AuthForm onSuccess={handleAuthSuccess} embedded />
+                            </section>
+                        ) : !user ? (
+                            <section className="rounded-2xl border border-border bg-card p-5">
+                                <p className="mb-4 text-sm text-muted-foreground">{t('ordersDesign.authNote')}</p>
+                                <Button onClick={() => setShowAuthForm(true)}>{t('ordersDesign.signIn')}</Button>
+                            </section>
+                        ) : null}
+
+                        <section aria-labelledby="reserve-dates-heading">
+                            <h2 id="reserve-dates-heading" className="mb-4 text-lg font-semibold">{t('ordersDesign.dates')}</h2>
+                            <div className="grid grid-cols-1 gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-2">
+                                <div className="min-w-0 space-y-2">
+                                    <Label htmlFor="start-date">{t('ordersDesign.start')}</Label>
+                                    <Input id="start-date" type="date" value={formatDate(startDate)}
+                                        onChange={(e) => { const date = new Date(e.target.value); if (!isNaN(date.getTime())) setStartDate(date); }}
+                                        min={formatDate(new Date())} aria-invalid={!!startDateError}
+                                        aria-describedby={startDateError ? 'reserve-start-error' : undefined} />
+                                    {startDateError && <p id="reserve-start-error" className="text-xs text-destructive">{startDateError}</p>}
+                                </div>
+                                <div className="min-w-0 space-y-2">
+                                    <Label htmlFor="end-date">{t('ordersDesign.end')}</Label>
+                                    <Input id="end-date" type="date" value={formatDate(endDate)}
+                                        onChange={(e) => { const date = new Date(e.target.value); if (!isNaN(date.getTime())) setEndDate(date); }}
+                                        min={minEndDate} aria-invalid={!!endDateError}
+                                        aria-describedby={endDateError ? 'reserve-end-error' : undefined} />
+                                    {endDateError && <p id="reserve-end-error" className="text-xs text-destructive">{endDateError}</p>}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section aria-labelledby="reserve-items-heading">
+                            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                                <h2 id="reserve-items-heading" className="text-lg font-semibold">{t('ordersDesign.equipment')}</h2>
+                                <span className="text-sm tabular-nums text-muted-foreground">{t('ordersDesign.itemCount', { count: items.length })}</span>
+                            </div>
+                            {isLoadingAvailability && <p role="status" className="mb-3 text-sm text-muted-foreground">{t('ordersDesign.checking')}</p>}
+                            <ReservationItemsList
+                                items={items} selectedAccessories={selectedAccessories} availabilityMap={availabilityMap}
+                                unavailableIdsFromAPI={unavailableIdsFromAPI} invalidItems={invalidItems}
+                                onRemoveItem={removeItemFromStore} onRemoveAccessory={toggleAccessory}
+                                isAccessorySelected={isAccessorySelected} onToggleAccessory={toggleAccessory}
+                            />
+                        </section>
+                    </div>
+
+                    <aside className="min-w-0 lg:sticky lg:top-28">
+                        <FinancialSummaryBlock
+                            priceDetails={priceDetails} accessoriesDailyTotal={accessoriesDailyTotal}
+                            promoCode={promoCode} setPromoCode={setPromoCode} applyPromoCode={applyPromoCode}
+                            removePromoCode={removePromoCode} promoCodeMessage={promoCodeMessage}
+                            isLoading={isLoadingAvailability} isApplyingPromoCode={isApplyingPromoCode}
+                            isSubmitting={isSubmitting} isFormValid={isFormValid}
+                            formInvalidReason={formInvalidReason} cancellationPolicyNote={cancellationPolicyNote}
+                            onCancel={() => setShowCancelDialog(true)} onAddMore={returnToCatalog}
+                            onSubmit={handleSubmit} variant="default" showActions={true}
+                        />
+                    </aside>
                 </div>
-
-                {shouldShowAuthForm ? (
-                    <div className="p-4 border rounded-md shadow-sm bg-white">
-                        <h2 className="text-lg font-semibold mb-3 text-gray-700">Авторизация</h2>
-                        <p className="text-sm text-gray-600 mb-4">
-                            Для оформления резерва необходимо войти в аккаунт или зарегистрироваться.
-                        </p>
-                        <AuthForm onSuccess={handleAuthSuccess} />
-                    </div>
-                ) : !user ? (
-                    <div className="p-4 border rounded-md shadow-sm bg-white text-center">
-                        <p className="text-sm text-gray-600 mb-4">
-                            Для оформления резерва необходимо авторизоваться.
-                        </p>
-                        <Button 
-                            onClick={() => setShowAuthForm(true)}
-                            className="w-full sm:w-auto"
-                        >
-                            Войти / Зарегистрироваться
-                        </Button>
-                    </div>
-                ) : null}
-
-                <div className="p-4 border rounded-md shadow-sm bg-white">
-                    <h2 className="text-lg font-semibold mb-3 text-gray-700">Даты резерва:</h2>
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                        <div className="flex flex-col items-start w-full sm:w-auto">
-                            <label htmlFor="start-date" className="text-sm text-gray-600 mb-1">Начало:</label>
-                            <input id="start-date" type="date" className="border rounded px-3 py-1 text-sm shadow-sm w-full focus:ring-sky-500 focus:border-sky-500"
-                                   value={formatDate(startDate)}
-                                   onChange={(e) => { const d = new Date(e.target.value); if(!isNaN(d.getTime())) setStartDate(d); }}
-                                   min={formatDate(new Date())} />
-                            {startDateError && <p className="text-xs text-red-600 mt-1">{startDateError}</p>}
-                        </div>
-                        <div className="flex flex-col items-start w-full sm:w-auto">
-                            <label htmlFor="end-date" className="text-sm text-gray-600 mb-1">Конец:</label>
-                            <input id="end-date" type="date" className="border rounded px-3 py-1 text-sm shadow-sm w-full focus:ring-sky-500 focus:border-sky-500"
-                                   value={formatDate(endDate)}
-                                   onChange={(e) => { const d = new Date(e.target.value); if(!isNaN(d.getTime())) setEndDate(d); }}
-                                // ✅ ИЗМЕНЕНИЕ: Установлено минимальное значение для поля
-                                   min={minEndDate} />
-                            {endDateError && <p className="text-xs text-red-600 mt-1">{endDateError}</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {isLoadingAvailability && <p className="text-center text-gray-500 py-3">Проверка доступности...</p>}
-
-                <ReservationItemsList
-                    items={items}
-                    selectedAccessories={selectedAccessories}
-                    availabilityMap={availabilityMap}
-                    unavailableIdsFromAPI={unavailableIdsFromAPI}
-                    invalidItems={invalidItems}
-                    onRemoveItem={removeItemFromStore}
-                    onRemoveAccessory={toggleAccessory}
-                    isAccessorySelected={isAccessorySelected}
-                    onToggleAccessory={toggleAccessory}
-                />
-
-                <FinancialSummaryBlock
-                    priceDetails={priceDetails}
-                    accessoriesDailyTotal={accessoriesDailyTotal}
-                    promoCode={promoCode}
-                    setPromoCode={setPromoCode}
-                    applyPromoCode={applyPromoCode}
-                    removePromoCode={removePromoCode}
-                    promoCodeMessage={promoCodeMessage}
-                    isLoading={isLoadingAvailability}
-                    isApplyingPromoCode={isApplyingPromoCode}
-                    isSubmitting={isSubmitting}
-                    isFormValid={isFormValid}
-                    formInvalidReason={formInvalidReason}
-                    cancellationPolicyNote={cancellationPolicyNote}
-                    onCancel={() => setShowCancelDialog(true)}
-                    onAddMore={() => navigate("/", { 
-                        state: { 
-                            intent: "add_to_new_reservation",
-                            startDate: startDate.toISOString(),
-                            endDate: endDate.toISOString()
-                        } 
-                    })}
-                    onSubmit={handleSubmit}
-                    variant="default"
-                    showActions={true}
-                />
             </div>
-
-            <CancelReservationDialog
-                open={showCancelDialog}
-                onClose={() => setShowCancelDialog(false)}
-                onConfirm={handleConfirmCancel}
-            />
+            <CancelReservationDialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)} onConfirm={handleConfirmCancel} />
         </>
     );
 }

@@ -14,10 +14,10 @@ import type { EquipmentStatus } from "@/types/availability";
 import type { EquipmentCardSimpleProps, EquipmentCardBaseProps } from "@/types/equipmentCard";
 
 // Упрощенный интерфейс для нового компонента
-interface CompactEquipmentCardProps extends EquipmentCardSimpleProps {}
+type CompactEquipmentCardProps = EquipmentCardSimpleProps;
 
 // Старый интерфейс для обратной совместимости
-interface CompactEquipmentCardLegacyProps extends EquipmentCardBaseProps {}
+type CompactEquipmentCardLegacyProps = EquipmentCardBaseProps;
 
 // --- НАЧАЛО ИЗМЕНЕНИЙ ---
 
@@ -82,15 +82,7 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
         }
     }, [status, onToggleSelection, isUnderRepair]);
 
-    const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        if ((e.target as HTMLElement).closest("button, a, label, input[type='checkbox']")) return;
-        // Блокируем двойной клик, если оборудование недоступно
-        if (isUnderRepair) return;
-        // Используем обработчик из пропсов
-        if (status === 'available' || status === 'added') {
-            onToggleSelection();
-        }
-    }, [status, onToggleSelection, isUnderRepair]);
+
 
     // Защитный код: проверяем, что все необходимые данные переданы
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
@@ -124,10 +116,19 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
 
     return (
         <div
-            className={`relative p-3 rounded-lg border transition-all duration-200 cursor-pointer ${backgroundClass}`}
+            className={`relative h-full p-4 rounded-xl border transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${backgroundClass}`}
             onClick={handleCardClick}
-            onDoubleClick={handleDoubleClick}
             tabIndex={0}
+            role="button"
+            aria-pressed={isSelected}
+            aria-label={equipment.name}
+            onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    if (!isUnderRepair && (status === 'available' || status === 'added')) onToggleSelection();
+                }
+            }}
         >
             {isSelected && (
                 <div className="absolute top-1 right-1 z-10 bg-green-600 text-white rounded-full p-0.5 shadow">

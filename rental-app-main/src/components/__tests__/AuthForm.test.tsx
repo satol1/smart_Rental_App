@@ -44,6 +44,8 @@ describe('AuthForm — режим входа', () => {
     it('показывает заголовок входа', () => {
         renderForm();
         expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument();
+        expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'email');
+        expect(screen.getByLabelText('Пароль')).toHaveAttribute('autocomplete', 'current-password');
     });
 
     it('невалидный email показывает ошибку', async () => {
@@ -125,7 +127,10 @@ describe('AuthForm — режим регистрации', () => {
         await user.click(screen.getByRole('button', { name: /нет аккаунта\?/i }));
 
         expect(screen.getByText('Регистрация')).toBeInTheDocument();
-        expect(screen.getByLabelText(/фио/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/фио/i)).toHaveAttribute('autocomplete', 'name');
+        expect(screen.getByLabelText('Email *')).toHaveAttribute('autocomplete', 'email');
+        expect(screen.getByLabelText('Пароль *')).toHaveAttribute('autocomplete', 'new-password');
+        expect(screen.getByLabelText('Телефон')).toHaveAttribute('autocomplete', 'tel');
     });
 
     it('успешная регистрация вызывает register + loginAfterRegister', async () => {

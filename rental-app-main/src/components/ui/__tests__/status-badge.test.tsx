@@ -34,9 +34,9 @@ describe('StatusBadge — статусы заказов', () => {
     });
 
     it.each([
-        ['active', 'bg-primary/10'],
-        ['overdue', 'bg-destructive/10'],
-        ['fulfilled', 'bg-chart-2/10'],
+        ['active', 'bg-info-soft'],
+        ['overdue', 'bg-danger-soft'],
+        ['fulfilled', 'bg-success-soft'],
     ] as const)('статус %s использует токен-класс %s', (status, tokenClass) => {
         const { container } = render(<StatusBadge status={status} />);
         expect(container.firstChild).toHaveClass(tokenClass);
@@ -71,7 +71,7 @@ describe('StatusBadge — статусы пользователей', () => {
 
     it('VIP использует жёлтый chart-токен', () => {
         const { container } = render(<StatusBadge status={USER_STATUS.VIP} />);
-        expect(container.firstChild).toHaveClass('bg-chart-4/15');
+        expect(container.firstChild).toHaveClass('bg-warning-soft');
     });
 });
 
@@ -80,7 +80,7 @@ describe('StatusBadge — прочее', () => {
         const unknown = 'mystery-status' as never;
         const { container } = render(<StatusBadge status={unknown} />);
         expect(screen.getByText('mystery-status')).toBeInTheDocument();
-        expect(container.firstChild).not.toHaveClass('bg-primary/10');
+        expect(container.firstChild).not.toHaveClass('bg-info-soft');
     });
 
     it('withLabel=false скрывает текст', () => {

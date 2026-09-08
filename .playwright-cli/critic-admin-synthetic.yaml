@@ -1,0 +1,86 @@
+- generic [ref=f25e2]:
+  - generic [ref=f25e3]:
+    - link "Перейти к содержимому" [ref=f25e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f25e5]:
+      - generic [ref=f25e6]:
+        - link "На главную" [ref=f25e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f25e16]:
+            - generic [ref=f25e17]: Цифровой
+            - generic [ref=f25e18]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f25e19]:
+          - link "Каталог" [ref=f25e20] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f25e21] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f25e22] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f25e23] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f25e24] [cursor=pointer]
+        - generic [ref=f25e25]:
+          - 'button "Тема оформления: Тёмное" [ref=f25e27] [cursor=pointer]'
+          - button "Мои заказы" [ref=f25e28] [cursor=pointer]
+          - button "Личный кабинет" [ref=f25e29] [cursor=pointer]:
+            - generic [ref=f25e30]: П
+            - generic [ref=f25e32]: Проверка макета
+    - main [ref=f25e33]:
+      - generic [ref=f25e35]:
+        - navigation "Разделы управления" [ref=f25e36]:
+          - generic [ref=f25e37]:
+            - generic [ref=f25e38]:
+              - heading "Управление" [level=2] [ref=f25e39]
+              - generic [ref=f25e40]: Администратор
+            - link "Каталог" [ref=f25e41] [cursor=pointer]:
+              - /url: /
+          - generic [ref=f25e42]:
+            - link "Обзор" [ref=f25e43] [cursor=pointer]:
+              - /url: /admin
+            - link "Резервы" [ref=f25e49] [cursor=pointer]:
+              - /url: /admin/reservations
+            - link "Аренды" [ref=f25e53] [cursor=pointer]:
+              - /url: /admin/rentals
+            - link "Клиенты" [ref=f25e59] [cursor=pointer]:
+              - /url: /admin/users
+            - link "Оборудование" [ref=f25e65] [cursor=pointer]:
+              - /url: /admin/equipment
+            - link "Аксессуары" [ref=f25e70] [cursor=pointer]:
+              - /url: /admin/accessories
+            - link "Ассоциации" [ref=f25e74] [cursor=pointer]:
+              - /url: /admin/associations
+            - link "Комплекты" [ref=f25e79] [cursor=pointer]:
+              - /url: /admin/packs
+            - link "Промокоды и скидки" [ref=f25e84] [cursor=pointer]:
+              - /url: /admin/promocodes
+            - link "Выходные дни" [ref=f25e88] [cursor=pointer]:
+              - /url: /admin/holidays
+            - link "Настройки" [ref=f25e91] [cursor=pointer]:
+              - /url: /admin/settings
+        - generic [ref=f25e99]:
+          - heading "Управление резервами" [level=1] [ref=f25e100]
+          - paragraph [ref=f25e101]: Просмотр, создание и редактирование всех резервов в системе.
+        - generic [ref=f25e102]:
+          - generic [ref=f25e103]:
+            - group "Фильтры заказов" [ref=f25e105]:
+              - generic [ref=f25e106]
+              - generic [ref=f25e109]
+              - generic [ref=f25e113]
+            - combobox [ref=f25e120] [cursor=pointer]:
+              - generic: Все периоды
+          - button "Создать резерв" [ref=f25e123] [cursor=pointer]
+        - generic [ref=f25e125]:
+          - checkbox "Выбрать все видимые резервы" [ref=f25e126] [cursor=pointer]
+          - generic [ref=f25e127] [cursor=pointer]: Выбрать все
+        - generic [ref=f25e129]:
+          - generic [ref=f25e130]:
+            - 'checkbox "Выбрать резерв #900101" [ref=f25e132] [cursor=pointer]'
+            - generic [ref=f25e134]:
+              - generic [ref=f25e135]
+              - generic [ref=f25e167]
+          - generic [ref=f25e181]:
+            - 'checkbox "Выбрать резерв #900102" [ref=f25e183] [cursor=pointer]'
+            - generic [ref=f25e185]:
+              - generic [ref=f25e186]
+              - generic [ref=f25e218]
+  - region "Notifications alt+T"

@@ -1,0 +1,29 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - generic [ref=f1e6]:
+        - button "Сбросить фильтры" [ref=f1e8] [cursor=pointer]:
+          - generic [ref=f1e16]:
+            - generic [ref=f1e17]: Цифровой
+            - generic [ref=f1e18]: Умная аренда техники
+        - generic [ref=f1e19]:
+          - link "Как это работает" [ref=f1e20] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f1e24] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f1e27] [cursor=pointer]
+        - navigation [ref=f1e32]:
+          - 'button "Тема оформления: Светлое" [ref=f1e33] [cursor=pointer]'
+          - button "Календарь" [ref=f1e34] [cursor=pointer]
+          - button "Войти / Регистрация" [ref=f1e36] [cursor=pointer]
+    - main [ref=f1e38]:
+      - status "Страница загружается" [ref=f1e39]
+  - region "Notifications alt+T"
+  - dialog "Согласие на обработку cookie" [ref=f1e114]:
+    - generic [ref=f1e117]:
+      - paragraph [ref=f1e123]:
+        - text: Мы используем файлы cookie, чтобы вам было удобнее пользоваться сайтом. Используя наш сайт, вы соглашаетесь с нашей
+        - button "политикой в отношении файлов cookie" [ref=f1e124] [cursor=pointer]
+        - text: .
+      - button "Принять" [ref=f1e126] [cursor=pointer]
+  - generic [ref=f1e127]: В сети

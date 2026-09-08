@@ -19,7 +19,6 @@ import EditableRentalCard from "./EditableRentalCard";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
 import AdminRentalFinancialBlock from "./AdminRentalFinancialBlock";
 import AdminRentalActionsBlock from "./AdminRentalActionsBlock";
-import { STATUS_CONFIG } from "@/constants/statusConstants";
 
 interface Props {
     rental: AdminRentalOut;
@@ -65,11 +64,11 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
             revertMutation.mutate({ rentalId: rental.id, refundPrepayment: false });
             return;
         }
-        
+
         // Если аванс есть - открываем диалог
         setConfirmingPrepaymentRevert(true);
     }, [rental, revertMutation]);
-    
+
     // Обработчик для кнопки "Вернуть аванс"
     const handleRevertAndRefund = useCallback(() => {
         revertMutation.mutate({ rentalId: rental.id, refundPrepayment: true });
@@ -93,58 +92,59 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
         return <EditableRentalCard rental={rental} onCancel={() => setIsEditing(false)} />;
     }
 
-    const statusClass = STATUS_CONFIG[rental.status]?.badgeClass || "bg-white hover:shadow-md";
-    
+
+
     // Используем переданную функцию для получения классов подсветки или локальную логику
-    const highlightClass = getHighlightClasses ? getHighlightClasses(rental.id) : 
-        (isHighlighted ? "ring-2 ring-offset-2 ring-amber-500 border-amber-400 bg-amber-50" : "");
+    const highlightClass = getHighlightClasses ? getHighlightClasses(rental.id) :
+        (isHighlighted ? "ring-2 ring-offset-2 ring-ring border-warning/20 bg-warning-soft" : "");
 
     return (
         <>
-            <div ref={finalRef} className={`relative w-full rounded-lg border transition-all hover:shadow-md ${highlightClass}`}>
-                <Card className={cn("w-full", statusClass)}>
-                    <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row gap-4 justify-between">
+            <div ref={finalRef} className={`relative w-full rounded-2xl border border-border bg-card transition-colors  ${highlightClass}`}>
+                <Card className={cn("w-full border-0 shadow-none bg-card")}>
+                    <CardContent className="p-5">
+                        <div className="flex flex-col gap-5 xl:flex-row xl:justify-between">
                             {/* Блок с основной информацией */}
-                            <div className="flex-1 space-y-2.5">
-                                <div className="flex items-center gap-4">
-                                    <h3 className="font-bold text-lg text-orange-700 flex items-center gap-2">
+                            <div className="min-w-0 flex-1 space-y-3">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
                                         <Truck className="w-5 h-5"/> Аренда #{rental.id}
                                     </h3>
                                     <StatusBadge status={rental.status} />
                                 </div>
-                                <div className="text-sm text-gray-700 space-y-1.5 pl-1">
+                                <div className="text-sm text-foreground space-y-1.5 pl-1">
                                     <div className="flex items-center gap-2">
-                                        <User className="w-4 h-4 text-gray-500" />
-                                        <span>{rental.user.full_name} ({rental.user.email})</span>
+                                        <User className="w-4 h-4 text-muted-foreground" />
+                                        <span className="min-w-0 break-words">{rental.user.full_name} <span className="text-muted-foreground">({rental.user.email})</span></span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-gray-600">Баланс:</span>
+                                        <span className="text-muted-foreground">Баланс:</span>
                                         <span className={`font-medium ${getBalanceColor(rental.user.balance)}`}>
                                             {formatBalance(rental.user.balance)}
                                         </span>
                                     </div>
                                     {rental.reservation_id && (
                                         <div className="flex items-center gap-2">
-                                            <LinkIcon className="w-4 h-4 text-gray-500" />
+                                            <LinkIcon className="w-4 h-4 text-muted-foreground" />
                                             <button
                                                 onClick={() => handleNavigateToReservation(rental.reservation_id!)}
-                                                className="text-sky-600 hover:underline hover:text-sky-700 transition-colors"
+                                                className="text-primary hover:underline hover:text-primary transition-colors"
                                             >
                                                 Из резерва #{rental.reservation_id}
                                             </button>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-gray-500" />
+                                        <Calendar className="w-4 h-4 text-muted-foreground" />
                                         <span>{formatDateEuropean(rental.start_date)} — {formatDateEuropean(rental.end_date)}</span>
                                     </div>
                                     <div className="flex items-start gap-2">
-                                        <Package className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                                        <Package className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                         <div className="flex-1">
                                             <button
+                                                aria-expanded={isExpanded}
                                                 onClick={() => setIsExpanded(!isExpanded)}
-                                                className="flex items-center text-left w-full hover:text-sky-700 transition-colors disabled:hover:text-current disabled:cursor-not-allowed"
+                                                className="flex items-center text-left w-full hover:text-primary transition-colors disabled:hover:text-current disabled:cursor-not-allowed"
                                             >
                                                 <span>Позиций в аренде: {rental.equipment.length + (rental.accessory_links?.length ?? 0)}</span>
                                                 <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -172,8 +172,8 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
 
                         {/* Разворачиваемый блок с составом аренды */}
                         {isExpanded && (
-                            <div className="mt-3 pt-3 border-t border-dashed animate-in fade-in-0 slide-in-from-top-2 duration-300">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 mb-2">
+                            <div className="mt-3 pt-3 border-t ">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-2">
                                     <List className="w-4 h-4" />
                                     <span>Состав аренды:</span>
                                 </div>

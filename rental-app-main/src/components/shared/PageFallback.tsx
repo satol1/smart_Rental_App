@@ -19,6 +19,7 @@ export default function PageFallback({ className }: PageFallbackProps) {
         className,
       )}
       role="status"
+      aria-busy="true"
       aria-label="Страница загружается"
     >
       {/* Шапка страницы: лого-плейсхолдер + заголовок */}

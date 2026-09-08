@@ -58,13 +58,13 @@ export default function RentalManagementPage() {
     }, [data]);
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <div className="rental-container space-y-6 py-6">
             <AdminNavigation />
 
             <div className="flex items-center gap-3">
                 <Truck className="w-8 h-8 text-orange-600" />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                         Управление Арендами
                     </h1>
                     <p className="text-gray-600 mt-1">
@@ -73,10 +73,10 @@ export default function RentalManagementPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="rounded-xl border border-border bg-card p-4 flex flex-col xl:flex-row items-center justify-between gap-4">
                 <div className="w-full flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
-                        <OrderToolbar context="admin-rentals" />
+                        <OrderToolbar context="admin-rentals" embedded />
                     </div>
                     <PeriodFilter />
                 </div>
@@ -86,7 +86,7 @@ export default function RentalManagementPage() {
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm p-4 md:p-6">
+            <div className="space-y-4">
                 {isLoading && <SkeletonTable rows={6} columns={6} />}
                 {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}
                 {!isLoading && !error && allRentals.length > 0 && (

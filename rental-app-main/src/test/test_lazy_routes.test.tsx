@@ -33,7 +33,15 @@ beforeAll(() => {
 vi.mock('@/lib/api', () => {
   const ok = (data: unknown = []) => Promise.resolve({ data });
   const client = {
-    get: vi.fn(() => ok()),
+    get: vi.fn((url: string) => {
+      if (url.startsWith('/equipment/')) {
+        return ok({ items: [], total: 0, availableFilters: { types: [], brands: [], associations: [] } });
+      }
+      if (url.startsWith('/holidays/') || url.startsWith('/calendar/view') || url.startsWith('/associations/')) {
+        return ok({ items: [], total: 0 });
+      }
+      return ok();
+    }),
     post: ok,
     put: ok,
     patch: ok,
@@ -77,7 +85,7 @@ describe('Lazy routes + PageFallback', () => {
 
     // Чанк резолвится — рендерится реальный контент главной
     expect(
-      await screen.findByText('Каталог оборудования', {}, { timeout: 10000 }),
+      await screen.findByRole('heading', { name: 'Всё для следующей съёмки.', level: 1 }, { timeout: 10000 }),
     ).toBeInTheDocument();
 
     // Fallback исчез после загрузки
@@ -102,13 +110,12 @@ describe('Lazy routes + PageFallback', () => {
     ).toBeInTheDocument();
   });
 
-  it('PageFallback — это не пустой div: содержит шиммер-блоки', () => {
+  it('PageFallback announces loading independently of animation preferences', () => {
     render(<PageFallback />);
 
-    const fallback = screen.getByTestId('page-fallback');
-    expect(fallback).toHaveAttribute('role', 'status');
-    // Достаточно блоков-скелетонов внутри (лого-плейсхолдер + сетка карточек)
-    const blocks = fallback.querySelectorAll('.animate-pulse');
-    expect(blocks.length).toBeGreaterThan(5);
+    const fallback = screen.getByRole('status', { name: 'Страница загружается' });
+    expect(fallback).toHaveAttribute('aria-busy', 'true');
+    expect(fallback).not.toBeEmptyDOMElement();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

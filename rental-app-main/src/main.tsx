@@ -10,6 +10,7 @@ import 'react-day-picker/dist/style.css';
 
 // 2. ПОТОМ импортируем наши собственные стили для их переопределения
 import "./index.css";
+import "./styles/catalog.css";
 
 import {QueryClientProvider} from "@tanstack/react-query";
 import {queryClient} from "./lib/queryClient";
@@ -34,7 +35,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     <NetworkStatus/>
                 </BrowserRouter>
             </ErrorBoundary>
-            <ReactQueryDevtools initialIsOpen={false}/>
+            {import.meta.env.DEV && import.meta.env.VITE_QUERY_DEVTOOLS === 'true' && <ReactQueryDevtools initialIsOpen={false}/>}
         </QueryClientProvider>
     </React.StrictMode>
 );

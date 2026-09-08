@@ -121,13 +121,13 @@ export default function AllReservationsManagementPage() {
     }, [bulkDeleteMutation, selectedIds, clearSelection]);
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <div className="rental-container space-y-6 py-6">
             <AdminNavigation />
 
             <div className="flex items-center gap-3">
                 <ClipboardList className="w-8 h-8 text-indigo-600" />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                         Управление резервами
                     </h1>
                     <p className="text-gray-600 mt-1">
@@ -136,10 +136,10 @@ export default function AllReservationsManagementPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="rounded-xl border border-border bg-card p-4 flex flex-col xl:flex-row items-center justify-between gap-4">
                 <div className="w-full flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
-                        <OrderToolbar context="admin-reservations" />
+                        <OrderToolbar context="admin-reservations" embedded />
                     </div>
                     <PeriodFilter />
                 </div>
@@ -155,7 +155,7 @@ export default function AllReservationsManagementPage() {
                 isDeleting={bulkDeleteMutation.isPending}
             />
 
-            <div className="bg-white rounded-lg border shadow-sm p-4 md:p-6">
+            <div className="space-y-4">
                 {isLoading && <SkeletonTable rows={6} columns={6} />}
                 {isFetchingNextPage && <p className="text-center text-blue-600 py-2 text-sm">Поиск резерва в следующих страницах...</p>}
                 {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}

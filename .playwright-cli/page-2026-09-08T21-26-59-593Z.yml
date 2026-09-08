@@ -1,0 +1,35 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e3]:
+    - link "Перейти к содержимому" [ref=f5e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f5e5]:
+      - generic [ref=f5e6]:
+        - link "Сбросить фильтры" [ref=f5e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f5e17]:
+            - generic [ref=f5e18]: Цифровой
+            - generic [ref=f5e19]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f5e20]:
+          - link "Каталог" [ref=f5e21] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f5e22] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f5e23] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f5e24] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f5e25] [cursor=pointer]
+        - generic [ref=f5e26]:
+          - 'button "Тема оформления: Светлое" [ref=f5e28] [cursor=pointer]'
+          - button "Войти" [ref=f5e29] [cursor=pointer]
+    - main [ref=f5e30]:
+      - status "Страница загружается" [ref=f5e31]
+  - region "Notifications alt+T"
+  - dialog "Согласие на обработку cookie" [ref=f5e106]:
+    - generic [ref=f5e109]:
+      - paragraph [ref=f5e115]:
+        - text: Мы используем файлы cookie, чтобы вам было удобнее пользоваться сайтом. Используя наш сайт, вы соглашаетесь с нашей
+        - button "политикой в отношении файлов cookie" [ref=f5e116] [cursor=pointer]
+        - text: .
+      - button "Принять" [ref=f5e118] [cursor=pointer]
+  - button "Open Tanstack query devtools" [ref=f5e169] [cursor=pointer]

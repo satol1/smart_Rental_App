@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useReserveStore } from "@/store/reserveStore";
 import { X } from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import { CuratedCollections } from '@/components/catalog/CuratedCollections';
 import type { CatalogPackItem } from "@/types/pack";
 
 // Компоненты
@@ -28,6 +30,7 @@ import { useAvailabilityForEquipment } from "@/hooks/useAvailabilityForEquipment
 import { createAvailabilityMap } from "@/lib/equipmentUtils"; // <-- УТИЛИТАРНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КАРТЫ ДОСТУПНОСТИ
 
 export default function HomePage() {
+    const { t } = useTranslation();
     const location = useLocation();
     const containerRef = useRef<HTMLDivElement>(null);
     const { clearItemsOnly, items: selectedItems = [] } = useReserveStore();
@@ -163,16 +166,16 @@ export default function HomePage() {
     // Удалены локальные обработчики навигации; используем useReservationNavigation
 
     return (
-        <div className="bg-gray-50 min-h-screen">
+        <div className="rental-home">
             {/* Липкий блок выбора дат */}
             <StickyDateBar isVisible={isSticky} />
             
-            <div ref={containerRef} className="max-w-7xl mx-auto px-4 py-6 space-y-4 pb-20">
+            <div ref={containerRef} className="rental-container">
 
                 {editingReservationId && (
-                    <div className="flex items-center justify-between p-3 bg-sky-100 border border-sky-300 text-sky-700 rounded-md text-sm shadow">
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-pastel-sky p-4 text-sm text-pastel-sky-fg" role="status">
                         <span>
-                            Вы добавляете оборудование к резерву <strong>#{editingReservationId}</strong>. Когда закончите, нажмите кнопку внизу страницы.
+                            {t('catalogDesign.editNotice', { id: editingReservationId })}
                         </span>
                         <Button
                             variant="ghost"
@@ -181,12 +184,15 @@ export default function HomePage() {
                             className="text-sky-700 hover:bg-sky-200 hover:text-sky-800 flex-shrink-0"
                         >
                             <X className="w-4 h-4 mr-1.5" />
-                            Отменить добавление
+                            {t('catalogDesign.cancelEditing')}
                         </Button>
                     </div>
                 )}
 
-                <h1 className="text-2xl font-bold mt-4 text-center">Каталог оборудования</h1>
+                <div className="catalog-introduction">
+                    <h1>{t('catalogDesign.title')}</h1>
+                    <p>{t('catalogDesign.intro')}</p>
+                </div>
 
                 <div 
                     id="main-date-range-selector"
@@ -200,6 +206,7 @@ export default function HomePage() {
                 <DiscountCalculator />
 
                 <EquipmentCatalog 
+                    collections={!editingReservationId ? <CuratedCollections equipment={allEquipment} /> : undefined}
                     editingReservationId={editingReservationId ?? undefined}
                     intent={intent ?? undefined}
                     onOpenPackDetails={setSelectedPack}

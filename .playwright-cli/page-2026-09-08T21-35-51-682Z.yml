@@ -1,0 +1,316 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - link "Перейти к содержимому" [ref=f6e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f6e5]:
+      - generic [ref=f6e6]:
+        - link "Сбросить фильтры" [ref=f6e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f6e16]:
+            - generic [ref=f6e17]: Цифровой
+            - generic [ref=f6e18]: Аренда фототехники
+        - navigation "Основная навигация" [ref=f6e19]:
+          - link "Каталог" [ref=f6e20] [cursor=pointer]:
+            - /url: /
+          - link "Календарь" [ref=f6e21] [cursor=pointer]:
+            - /url: /calendar
+          - link "Как это работает" [ref=f6e22] [cursor=pointer]:
+            - /url: /how-it-works
+          - link "Наши правила" [ref=f6e23] [cursor=pointer]:
+            - /url: /rules
+          - button "Связаться" [ref=f6e24] [cursor=pointer]
+        - generic [ref=f6e25]:
+          - 'button "Тема оформления: Светлое" [ref=f6e27] [cursor=pointer]'
+          - button "Войти" [ref=f6e28] [cursor=pointer]
+    - main [ref=f6e29]:
+      - generic [ref=f6e32]:
+        - generic [ref=f6e33]:
+          - heading "Всё для следующей съёмки." [level=1] [ref=f6e34]
+          - paragraph [ref=f6e35]: Камеры, оптика, свет и звук. Выберите даты и соберите технику под свою задачу.
+        - region [ref=f6e37]:
+          - generic [ref=f6e38]:
+            - heading "Даты аренды" [level=2] [ref=f6e39]
+            - button "Изменить даты" [ref=f6e42] [cursor=pointer]
+          - generic [ref=f6e44]:
+            - button "Изменить даты" [ref=f6e45] [cursor=pointer]:
+              - generic [ref=f6e46]:
+                - generic [ref=f6e47]: Начало аренды
+                - time [ref=f6e48]: 9 сент.
+                - generic [ref=f6e49]: среда, 2026
+              - generic [ref=f6e52]:
+                - generic [ref=f6e53]: Окончание аренды
+                - time [ref=f6e54]: 10 сент.
+                - generic [ref=f6e55]: четверг, 2026
+            - generic [ref=f6e56]:
+              - paragraph [ref=f6e57]: 1 день аренды
+              - paragraph [ref=f6e58]: Выберите даты — покажем доступную технику и стоимость.
+        - button "Промокод и скидка за срок аренды" [ref=f6e59] [cursor=pointer]
+        - region [ref=f6e67]:
+          - generic [ref=f6e68]:
+            - generic [ref=f6e69]:
+              - heading "Каталог техники" [level=2] [ref=f6e70]
+              - status [ref=f6e71]: "Позиций: 14"
+            - group "Переключатель вида карточек" [ref=f6e72]:
+              - radio "Стандартный вид" [checked] [ref=f6e73] [cursor=pointer]
+              - radio "Компактный вид" [ref=f6e74] [cursor=pointer]
+          - generic [ref=f6e75]:
+            - generic [ref=f6e76]:
+              - searchbox "Поиск техники" [ref=f6e78]
+              - generic [ref=f6e79]:
+                - generic [ref=f6e80]:
+                  - checkbox "Только доступное" [ref=f6e81] [cursor=pointer]
+                  - generic [ref=f6e82] [cursor=pointer]: Только доступное
+                - generic [ref=f6e83]:
+                  - checkbox "Объединять одинаковые" [checked] [ref=f6e84] [cursor=pointer]
+                  - generic [ref=f6e85] [cursor=pointer]: Объединять одинаковые
+                - button "Сбросить фильтры" [ref=f6e86] [cursor=pointer]
+            - generic [ref=f6e87]:
+              - generic [ref=f6e88]: Категория
+              - group "Категория" [ref=f6e90]:
+                - button "Вся техника" [ref=f6e91] [cursor=pointer]
+                - button "Фотокамеры" [active] [pressed] [ref=f6e92] [cursor=pointer]
+                - button "Объективы" [ref=f6e93] [cursor=pointer]
+                - button "Видеокамеры и экшн-камеры" [ref=f6e94] [cursor=pointer]
+                - button "Студийный свет" [ref=f6e95] [cursor=pointer]
+                - button "Запись звука" [ref=f6e96] [cursor=pointer]
+                - button "Аккумуляторы и питание" [ref=f6e97] [cursor=pointer]
+                - button "Видеосендеры" [ref=f6e98] [cursor=pointer]
+                - button "Вспышки и синхронизаторы" [ref=f6e99] [cursor=pointer]
+                - button "Карты памяти" [ref=f6e100] [cursor=pointer]
+                - button "Мобильный свет" [ref=f6e101] [cursor=pointer]
+                - button "Светоформирующие насадки" [ref=f6e102] [cursor=pointer]
+                - button "Студийное оборудование и фоны" [ref=f6e103] [cursor=pointer]
+                - button "Штативы и стабилизаторы" [ref=f6e104] [cursor=pointer]
+            - generic [ref=f6e105]:
+              - generic [ref=f6e106]: Бренд
+              - group "Бренд" [ref=f6e107]:
+                - button "Все бренды" [pressed] [ref=f6e108] [cursor=pointer]
+                - button "Canon" [ref=f6e109] [cursor=pointer]
+                - button "Fujifilm" [ref=f6e110] [cursor=pointer]
+                - button "Nikon" [ref=f6e111] [cursor=pointer]
+                - button "Sony" [ref=f6e112] [cursor=pointer]
+            - generic [ref=f6e113]:
+              - generic [ref=f6e114]: Подборка
+              - group "Подборка" [ref=f6e115]:
+                - button "Все подборки" [pressed] [ref=f6e116] [cursor=pointer]
+                - button "Для новичка (Быстрый старт)" [ref=f6e117] [cursor=pointer]
+                - button "Для профессионала (Pro Photo)" [ref=f6e118] [cursor=pointer]
+                - button "Для путешествий и влогов" [ref=f6e119] [cursor=pointer]
+          - generic [ref=f6e120]:
+            - generic [ref=f6e122]:
+              - img "Беззеркальный фотоаппарат NIKON Z5 Body" [ref=f6e124]
+              - generic [ref=f6e125]:
+                - generic [ref=f6e126]:
+                  - heading [level=3] [ref=f6e127]:
+                    - button "Подробнее о Беззеркальный фотоаппарат NIKON Z5 Body" [ref=f6e128] [cursor=pointer]: Беззеркальный фотоаппарат NIKON Z5 Body
+                  - paragraph [ref=f6e129]: Nikon • Фотокамеры
+                  - paragraph [ref=f6e130]: Полнокадровая беззеркалка Nikon 24.3 Мп с 5-осевой стабилизацией и 2 слотами SD.
+                  - paragraph [ref=f6e131]: "Состояние: Великолепно"
+                  - generic [ref=f6e132]:
+                    - strong [ref=f6e133]: 1 500 ₽
+                    - generic [ref=f6e134]: / в день
+                - button "Аксессуары (14)" [ref=f6e136] [cursor=pointer]
+                - generic [ref=f6e143]:
+                  - generic [ref=f6e144]:
+                    - paragraph [ref=f6e145]: Свободно
+                    - button "В резерв" [ref=f6e146] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e147] [cursor=pointer]
+            - generic [ref=f6e186]:
+              - img "Фотоаппарат Canon 6D MarkIl body" [ref=f6e188]
+              - generic [ref=f6e189]:
+                - generic [ref=f6e190]:
+                  - heading [level=3] [ref=f6e191]:
+                    - button "Подробнее о Фотоаппарат Canon 6D MarkIl body" [ref=f6e192] [cursor=pointer]: Фотоаппарат Canon 6D MarkIl body
+                  - paragraph [ref=f6e193]: Canon • Фотокамеры
+                  - paragraph [ref=f6e194]: Надежная зеркальная камера Full Frame 26.2 Мп с поворотным экраном и байонетом EF.
+                  - paragraph [ref=f6e195]: "Состояние: Великолепно"
+                  - generic [ref=f6e196]:
+                    - strong [ref=f6e197]: 700 ₽
+                    - generic [ref=f6e198]: / в день
+                - button "Аксессуары (14)" [ref=f6e200] [cursor=pointer]
+                - generic [ref=f6e207]:
+                  - generic [ref=f6e208]:
+                    - paragraph [ref=f6e209]: Свободно
+                    - button "В резерв" [ref=f6e210] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e211] [cursor=pointer]
+            - generic [ref=f6e250]:
+              - img "Фотоаппарат Canon EOS RP Body" [ref=f6e252]
+              - generic [ref=f6e253]:
+                - generic [ref=f6e254]:
+                  - heading [level=3] [ref=f6e255]:
+                    - button "Подробнее о Фотоаппарат Canon EOS RP Body" [ref=f6e256] [cursor=pointer]: Фотоаппарат Canon EOS RP Body
+                  - paragraph [ref=f6e257]: Canon • Фотокамеры
+                  - paragraph [ref=f6e258]: Доступный и компактный полный кадр Canon RF 26.2 Мп с поворотным экраном.
+                  - paragraph [ref=f6e259]: "Состояние: Великолепно"
+                  - generic [ref=f6e260]:
+                    - strong [ref=f6e261]: 1 000 ₽
+                    - generic [ref=f6e262]: / в день
+                - button "Аксессуары (14)" [ref=f6e264] [cursor=pointer]
+                - generic [ref=f6e271]:
+                  - generic [ref=f6e272]:
+                    - paragraph [ref=f6e273]: Свободно
+                    - button "В резерв" [ref=f6e274] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e275] [cursor=pointer]
+            - generic [ref=f6e314]:
+              - img "Фотоаппарат Sony ILCE-6400M Body" [ref=f6e316]
+              - generic [ref=f6e317]:
+                - generic [ref=f6e318]:
+                  - heading [level=3] [ref=f6e319]:
+                    - button "Подробнее о Фотоаппарат Sony ILCE-6400M Body" [ref=f6e320] [cursor=pointer]: Фотоаппарат Sony ILCE-6400M Body
+                  - paragraph [ref=f6e321]: Sony • Фотокамеры
+                  - paragraph [ref=f6e322]: Быстрая камера APS-C 24.2 Мп, автофокус 0.02 сек, откидной селфи-экран 180°.
+                  - paragraph [ref=f6e323]: "Состояние: Великолепно"
+                  - generic [ref=f6e324]:
+                    - strong [ref=f6e325]: 1 000 ₽
+                    - generic [ref=f6e326]: / в день
+                - button "Аксессуары (14)" [ref=f6e328] [cursor=pointer]
+                - generic [ref=f6e335]:
+                  - generic [ref=f6e336]:
+                    - paragraph [ref=f6e337]: Свободно
+                    - button "В резерв" [ref=f6e338] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e339] [cursor=pointer]
+            - generic [ref=f6e378]:
+              - img "Фотокамера Fujifilm X-S10 Body" [ref=f6e380]
+              - generic [ref=f6e381]:
+                - generic [ref=f6e382]:
+                  - heading [level=3] [ref=f6e383]:
+                    - button "Подробнее о Фотокамера Fujifilm X-S10 Body" [ref=f6e384] [cursor=pointer]: Фотокамера Fujifilm X-S10 Body
+                  - paragraph [ref=f6e385]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e386]: Универсальная камера 26 Мп со встроенной стабилизацией IBIS и глубоким хватом.
+                  - paragraph [ref=f6e387]: "Состояние: Великолепно"
+                  - generic [ref=f6e388]:
+                    - strong [ref=f6e389]: 1 000 ₽
+                    - generic [ref=f6e390]: / в день
+                - button "Аксессуары (14)" [ref=f6e392] [cursor=pointer]
+                - generic [ref=f6e399]:
+                  - generic [ref=f6e400]:
+                    - paragraph [ref=f6e401]: Свободно
+                    - button "В резерв" [ref=f6e402] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e403] [cursor=pointer]
+            - generic [ref=f6e442]:
+              - img "Фотокамера Fujifilm X-S10 Body (2)" [ref=f6e444]
+              - generic [ref=f6e445]:
+                - generic [ref=f6e446]:
+                  - heading [level=3] [ref=f6e447]:
+                    - button "Подробнее о Фотокамера Fujifilm X-S10 Body (2)" [ref=f6e448] [cursor=pointer]: Фотокамера Fujifilm X-S10 Body (2)
+                  - paragraph [ref=f6e449]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e450]: Универсальная камера 26 Мп со встроенной стабилизацией IBIS и глубоким хватом.
+                  - paragraph [ref=f6e451]: "Состояние: Великолепно"
+                  - generic [ref=f6e452]:
+                    - strong [ref=f6e453]: 1 000 ₽
+                    - generic [ref=f6e454]: / в день
+                - button "Аксессуары (14)" [ref=f6e456] [cursor=pointer]
+                - generic [ref=f6e463]:
+                  - generic [ref=f6e464]:
+                    - paragraph [ref=f6e465]: Свободно
+                    - button "В резерв" [ref=f6e466] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e467] [cursor=pointer]
+            - generic [ref=f6e506]:
+              - img "Фотокамера Canon EOS R6 Body" [ref=f6e508]
+              - generic [ref=f6e509]:
+                - generic [ref=f6e510]:
+                  - heading [level=3] [ref=f6e511]:
+                    - button "Подробнее о Фотокамера Canon EOS R6 Body" [ref=f6e512] [cursor=pointer]: Фотокамера Canon EOS R6 Body
+                  - paragraph [ref=f6e513]: Canon • Фотокамеры
+                  - paragraph [ref=f6e514]: Репортажный флагман 20 Мп, IBIS до 8 ступеней, 4K 60p, 20 к/с, два слота SD.
+                  - paragraph [ref=f6e515]: "Состояние: Великолепно"
+                  - generic [ref=f6e516]:
+                    - strong [ref=f6e517]: 1 500 ₽
+                    - generic [ref=f6e518]: / в день
+                - button "Аксессуары (14)" [ref=f6e520] [cursor=pointer]
+                - generic [ref=f6e527]:
+                  - generic [ref=f6e528]:
+                    - paragraph [ref=f6e529]: Свободно
+                    - button "В резерв" [ref=f6e530] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e531] [cursor=pointer]
+            - generic [ref=f6e570]:
+              - img "Фотокамера Canon EOS R8 Body" [ref=f6e572]
+              - generic [ref=f6e573]:
+                - generic [ref=f6e574]:
+                  - heading [level=3] [ref=f6e575]:
+                    - button "Подробнее о Фотокамера Canon EOS R8 Body" [ref=f6e576] [cursor=pointer]: Фотокамера Canon EOS R8 Body
+                  - paragraph [ref=f6e577]: Canon • Фотокамеры
+                  - paragraph [ref=f6e578]: Легкий полный кадр 24.2 Мп, съемка 40 кадров/с, 4K 60p без кропа из 6K.
+                  - paragraph [ref=f6e579]: "Состояние: Великолепно"
+                  - generic [ref=f6e580]:
+                    - strong [ref=f6e581]: 2 000 ₽
+                    - generic [ref=f6e582]: / в день
+                - button "Аксессуары (14)" [ref=f6e584] [cursor=pointer]
+                - generic [ref=f6e591]:
+                  - generic [ref=f6e592]:
+                    - paragraph [ref=f6e593]: Свободно
+                    - button "В резерв" [ref=f6e594] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e595] [cursor=pointer]
+            - generic [ref=f6e634]:
+              - img "Фотокамера FujiFilm X-T30S Body" [ref=f6e636]
+              - generic [ref=f6e637]:
+                - generic [ref=f6e638]:
+                  - heading [level=3] [ref=f6e639]:
+                    - button "Подробнее о Фотокамера FujiFilm X-T30S Body" [ref=f6e640] [cursor=pointer]: Фотокамера FujiFilm X-T30S Body
+                  - paragraph [ref=f6e641]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e642]: Компактная беззеркальная камера 26.1 Мп, быстрый фазовый автофокус, 4K видео.
+                  - paragraph [ref=f6e643]: "Состояние: Великолепно"
+                  - generic [ref=f6e644]:
+                    - strong [ref=f6e645]: 500 ₽
+                    - generic [ref=f6e646]: / в день
+                - button "Аксессуары (14)" [ref=f6e648] [cursor=pointer]
+                - generic [ref=f6e655]:
+                  - generic [ref=f6e656]:
+                    - paragraph [ref=f6e657]: Свободно
+                    - button "В резерв" [ref=f6e658] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e659] [cursor=pointer]
+            - generic [ref=f6e698]:
+              - img "Фотокамера FujiFilm X-T4" [ref=f6e700]
+              - generic [ref=f6e701]:
+                - generic [ref=f6e702]:
+                  - heading [level=3] [ref=f6e703]:
+                    - button "Подробнее о Фотокамера FujiFilm X-T4" [ref=f6e704] [cursor=pointer]: Фотокамера FujiFilm X-T4
+                  - paragraph [ref=f6e705]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e706]: APS-C флагман 26 Мп, матричная стабилизация IBIS 6.5 ступеней, 4K 60p 10-bit.
+                  - paragraph [ref=f6e707]: "Состояние: Великолепно"
+                  - generic [ref=f6e708]:
+                    - strong [ref=f6e709]: 1 000 ₽
+                    - generic [ref=f6e710]: / в день
+                - button "Аксессуары (14)" [ref=f6e712] [cursor=pointer]
+                - generic [ref=f6e719]:
+                  - generic [ref=f6e720]:
+                    - paragraph [ref=f6e721]: Свободно
+                    - button "В резерв" [ref=f6e722] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e723] [cursor=pointer]
+            - generic [ref=f6e762]:
+              - img "Фотокамера Sony Alpha ILCE-7CL Body" [ref=f6e764]
+              - generic [ref=f6e765]:
+                - generic [ref=f6e766]:
+                  - heading [level=3] [ref=f6e767]:
+                    - button "Подробнее о Фотокамера Sony Alpha ILCE-7CL Body" [ref=f6e768] [cursor=pointer]: Фотокамера Sony Alpha ILCE-7CL Body
+                  - paragraph [ref=f6e769]: Sony • Фотокамеры
+                  - paragraph [ref=f6e770]: Ультракомпактный Full-Frame 24 Мп с поворотным экраном и продвинутым автофокусом.
+                  - paragraph [ref=f6e771]: "Состояние: Великолепно"
+                  - generic [ref=f6e772]:
+                    - strong [ref=f6e773]: 1 500 ₽
+                    - generic [ref=f6e774]: / в день
+                - button "Аксессуары (14)" [ref=f6e776] [cursor=pointer]
+                - generic [ref=f6e783]:
+                  - generic [ref=f6e784]:
+                    - paragraph [ref=f6e785]: Свободно
+                    - button "В резерв" [ref=f6e786] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e787] [cursor=pointer]
+            - generic [ref=f6e826]:
+              - img "Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный" [ref=f6e828]
+              - generic [ref=f6e829]:
+                - generic [ref=f6e830]:
+                  - heading [level=3] [ref=f6e831]:
+                    - button "Подробнее о Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный" [ref=f6e832] [cursor=pointer]: Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный
+                  - paragraph [ref=f6e833]: Sony • Фотокамеры
+                  - paragraph [ref=f6e834]: Культовый полный кадр 24.2 Мп, 5-осевая стабилизация, широкий динамический диапазон.
+                  - paragraph [ref=f6e835]: "Состояние: Великолепно"
+                  - generic [ref=f6e836]:
+                    - strong [ref=f6e837]: 1 000 ₽
+                    - generic [ref=f6e838]: / в день
+                - button "Аксессуары (14)" [ref=f6e840] [cursor=pointer]
+                - generic [ref=f6e847]:
+                  - generic [ref=f6e848]:
+                    - paragraph [ref=f6e849]: Свободно
+                    - button "В резерв" [ref=f6e850] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e851] [cursor=pointer]
+  - region "Notifications alt+T"

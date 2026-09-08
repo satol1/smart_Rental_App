@@ -1,0 +1,376 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - link "Перейти к содержимому" [ref=f5e4] [cursor=pointer]:
+        - /url: "#main-content"
+      - banner [ref=f5e5]:
+        - generic [ref=f5e6]:
+          - link "Сбросить фильтры" [ref=f5e7] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f5e8]: Цифровой
+          - generic [ref=f5e18]:
+            - button "Войти" [ref=f5e19] [cursor=pointer]
+            - button "Открыть меню" [ref=f5e20] [cursor=pointer]
+      - main [ref=f5e21]:
+        - generic [ref=f5e24]:
+          - generic [ref=f5e25]:
+            - heading "Всё для следующей съёмки." [level=1] [ref=f5e26]
+            - paragraph [ref=f5e27]: Камеры, оптика, свет и звук. Выберите даты и соберите технику под свою задачу.
+          - region [ref=f5e29]:
+            - generic [ref=f5e30]:
+              - heading "Даты аренды" [level=2] [ref=f5e31]
+              - button "Изменить даты" [ref=f5e34] [cursor=pointer]
+            - generic [ref=f5e36]:
+              - button "Изменить даты" [ref=f5e37] [cursor=pointer]:
+                - generic [ref=f5e38]:
+                  - generic [ref=f5e39]: Начало аренды
+                  - time [ref=f5e40]: 9 сент.
+                  - generic [ref=f5e41]: среда, 2026
+                - generic [ref=f5e44]:
+                  - generic [ref=f5e45]: Окончание аренды
+                  - time [ref=f5e46]: 10 сент.
+                  - generic [ref=f5e47]: четверг, 2026
+              - generic [ref=f5e48]:
+                - paragraph [ref=f5e49]: 1 день аренды
+                - paragraph [ref=f5e50]: Выберите даты — покажем доступную технику и стоимость.
+          - button "Промокод и скидка за срок аренды" [ref=f5e51] [cursor=pointer]
+          - region [ref=f5e59]:
+            - generic [ref=f5e60]:
+              - generic [ref=f5e61]:
+                - heading "Каталог техники" [level=2] [ref=f5e62]
+                - status [ref=f5e63]: "Позиций: 212"
+              - group "Переключатель вида карточек" [ref=f5e64]:
+                - radio "Стандартный вид" [checked] [ref=f5e65] [cursor=pointer]
+                - radio "Компактный вид" [ref=f5e66] [cursor=pointer]
+            - generic [ref=f5e67]:
+              - generic [ref=f5e68]:
+                - searchbox "Поиск техники" [ref=f5e70]
+                - generic [ref=f5e71]:
+                  - generic [ref=f5e72]:
+                    - checkbox "Только доступное" [ref=f5e73] [cursor=pointer]
+                    - generic [ref=f5e74] [cursor=pointer]: Только доступное
+                  - generic [ref=f5e75]:
+                    - checkbox "Объединять одинаковые" [checked] [ref=f5e76] [cursor=pointer]
+                    - generic [ref=f5e77] [cursor=pointer]: Объединять одинаковые
+              - generic [ref=f5e78]:
+                - generic [ref=f5e79]: Категория
+                - group "Категория" [ref=f5e81]:
+                  - button "Вся техника" [pressed] [ref=f5e82] [cursor=pointer]
+                  - button "Фотокамеры" [ref=f5e83] [cursor=pointer]
+                  - button "Объективы" [ref=f5e84] [cursor=pointer]
+                  - button "Видеокамеры и экшн-камеры" [ref=f5e85] [cursor=pointer]
+                  - button "Студийный свет" [ref=f5e86] [cursor=pointer]
+                  - button "Запись звука" [ref=f5e87] [cursor=pointer]
+                  - button "Аккумуляторы и питание" [ref=f5e88] [cursor=pointer]
+                  - button "Видеосендеры" [ref=f5e89] [cursor=pointer]
+                  - button "Вспышки и синхронизаторы" [ref=f5e90] [cursor=pointer]
+                  - button "Карты памяти" [ref=f5e91] [cursor=pointer]
+                  - button "Мобильный свет" [ref=f5e92] [cursor=pointer]
+                  - button "Светоформирующие насадки" [ref=f5e93] [cursor=pointer]
+                  - button "Студийное оборудование и фоны" [ref=f5e94] [cursor=pointer]
+                  - button "Штативы и стабилизаторы" [ref=f5e95] [cursor=pointer]
+              - generic [ref=f5e96]:
+                - generic [ref=f5e97]: Бренд
+                - group "Бренд" [ref=f5e98]:
+                  - button "Все бренды" [pressed] [ref=f5e99] [cursor=pointer]
+                  - button "Aputure / Amaran" [ref=f5e100] [cursor=pointer]
+                  - button "Canon" [ref=f5e101] [cursor=pointer]
+                  - button "DJI" [ref=f5e102] [cursor=pointer]
+                  - button "Fujifilm" [ref=f5e103] [cursor=pointer]
+                  - button "GoPro" [ref=f5e104] [cursor=pointer]
+                  - button "Godox" [ref=f5e105] [cursor=pointer]
+                  - button "Nikon" [ref=f5e106] [cursor=pointer]
+                  - button "Sony" [ref=f5e107] [cursor=pointer]
+                  - button "Звук и аудио" [ref=f5e108] [cursor=pointer]
+                  - button "Штативы и риги" [ref=f5e109] [cursor=pointer]
+              - generic [ref=f5e110]:
+                - generic [ref=f5e111]: Подборка
+                - group "Подборка" [ref=f5e112]:
+                  - button "Все подборки" [pressed] [ref=f5e113] [cursor=pointer]
+                  - button "Для новичка (Быстрый старт)" [ref=f5e114] [cursor=pointer]
+                  - button "Для профессионала (Pro Photo)" [ref=f5e115] [cursor=pointer]
+                  - button "Для съемки видео и клипов" [ref=f5e116] [cursor=pointer]
+                  - button "Для путешествий и влогов" [ref=f5e117] [cursor=pointer]
+                  - button "Для портретной съемки" [ref=f5e118] [cursor=pointer]
+                  - button "Для подкастов и стримов" [ref=f5e119] [cursor=pointer]
+                  - button "Студийный свет и спецэффекты" [ref=f5e120] [cursor=pointer]
+            - region [ref=f5e121]:
+              - generic [ref=f5e122]:
+                - generic [ref=f5e123]:
+                  - heading "Под вашу съёмку" [level=2] [ref=f5e124]
+                  - paragraph [ref=f5e125]: Подборки техники для разных задач — от первого кадра до большой съёмки.
+                - generic [ref=f5e126]:
+                  - button "Предыдущие подборки" [disabled]
+                  - button "Следующие подборки" [ref=f5e127] [cursor=pointer]
+              - generic [ref=f5e128]:
+                - 'button "Для новичка (Быстрый старт) В подборке: 8 Смотреть подборку" [ref=f5e129] [cursor=pointer]':
+                  - generic [ref=f5e130]:
+                    - heading "Для новичка (Быстрый старт)" [level=3] [ref=f5e131]
+                    - generic [ref=f5e132]: "В подборке: 8"
+                  - generic [ref=f5e134]: Смотреть подборку
+                - 'button "Для профессионала (Pro Photo) В подборке: 16 Смотреть подборку" [ref=f5e138] [cursor=pointer]':
+                  - generic [ref=f5e139]:
+                    - heading "Для профессионала (Pro Photo)" [level=3] [ref=f5e140]
+                    - generic [ref=f5e141]: "В подборке: 16"
+                  - generic [ref=f5e143]: Смотреть подборку
+                - 'button "Для съемки видео и клипов В подборке: 17 Смотреть подборку" [ref=f5e147] [cursor=pointer]':
+                  - generic [ref=f5e148]:
+                    - heading "Для съемки видео и клипов" [level=3] [ref=f5e149]
+                    - generic [ref=f5e150]: "В подборке: 17"
+                  - generic [ref=f5e152]: Смотреть подборку
+                - 'button "Для путешествий и влогов В подборке: 13 Смотреть подборку" [ref=f5e156] [cursor=pointer]':
+                  - generic [ref=f5e157]:
+                    - heading "Для путешествий и влогов" [level=3] [ref=f5e158]
+                    - generic [ref=f5e159]: "В подборке: 13"
+                  - generic [ref=f5e161]: Смотреть подборку
+                - 'button "Для портретной съемки В подборке: 17 Смотреть подборку" [ref=f5e165] [cursor=pointer]':
+                  - generic [ref=f5e166]:
+                    - heading "Для портретной съемки" [level=3] [ref=f5e167]
+                    - generic [ref=f5e168]: "В подборке: 17"
+                  - generic [ref=f5e170]: Смотреть подборку
+                - 'button "Для подкастов и стримов В подборке: 12 Смотреть подборку" [ref=f5e174] [cursor=pointer]':
+                  - generic [ref=f5e175]:
+                    - heading "Для подкастов и стримов" [level=3] [ref=f5e176]
+                    - generic [ref=f5e177]: "В подборке: 12"
+                  - generic [ref=f5e179]: Смотреть подборку
+                - 'button "Студийный свет и спецэффекты В подборке: 14 Смотреть подборку" [ref=f5e183] [cursor=pointer]':
+                  - generic [ref=f5e184]:
+                    - heading "Студийный свет и спецэффекты" [level=3] [ref=f5e185]
+                    - generic [ref=f5e186]: "В подборке: 14"
+                  - generic [ref=f5e188]: Смотреть подборку
+            - generic [ref=f5e192]:
+              - generic [ref=f5e194]:
+                - img "Canon EF 16-35mm f/2.8L II USM" [ref=f5e200]
+                - generic [ref=f5e201]:
+                  - generic [ref=f5e202]:
+                    - heading [level=3] [ref=f5e203]:
+                      - button "Подробнее о Canon EF 16-35mm f/2.8L II USM" [ref=f5e204] [cursor=pointer]: Canon EF 16-35mm f/2.8L II USM
+                    - paragraph [ref=f5e205]: Canon • Объективы
+                    - paragraph [ref=f5e206]: Широкоугольный зум f/2.8 для пейзажей, интерьеров, архитектуры и динамичных планов.
+                    - paragraph [ref=f5e207]: "Состояние: Великолепно"
+                    - generic [ref=f5e208]:
+                      - strong [ref=f5e209]: 1 000 ₽
+                      - generic [ref=f5e210]: / в день
+                  - button "Аксессуары (6)" [ref=f5e212] [cursor=pointer]
+                  - generic [ref=f5e219]:
+                    - generic [ref=f5e220]:
+                      - paragraph [ref=f5e221]: Свободно
+                      - button "В резерве" [active] [pressed] [ref=f5e222] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e223] [cursor=pointer]
+              - generic [ref=f5e262]:
+                - img "Canon EF 16-35mm f/2.8L III USM" [ref=f5e264]
+                - generic [ref=f5e265]:
+                  - generic [ref=f5e266]:
+                    - heading [level=3] [ref=f5e267]:
+                      - button "Подробнее о Canon EF 16-35mm f/2.8L III USM" [ref=f5e268] [cursor=pointer]: Canon EF 16-35mm f/2.8L III USM
+                    - paragraph [ref=f5e269]: Canon • Объективы
+                    - paragraph [ref=f5e270]: Широкоугольный зум f/2.8 для пейзажей, интерьеров, архитектуры и динамичных планов.
+                    - paragraph [ref=f5e271]: "Состояние: Великолепно"
+                    - generic [ref=f5e272]:
+                      - strong [ref=f5e273]: 1 500 ₽
+                      - generic [ref=f5e274]: / в день
+                  - button "Аксессуары (6)" [ref=f5e276] [cursor=pointer]
+                  - generic [ref=f5e283]:
+                    - generic [ref=f5e284]:
+                      - paragraph [ref=f5e285]: Свободно
+                      - button "В резерв" [ref=f5e286] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e287] [cursor=pointer]
+              - generic [ref=f5e326]:
+                - img "Cветодиодный осветитель Zhiyun FIVERAY M40 белый" [ref=f5e328]
+                - generic [ref=f5e329]:
+                  - generic [ref=f5e330]:
+                    - heading [level=3] [ref=f5e331]:
+                      - button "Подробнее о Cветодиодный осветитель Zhiyun FIVERAY M40 белый" [ref=f5e332] [cursor=pointer]: Cветодиодный осветитель Zhiyun FIVERAY M40 белый
+                    - paragraph [ref=f5e333]: Zhiyun • Мобильный свет
+                    - paragraph [ref=f5e334]: Сверхкомпактный накамерный свет высокой мощности для мобильного продакшна.
+                    - paragraph [ref=f5e335]: "Состояние: Великолепно"
+                    - generic [ref=f5e336]:
+                      - strong [ref=f5e337]: 700 ₽
+                      - generic [ref=f5e338]: / в день
+                  - button "Аксессуары (3)" [ref=f5e340] [cursor=pointer]
+                  - generic [ref=f5e347]:
+                    - generic [ref=f5e348]:
+                      - paragraph [ref=f5e349]: Свободно
+                      - button "В резерв" [ref=f5e350] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e351] [cursor=pointer]
+              - generic [ref=f5e390]:
+                - img "Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт" [ref=f5e392]
+                - generic [ref=f5e393]:
+                  - generic [ref=f5e394]:
+                    - heading [level=3] [ref=f5e395]:
+                      - button "Подробнее о Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт" [ref=f5e396] [cursor=pointer]: Cветодиодный осветитель Amaran Ace 25C Kit RGB 32 Вт
+                    - paragraph [ref=f5e397]: Amaran • Мобильный свет
+                    - paragraph [ref=f5e398]: Цветной RGB-осветитель с регулировкой оттенка, насыщенности и спецэффектами.
+                    - paragraph [ref=f5e399]: "Состояние: Великолепно"
+                    - generic [ref=f5e400]:
+                      - strong [ref=f5e401]: 1 000 ₽
+                      - generic [ref=f5e402]: / в день
+                  - button "Аксессуары (3)" [ref=f5e404] [cursor=pointer]
+                  - generic [ref=f5e411]:
+                    - generic [ref=f5e412]:
+                      - paragraph [ref=f5e413]: Свободно
+                      - button "В резерв" [ref=f5e414] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e415] [cursor=pointer]
+              - generic [ref=f5e454]:
+                - img "Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт" [ref=f5e456]
+                - generic [ref=f5e457]:
+                  - generic [ref=f5e458]:
+                    - heading [level=3] [ref=f5e459]:
+                      - button "Подробнее о Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт" [ref=f5e460] [cursor=pointer]: Cветодиодный осветитель Amaran Ace 25x Kit Белый (2700K – 6500K) 32 Вт
+                    - paragraph [ref=f5e461]: Amaran • Мобильный свет
+                    - paragraph [ref=f5e462]: Сверхкомпактный накамерный свет высокой мощности для мобильного продакшна.
+                    - paragraph [ref=f5e463]: "Состояние: Великолепно"
+                    - generic [ref=f5e464]:
+                      - strong [ref=f5e465]: 700 ₽
+                      - generic [ref=f5e466]: / в день
+                  - button "Аксессуары (3)" [ref=f5e468] [cursor=pointer]
+                  - generic [ref=f5e475]:
+                    - generic [ref=f5e476]:
+                      - paragraph [ref=f5e477]: Свободно
+                      - button "В резерв" [ref=f5e478] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e479] [cursor=pointer]
+              - generic [ref=f5e518]:
+                - img "Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens" [ref=f5e520]
+                - generic [ref=f5e521]:
+                  - generic [ref=f5e522]:
+                    - heading [level=3] [ref=f5e523]:
+                      - button "Подробнее о Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens" [ref=f5e524] [cursor=pointer]: Cветодиодный осветитель Amaran Halo 100x 2700 - 6500K, 84Вт, Bowens
+                    - paragraph [ref=f5e525]: Amaran • Студийный свет
+                    - paragraph [ref=f5e526]: Осветительный прибор Amaran с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e527]: "Состояние: Великолепно"
+                    - generic [ref=f5e528]:
+                      - strong [ref=f5e529]: 1 500 ₽
+                      - generic [ref=f5e530]: / в день
+                  - button "Аксессуары (3)" [ref=f5e532] [cursor=pointer]
+                  - generic [ref=f5e539]:
+                    - generic [ref=f5e540]:
+                      - paragraph [ref=f5e541]: Свободно
+                      - button "В резерв" [ref=f5e542] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e543] [cursor=pointer]
+              - generic [ref=f5e582]:
+                - img "Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens" [ref=f5e584]
+                - generic [ref=f5e585]:
+                  - generic [ref=f5e586]:
+                    - heading [level=3] [ref=f5e587]:
+                      - button "Подробнее о Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens" [ref=f5e588] [cursor=pointer]: Cветодиодный осветитель Amaran Halo 600x 2700 - 6500K, 545Вт, Bowens
+                    - paragraph [ref=f5e589]: Amaran • Студийный свет
+                    - paragraph [ref=f5e590]: Мощный светодиодный моноблок с байонетом Bowens для студии и локаций.
+                    - paragraph [ref=f5e591]: "Состояние: Великолепно"
+                    - generic [ref=f5e592]:
+                      - strong [ref=f5e593]: 3 500 ₽
+                      - generic [ref=f5e594]: / в день
+                  - button "Аксессуары (3)" [ref=f5e596] [cursor=pointer]
+                  - generic [ref=f5e603]:
+                    - generic [ref=f5e604]:
+                      - paragraph [ref=f5e605]: Свободно
+                      - button "В резерв" [ref=f5e606] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e607] [cursor=pointer]
+              - generic [ref=f5e646]:
+                - img "Cветодиодный осветитель Aputure Amaran TRI-8S (1)" [ref=f5e648]
+                - generic [ref=f5e649]:
+                  - generic [ref=f5e650]:
+                    - heading [level=3] [ref=f5e651]:
+                      - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (1)" [ref=f5e652] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (1)
+                    - paragraph [ref=f5e653]: Aputure • Студийный свет
+                    - paragraph [ref=f5e654]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e655]: "Состояние: Великолепно"
+                    - generic [ref=f5e656]:
+                      - strong [ref=f5e657]: 500 ₽
+                      - generic [ref=f5e658]: / в день
+                  - button "Аксессуары (3)" [ref=f5e660] [cursor=pointer]
+                  - generic [ref=f5e667]:
+                    - generic [ref=f5e668]:
+                      - paragraph [ref=f5e669]: Свободно
+                      - button "В резерв" [ref=f5e670] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e671] [cursor=pointer]
+              - generic [ref=f5e710]:
+                - img "Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)" [ref=f5e712]
+                - generic [ref=f5e713]:
+                  - generic [ref=f5e714]:
+                    - heading [level=3] [ref=f5e715]:
+                      - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)" [ref=f5e716] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (1) (Переменный!!!!)
+                    - paragraph [ref=f5e717]: Aputure • Студийный свет
+                    - paragraph [ref=f5e718]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e719]: "Состояние: Великолепно"
+                    - generic [ref=f5e720]:
+                      - strong [ref=f5e721]: 500 ₽
+                      - generic [ref=f5e722]: / в день
+                  - button "Аксессуары (3)" [ref=f5e724] [cursor=pointer]
+                  - generic [ref=f5e731]:
+                    - generic [ref=f5e732]:
+                      - paragraph [ref=f5e733]: Свободно
+                      - button "В резерв" [ref=f5e734] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e735] [cursor=pointer]
+              - generic [ref=f5e774]:
+                - img "Cветодиодный осветитель Aputure Amaran TRI-8S (2)" [ref=f5e776]
+                - generic [ref=f5e777]:
+                  - generic [ref=f5e778]:
+                    - heading [level=3] [ref=f5e779]:
+                      - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S (2)" [ref=f5e780] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S (2)
+                    - paragraph [ref=f5e781]: Aputure • Студийный свет
+                    - paragraph [ref=f5e782]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e783]: "Состояние: Великолепно"
+                    - generic [ref=f5e784]:
+                      - strong [ref=f5e785]: 500 ₽
+                      - generic [ref=f5e786]: / в день
+                  - button "Аксессуары (3)" [ref=f5e788] [cursor=pointer]
+                  - generic [ref=f5e795]:
+                    - generic [ref=f5e796]:
+                      - paragraph [ref=f5e797]: Свободно
+                      - button "В резерв" [ref=f5e798] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e799] [cursor=pointer]
+              - generic [ref=f5e838]:
+                - img "Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)" [ref=f5e840]
+                - generic [ref=f5e841]:
+                  - generic [ref=f5e842]:
+                    - heading [level=3] [ref=f5e843]:
+                      - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)" [ref=f5e844] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (1)
+                    - paragraph [ref=f5e845]: Aputure • Студийный свет
+                    - paragraph [ref=f5e846]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e847]: "Состояние: Великолепно"
+                    - generic [ref=f5e848]:
+                      - strong [ref=f5e849]: 700 ₽
+                      - generic [ref=f5e850]: / в день
+                  - button "Аксессуары (3)" [ref=f5e852] [cursor=pointer]
+                  - generic [ref=f5e859]:
+                    - generic [ref=f5e860]:
+                      - paragraph [ref=f5e861]: Свободно
+                      - button "В резерв" [ref=f5e862] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e863] [cursor=pointer]
+              - generic [ref=f5e902]:
+                - img "Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)" [ref=f5e904]
+                - generic [ref=f5e905]:
+                  - generic [ref=f5e906]:
+                    - heading [level=3] [ref=f5e907]:
+                      - button "Подробнее о Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)" [ref=f5e908] [cursor=pointer]: Cветодиодный осветитель Aputure Amaran TRI-8S -/NEW/- (2)
+                    - paragraph [ref=f5e909]: Aputure • Студийный свет
+                    - paragraph [ref=f5e910]: Осветительный прибор Aputure с точной цветопередачей CRI/TLCI 96+.
+                    - paragraph [ref=f5e911]: "Состояние: Великолепно"
+                    - generic [ref=f5e912]:
+                      - strong [ref=f5e913]: 700 ₽
+                      - generic [ref=f5e914]: / в день
+                  - button "Аксессуары (3)" [ref=f5e916] [cursor=pointer]
+                  - generic [ref=f5e923]:
+                    - generic [ref=f5e924]:
+                      - paragraph [ref=f5e925]: Свободно
+                      - button "В резерв" [ref=f5e926] [cursor=pointer]
+                    - button "Календарь доступности" [ref=f5e927] [cursor=pointer]
+    - region "Notifications alt+T"
+  - complementary "Ваш выбор" [ref=f5e966]:
+    - generic [ref=f5e967]:
+      - generic [ref=f5e969]:
+        - paragraph [ref=f5e970]: 1 позиция
+        - paragraph [ref=f5e971]: 9 сент. — 10 сент.
+      - generic [ref=f5e972]:
+        - button "Сбросить выбор" [ref=f5e973] [cursor=pointer]
+        - button "Оформить резерв" [ref=f5e974] [cursor=pointer]
+  - region "Выбор дат аренды" [ref=f5e975]:
+    - generic [ref=f5e976]:
+      - button "Вернуться к календарю" [ref=f5e977] [cursor=pointer]
+      - generic [ref=f5e979]:
+        - generic [ref=f5e980]:
+          - generic [ref=f5e981]: Начало аренды
+          - textbox "Начало аренды" [ref=f5e982]: 2026-09-09
+        - generic [ref=f5e983]:
+          - generic [ref=f5e984]: Окончание аренды
+          - textbox "Окончание аренды" [ref=f5e985]: 2026-09-10

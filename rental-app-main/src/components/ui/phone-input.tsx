@@ -98,7 +98,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                 value={maskedValue || ''}
                 onChange={handleChange}
                 className={cn(
-                    error && "border-red-500 focus-visible:ring-red-500",
+                    error && "border-destructive focus-visible:ring-destructive/20",
                     className
                 )}
             />

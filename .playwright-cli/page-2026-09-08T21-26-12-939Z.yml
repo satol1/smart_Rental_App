@@ -1,0 +1,13 @@
+- generic [ref=f3e3]:
+  - generic [ref=f3e4]: "[plugin:vite:css] [postcss] F:/S_Project_Docker/rental-app-main/src/styles/catalog.css:1:1: `@layer components` is used but no matching `@tailwind components` directive is present."
+  - generic [ref=f3e5]: F:/S_Project_Docker/rental-app-main/src/styles/catalog.css:1:0
+  - generic [ref=f3e6]: "1 | @layer components { | ^ 2 | .rental-home { @apply min-h-screen bg-background; } 3 | .rental-container { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }"
+  - generic [ref=f3e7]: at Input.error (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\input.js:135:16) at AtRule.error (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\node.js:146:32) at normalizeTailwindDirectives (F:\S_Project_Docker\rental-app-main\node_modules\tailwindcss\lib\lib\normalizeTailwindDirectives.js:72:32) at F:\S_Project_Docker\rental-app-main\node_modules\tailwindcss\lib\processTailwindFeatures.js:29:98 at plugins (F:\S_Project_Docker\rental-app-main\node_modules\tailwindcss\lib\plugin.js:38:69) at LazyResult.runOnRoot (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\lazy-result.js:361:16) at LazyResult.runAsync (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\lazy-result.js:290:26) at LazyResult.async (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\lazy-result.js:192:30) at LazyResult.then (F:\S_Project_Docker\rental-app-main\node_modules\postcss\lib\lazy-result.js:436:17
+  - generic [ref=f3e8]:
+    - text: Click outside, press Esc key, or fix the code to dismiss.You can also disable this overlay by setting
+    - code [ref=f3e9]: server.hmr.overlay
+    - text: to
+    - code [ref=f3e10]: "false"
+    - text: in
+    - code [ref=f3e11]: vite.config.ts
+    - text: .

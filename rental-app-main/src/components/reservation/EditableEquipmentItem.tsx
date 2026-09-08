@@ -31,7 +31,7 @@ export default function EditableEquipmentItem({
                                               }: Props) {
 
     if (!fullEquipmentItem) {
-        return <div className="p-3 bg-gray-100 rounded-md text-sm text-red-600">Ошибка: данные оборудования не найдены.</div>;
+        return <div className="p-3 bg-muted rounded-md text-sm text-destructive">Ошибка: данные оборудования не найдены.</div>;
     }
 
     // Разделяем аксессуары на уже выбранные и доступные для выбора
@@ -45,7 +45,7 @@ export default function EditableEquipmentItem({
 
 
     return (
-        <div className="bg-white p-3 rounded-md border">
+        <div className="bg-card p-3 rounded-md border">
             {/* Блок с основной информацией об оборудовании (без изменений) */}
             <EquipmentItemWithConflicts
                 item={itemDetail}
@@ -60,15 +60,15 @@ export default function EditableEquipmentItem({
             {/* Блок для уже добавленных аксессуаров */}
             {selectedAccessoryDetails.length > 0 && (
                 <div className="pl-8 pr-2 pt-2 border-t mt-2">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Добавленные аксессуары:</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Добавленные аксессуары:</p>
                     <ul className="space-y-1">
                         {selectedAccessoryDetails.map(acc => (
-                            <li key={acc.id} className="flex justify-between items-center text-xs text-gray-800 hover:bg-slate-50 p-1 rounded">
+                            <li key={acc.id} className="flex justify-between items-center text-xs text-foreground hover:bg-muted p-1 rounded">
                                 <span>- {acc.name} <strong>({acc.price} ₽)</strong></span>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-5 w-5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                    className="h-9 w-9 text-muted-foreground hover:bg-danger-soft hover:text-destructive"
                                     onClick={() => onToggleAccessory(fullEquipmentItem.id, acc.id)}
                                     disabled={disabled}
                                     title="Убрать аксессуар"

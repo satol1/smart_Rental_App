@@ -10,14 +10,12 @@ import CalendarEventDetailsModal, { type CalendarEventDetails } from "@/componen
 import { useCalendarNavigation } from "@/hooks/useCalendarNavigation";
 import { useCalendarEventDetails } from "@/hooks/useCalendarEventDetails";
 import { useCurrentUser } from "@/hooks/useProfile";
-import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { CalendarLegend } from "@/components/calendar/CalendarLegend";
+import { useTranslation } from "react-i18next";
 
 export default function CalendarPage() {
+    const { t } = useTranslation();
     const { setRange } = useDateStore();
-    const navigate = useNavigate();
     const { data: currentUser } = useCurrentUser();
 
     const { data: allEquipment = [], isLoading: isLoadingEquipment } = useAllEquipment();
@@ -86,14 +84,11 @@ export default function CalendarPage() {
     }, [setRange]);
 
     return (
-        // ✅ 2. Оборачиваем всю страницу в div с onClick для сброса выделения
-        <div className="p-4 space-y-4" onClick={() => setSelectedGroupId(null)}>
-            <div className="flex justify-between items-center mb-4">
-                <Button variant="outline" onClick={() => navigate("/")} className="flex items-center gap-2"><Home className="w-4 h-4" />На главную</Button>
+        <div className="rental-container min-w-0 pb-12" onClick={() => setSelectedGroupId(null)}>
+            <div className="flex flex-col gap-4 pb-7 pt-9 sm:pt-12">
+                <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">{t('shell.calendarPageTitle')}</h1>
+                <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{t('shell.calendarIntro')}</p>
             </div>
-            
-            {/* ✅ 2. Возвращаем компонент легенды на свое место */}
-            <CalendarLegend />
 
             <CalendarFiltersBlock
                 availableTypes={availableTypes} availableBrands={availableBrands} typeFilter={typeFilter}
@@ -101,7 +96,8 @@ export default function CalendarPage() {
                 searchText={searchText} setSearchText={setSearchText} onReset={() => { resetFilters(); setSelectedGroupId(null); }}
             />
 
-            {/* ✅ Компонент CalendarTable теперь чист и понятен */}
+            <CalendarLegend />
+
             <CalendarTable
                 equipment={filteredEquipment}
                 equipmentIds={filteredIds}

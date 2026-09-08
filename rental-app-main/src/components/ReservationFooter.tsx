@@ -1,81 +1,64 @@
-// src/components/ReservationFooter.tsx
-
-import { Button } from "@/components/ui/button";
-import { ArrowRight, X } from "lucide-react";
+﻿import { useTranslation } from 'react-i18next';
+import { ArrowRight, X, ShoppingBag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { transitionBase } from '@/lib/motion';
 
 interface ReservationFooterProps {
-    selectedCount: number;
-    onClick: () => void;
-    // ✅ Добавляем новое свойство для сброса
-    onReset: () => void;
-    isEditingMode: boolean;
-    intent?: string;
-    // ✅ Добавляем даты бронирования
-    startDate?: Date;
-    endDate?: Date;
+  selectedCount: number;
+  onClick: () => void;
+  onReset: () => void;
+  isEditingMode: boolean;
+  intent?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export default function ReservationFooter({ selectedCount, onClick, onReset, isEditingMode, intent, startDate, endDate }: ReservationFooterProps) {
-    if (selectedCount === 0) {
-        return null;
-    }
+  const { t } = useTranslation();
+  const reducedMotion = useReducedMotion();
 
-    const buttonText = isEditingMode && intent !== "add_to_new_reservation"
-        ? `✔️ Добавить к резерву (${selectedCount})`
-        : `📥 Оформить (${selectedCount})`;
+  const buttonText = isEditingMode && intent !== 'add_to_new_reservation'
+    ? t('shell.addToReservation') : t('shell.checkout');
+  const formatDateForDisplay = (date: Date): string => new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(date);
+  const dateRangeText = startDate && endDate
+    ? t('shell.dateSpan', { from: formatDateForDisplay(startDate), to: formatDateForDisplay(endDate) }) : '';
 
-    // ✅ Форматирование дат для отображения
-    const formatDateForDisplay = (date: Date): string => {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${day}.${month}`;
-    };
-
-    const dateRangeText = startDate && endDate 
-        ? `с ${formatDateForDisplay(startDate)} по ${formatDateForDisplay(endDate)}`
-        : '';
-
-    return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/90 backdrop-blur-sm border-t border-border shadow-[0_-4px_15px_rgba(0,0,0,0.08)]">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-                
-                {/* Блок с текстовой информацией (остается слева) */}
-                <div className="text-sm text-foreground">
-                    <div className="flex flex-col items-start">
-                        <div>
-                            <span className="font-semibold">Выбрано для резерва:</span>
-                            <span className="ml-2 font-bold text-lg">{selectedCount} поз.</span>
-                        </div>
-                        {dateRangeText && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                                {dateRangeText}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Блок с кнопками (теперь обе кнопки здесь) */}
-                <div className="flex flex-col sm:flex-row gap-2 items-stretch">
-                    <Button
-                        onClick={onReset}
-                        variant="destructive"
-                        size="lg"
-                        className="flex items-center gap-2 order-last sm:order-first"
-                    >
-                        <X className="h-5 w-5" />
-                        Сбросить выбор
-                    </Button>
-                    <Button
-                        onClick={onClick}
-                        size="lg"
-                        className="bg-green-600 hover:bg-green-700 text-white shadow-lg flex items-center gap-2"
-                    >
-                        {buttonText}
-                        <ArrowRight className="h-5 w-5" />
-                    </Button>
-                </div>
-
-            </div>
+  return createPortal(
+    <AnimatePresence>
+    {selectedCount > 0 && <motion.aside
+      key="reservation-footer"
+      initial={{ y: reducedMotion ? 0 : 8, opacity: reducedMotion ? 1 : 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: reducedMotion ? 0 : 8, opacity: 0 }}
+      transition={reducedMotion ? { duration: 0 } : transitionBase}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/25 bg-card px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8"
+      aria-label={t('shell.selection')}
+    >
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="hidden h-11 w-11 items-center justify-center rounded-xl bg-pastel-sky sm:flex">
+            <ShoppingBag className="h-5 w-5 text-pastel-sky-fg" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-primary" aria-live="polite">{t('shell.selectedItems', { count: selectedCount })}</p>
+            {dateRangeText && <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{dateRangeText}</p>}
+          </div>
         </div>
-    );
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button onClick={onReset} variant="ghost" size="icon" className="shrink-0 sm:w-auto sm:px-3" aria-label={t('shell.resetSelection')}>
+            <X className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{t('shell.resetSelection')}</span>
+          </Button>
+          <Button onClick={onClick} className="gap-2 px-3 sm:px-5">
+            {buttonText}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+    </motion.aside>}
+    </AnimatePresence>,
+    document.body,
+  );
 }

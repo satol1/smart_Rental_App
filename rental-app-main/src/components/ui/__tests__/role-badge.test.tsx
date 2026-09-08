@@ -24,12 +24,12 @@ describe('RoleBadge', () => {
 
     it('админ использует destructive-токен', () => {
         const { container } = render(<RoleBadge role={USER_ROLES.ADMIN} />);
-        expect(container.firstChild).toHaveClass('bg-destructive/10');
+        expect(container.firstChild).toHaveClass('bg-secondary');
     });
 
     it('менеджер использует primary-токен', () => {
         const { container } = render(<RoleBadge role={USER_ROLES.MANAGER} />);
-        expect(container.firstChild).toHaveClass('bg-primary/10');
+        expect(container.firstChild).toHaveClass('bg-secondary');
     });
 
     it('неизвестная роль рендерит нейтральный бейдж с исходной строкой', () => {

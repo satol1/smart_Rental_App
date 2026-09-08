@@ -1,5 +1,7 @@
 // path: rental-app-main/src/components/PromoCodeInput.tsx
 
+import { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,6 +29,8 @@ export default function PromoCodeInput({
    isLoading = false,
    requirementMessage,
 }: PromoCodeInputProps) {
+    const id = useId();
+    const { t } = useTranslation();
 
     const handleApply = () => {
         if (!promoCode || !promoCode.trim()) {
@@ -50,47 +54,49 @@ export default function PromoCodeInput({
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-center">
-                <Label htmlFor="promo-code" className="text-base md:text-lg font-semibold text-purple-600">Промокод</Label>
+                <Label htmlFor={id} className="text-sm font-medium text-foreground">{t('ordersDesign.promoCode')}</Label>
                 {promoCode && removePromoCode && (
-                    <button onClick={removePromoCode} className="text-[11px] text-gray-500 hover:text-red-600 hover:underline">Сбросить</button>
+                    <Button type="button" variant="ghost" size="sm" onClick={removePromoCode} className="text-xs text-muted-foreground hover:text-destructive">{t('ordersDesign.resetPromo')}</Button>
                 )}
             </div>
             <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
-                    <TicketPercent className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <div className="relative min-w-0 flex-grow">
+                    <TicketPercent className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                     <Input
-                        id="promo-code"
+                        id={id}
+                        aria-describedby={isApplied || isDisabledByRequirement ? id + '-message' : undefined}
                         type="text"
                         placeholder="SALE15"
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={disabled || isLoading || isSuccess || isDisabledByRequirement}
-                        className="pl-8"
+                        className="pl-9 pr-8"
                     />
                     {isSuccess && promoCode && (
-                        <CheckCircle className="absolute right-2.5 top-2.5 h-4 w-4 text-green-500" />
+                        <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success" aria-hidden="true" />
                     )}
                 </div>
                 <Button
                     type="button"
                     variant="outline"
                     onClick={handleApply}
+                    aria-label={t('ordersDesign.applyPromo')}
                     disabled={disabled || isLoading || isSuccess || isDisabledByRequirement}
                 >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : t('ordersDesign.applyPromo')}
                 </Button>
             </div>
 
             {isDisabledByRequirement && (
-                <div className="flex items-center gap-1.5 text-xs mt-1.5 text-orange-600">
+                <div id={id + '-message'} className="flex items-center gap-1.5 text-xs mt-1.5 text-warning">
                     <XCircle className="h-3.5 w-3.5" />
                     <span>{requirementMessage}</span>
                 </div>
             )}
 
             {!isDisabledByRequirement && isApplied && promoCode && (
-                <div className={`flex items-center gap-2 text-xs mt-1.5 ${isSuccess ? "text-green-600" : "text-red-600"}`}>
+                <div id={id + '-message'} role="status" className={`flex items-center gap-2 text-xs mt-1.5 ${isSuccess ? "text-success" : "text-destructive"}`}>
                     {!isSuccess && <XCircle className="h-3.5 w-3.5" />}
                     <span>{promoCodeMessage}</span>
                 </div>

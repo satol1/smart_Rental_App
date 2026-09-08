@@ -22,7 +22,6 @@ import type { Reservation, AccessoryLink } from "@/types/reservation";
 import type { Equipment } from "@/types/equipment";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
-import { STATUS_CONFIG } from "@/constants/statusConstants";
 import { ContactDialog } from "@/components/shared/ContactDialog";
 import { USER_ROLES } from "@/constants/userConstants";
 
@@ -110,7 +109,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
     // Резерв защищен только если пользователь не может ни редактировать, ни отменить
     const isProtected = !canEdit && !canCancel;
     const canBeRepeated = status === 'fulfilled' || status === 'cancelled';
-    const cardColor = STATUS_CONFIG[status]?.badgeClass || "bg-white hover:shadow-md";
+
 
     const getStatusInfo = () => {
         if (isPast) {
@@ -126,19 +125,19 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                 return {
                     showMessage: true,
                     message: "Резерв уже начался",
-                    className: "text-green-600"
+                    className: "text-success"
                 };
             } else if (daysUntilStart <= 3) {
                 return {
                     showMessage: true,
                     message: `До начала резерва: ${daysUntilStart} дн.`,
-                    className: "text-orange-600 font-medium"
+                    className: "text-warning font-medium"
                 };
             } else {
                 return {
                     showMessage: true,
                     message: `До начала резерва: ${daysUntilStart} дн.`,
-                    className: "text-gray-600"
+                    className: "text-muted-foreground"
                 };
             }
         }
@@ -184,23 +183,26 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
 
     return (
         <>
-            <Card className={`w-full px-5 py-4 rounded-2xl border border-border/75 shadow-xs hover:shadow-md transition-all ${cardColor}`}>
+            <Card className={`w-full bg-card px-5 py-5 rounded-2xl border border-border shadow-none`}>
                 <div className="space-y-3.5">
-                    <div className="flex justify-between items-center">
-                        <div className="text-base font-bold text-foreground flex items-center gap-2">
+                    <div className="flex flex-wrap justify-between items-center gap-3">
+                        <div className="text-lg font-semibold text-foreground flex flex-wrap items-center gap-2">
                             <span
-                                className={`${onEdit && status === 'active' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                                className={`${onEdit && status === 'active' ? 'cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:text-primary transition-colors' : ''}`}
+                                role={onEdit && status === 'active' ? "button" : undefined}
+                                tabIndex={onEdit && status === 'active' ? 0 : undefined}
+                                onKeyDown={(event) => { if (onEdit && status === 'active' && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onEdit(); } }}
                                 onClick={onEdit && status === 'active' ? onEdit : undefined}
                             >
                                 Резерв #{id}
                             </span>
                             {/* Бейдж "Новый" при подсветке нового резерва */}
                             {isNewReservation(id) && (
-                                <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pastel-lavender text-pastel-lavender-fg border border-purple-200/50">Новый</span>
+                                <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-info-soft text-info border border-primary/20">Новый</span>
                             )}
                             {/* Grace-период: отменить можно, даже если дата близко */}
                             {inGrace && isActionable && !isAdminOrManager && daysUntilStart !== null && daysUntilStart <= 2 && (
-                                <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-pastel-mint text-pastel-mint-fg border border-emerald-200/50 flex items-center gap-1.5">
+                                <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-success-soft text-success border border-success/20 flex items-center gap-1.5">
                                     <Clock className="w-3.5 h-3.5" />
                                     Бесплатная отмена ещё {graceHoursLeft} ч
                                 </span>
@@ -213,7 +215,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                                     variant="outline"
                                     size="sm"
                                     onClick={handleRentalClick}
-                                    className="text-pastel-amber-fg bg-pastel-amber border-amber-200/60 hover:bg-amber-100/80 rounded-lg text-xs"
+                                    className="text-warning bg-warning-soft border-warning/20 hover:bg-warning-soft/80 rounded-lg text-xs"
                                 >
                                     <ExternalLink className="w-3 h-3 mr-1" />
                                     Аренда #{rental_id}
@@ -222,9 +224,9 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-2.5 border-t border-dashed border-border/70">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-2.5 border-t border-border/70">
                         {start && end ? (
-                            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-xl bg-pastel-sky/50 text-pastel-sky-fg border border-sky-200/60">
+                            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-xl bg-muted/50 text-foreground">
                                 <CalendarRange className="w-4 h-4 text-primary flex-shrink-0" />
                                 <span>{formatDateEuropean(start)} — {formatDateEuropean(end)}</span>
                             </div>
@@ -243,7 +245,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
 
                     {statusInfo.showMessage && status === 'active' && (
                         <div className="flex items-center gap-2 text-sm">
-                            <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.className} bg-pastel-sky/40 border border-sky-200/50`}>
+                            <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.className} bg-info-soft/40 border border-primary/20`}>
                                 {statusInfo.message}
                             </div>
                         </div>
@@ -263,21 +265,21 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                     />
 
                     {canBeRepeated && onRepeat ? (
-                        <div className="flex justify-end pt-2 border-t border-gray-200">
+                        <div className="flex justify-end pt-2 border-t border-border">
                             <Button variant="outline" size="sm" onClick={onRepeat}>
                                 <RotateCcw className="w-4 h-4 mr-1" />
                                 Повторить резерв
                             </Button>
                         </div>
                     ) : (
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2 border-t border-border">
                             {isProtected ? (
                                 <div className="flex flex-col gap-2">
-                                    <p className="text-sm font-medium text-rose-700">
+                                    <p className="text-sm font-medium text-destructive">
                                         Отмена и редактирование только через менеджера
                                     </p>
                                     {restrictionHint && (
-                                        <p className="text-xs text-gray-600 max-w-md">{restrictionHint}</p>
+                                        <p className="text-xs text-muted-foreground max-w-md">{restrictionHint}</p>
                                     )}
                                     <Button
                                         variant="outline"
@@ -288,14 +290,14 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-muted-foreground">
                                     {daysUntilEnd !== null && daysUntilEnd >= 0 && (
                                         <span>До окончания: {daysUntilEnd} дн.</span>
                                     )}
                                 </div>
                             )}
 
-                            <div className="flex gap-2 justify-end w-full sm:w-auto">
+                            <div className="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
                                 {isActionable && onEdit && canEdit && (
                                     <Button variant="secondary" size="sm" onClick={onEdit}>
                                         <Edit2 className="w-4 h-4 mr-1" />

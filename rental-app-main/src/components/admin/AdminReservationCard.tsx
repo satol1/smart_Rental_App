@@ -16,7 +16,6 @@ import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAcces
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useNavigate, useLocation } from "react-router-dom";
-import { STATUS_CONFIG } from "@/constants/statusConstants";
 
 interface Props {
     reservation: AdminReservationOut;
@@ -26,11 +25,11 @@ interface Props {
 }
 
 
-const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({ 
-    reservation, 
-    onConvertToRental, 
-    equipmentMap, 
-    highlightClasses = '' 
+const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
+    reservation,
+    onConvertToRental,
+    equipmentMap,
+    highlightClasses = ''
 }, ref) => {
     const [isEditing, setIsEditing] = useState(false);
     const navigate = useNavigate();
@@ -107,46 +106,49 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
         );
     }
 
-    const statusClass = STATUS_CONFIG[reservation.status]?.badgeClass || "bg-white hover:shadow-md";
-    
+
+
     const highlightClass = isSelected
-        ? 'ring-2 ring-sky-500 border-sky-400'
-        : 'border-gray-200';
+        ? 'ring-2 ring-primary/25 border-primary/30'
+        : 'border-border';
 
     return (
-        <div ref={ref} className={`relative w-full rounded-lg border transition-all hover:shadow-md ${highlightClass} ${highlightClasses}`}>
+        <div ref={ref} className={`relative w-full rounded-2xl border border-border bg-card transition-colors  ${highlightClass} ${highlightClasses}`}>
             <div className="absolute top-4 left-4 z-10">
                 <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleId(reservation.id)}
                     aria-label={`Выбрать резерв #${reservation.id}`}
-                    className="bg-white h-5 w-5"
+                    className="bg-card h-5 w-5"
                 />
             </div>
-            <Card className={cn("w-full", statusClass)}>
-                <CardContent className="p-4 pl-12">
-                    <div className="flex flex-col md:flex-row gap-4 justify-between">
-                        <div className="flex-1 space-y-2.5">
-                            <div className="flex items-center gap-4">
-                                <h3 
-                                    className={`font-bold text-lg text-indigo-700 ${reservation.status === 'active' || reservation.status === 'overdue' ? 'cursor-pointer hover:text-indigo-800 hover:underline transition-colors' : ''}`}
+            <Card className={cn("w-full border-0 shadow-none bg-card")}>
+                <CardContent className="p-5 pl-12 sm:pl-14">
+                    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_200px_auto]">
+                        <div className="min-w-0 space-y-3">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h3
+                                    className={`font-bold text-lg text-primary ${reservation.status === 'active' || reservation.status === 'overdue' ? 'cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:text-primary hover:underline transition-colors' : ''}`}
+                                    role={reservation.status === 'active' || reservation.status === 'overdue' ? "button" : undefined}
+                                    tabIndex={reservation.status === 'active' || reservation.status === 'overdue' ? 0 : undefined}
+                                    onKeyDown={(event) => { if ((reservation.status === 'active' || reservation.status === 'overdue') && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); setIsEditing(true); } }}
                                     onClick={reservation.status === 'active' || reservation.status === 'overdue' ? () => setIsEditing(true) : undefined}
                                 >
                                     Резерв #{reservation.id}
                                 </h3>
                                 <StatusBadge status={reservation.status} />
                             </div>
-                            <div className="text-sm text-gray-700 space-y-1.5 pl-1">
+                            <div className="text-sm text-foreground space-y-1.5 pl-1">
                                 <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-gray-500" />
-                                    <span>{reservation.user_info.full_name} ({reservation.user_info.email})</span>
+                                    <User className="w-4 h-4 text-muted-foreground" />
+                                    <span className="min-w-0 break-words">{reservation.user_info.full_name} <span className="text-muted-foreground">({reservation.user_info.email})</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-gray-500" />
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
                                     <span>{formatDateEuropean(reservation.start_date)} — {formatDateEuropean(reservation.end_date)}</span>
                                 </div>
                                 <div className="flex items-start gap-2">
-                                    <Package className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
+                                    <Package className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
                                     <div className="flex-1">
                                         <div className="flex items-center text-left w-full">
                                             <span>Позиций в резерве: {equipmentListForDisplay.length}</span>
@@ -164,33 +166,33 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
                             variant="admin"
                         />
 
-                        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 border-t md:border-t-0 md:border-l pt-3 md:pt-0 md:pl-4">
+                        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4 xl:flex-col xl:items-stretch xl:border-t-0 xl:border-l xl:pl-5 xl:pt-0">
                             {(reservation.status === 'active' || reservation.status === 'overdue') ? (
                                 <>
-                                    <Button onClick={() => onConvertToRental(reservation)} size="sm" className="bg-green-600 hover:bg-green-700 w-full md:w-auto">
+                                    <Button onClick={() => onConvertToRental(reservation)} size="sm" className="w-full sm:w-auto">
                                         <Truck className="mr-2 h-4 w-4" />
                                         Выдать в аренду
                                     </Button>
-                                    <Button onClick={() => setIsEditing(true)} size="sm" variant="outline" className="w-full md:w-auto">
+                                    <Button onClick={() => setIsEditing(true)} size="sm" variant="outline" className="w-full sm:w-auto">
                                         <Edit className="mr-2 h-4 w-4" />
                                         Редактировать
                                     </Button>
                                 </>
                             ) : (
-                                <div className="text-sm text-gray-500 flex items-center gap-2 pr-2">
+                                <div className="text-sm text-muted-foreground flex items-center gap-2 pr-2">
                                     <span>Действий нет</span>
                                 </div>
                             )}
 
                             {/* Кнопка перехода к аренде для выполненных резервов */}
                             {reservation.status === 'fulfilled' && reservation.rental_id && (
-                                <Button onClick={handleNavigateToRental} size="sm" variant="outline" className="w-full md:w-auto text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200">
+                                <Button onClick={handleNavigateToRental} size="sm" variant="outline" className="w-full sm:w-auto text-warning hover:text-warning hover:bg-warning-soft border-warning/20">
                                     <Truck className="mr-2 h-4 w-4" />
                                     Перейти к аренде
                                 </Button>
                             )}
 
-                            <Button onClick={handleDelete} size="sm" variant="destructive" disabled={deleteReservationMutation.isPending} className="w-full md:w-auto">
+                            <Button onClick={handleDelete} size="sm" variant="destructive" disabled={deleteReservationMutation.isPending} className="w-full sm:w-auto">
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 {deleteReservationMutation.isPending ? "Удаление..." : "Удалить"}
                             </Button>
@@ -198,8 +200,8 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
                     </div>
 
                     {equipmentListForDisplay.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-dashed animate-in fade-in-0 slide-in-from-top-2 duration-300">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 mb-2">
+                        <div className="mt-3 pt-3 border-t ">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-2">
                                 <List className="w-4 h-4" />
                                 <span>Состав резерва:</span>
                             </div>

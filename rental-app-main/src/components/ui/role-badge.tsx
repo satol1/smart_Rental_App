@@ -15,8 +15,8 @@ import {
 
 const ROLE_STYLES: Record<UserRole, string> = {
   [USER_ROLES.USER]: "border-border bg-muted text-muted-foreground",
-  [USER_ROLES.MANAGER]: "border-primary/30 bg-primary/10 text-primary",
-  [USER_ROLES.ADMIN]: "border-destructive/40 bg-destructive/10 text-destructive",
+  [USER_ROLES.MANAGER]: "border-border bg-secondary text-secondary-foreground",
+  [USER_ROLES.ADMIN]: "border-border bg-secondary text-foreground",
 };
 
 export interface RoleBadgeProps

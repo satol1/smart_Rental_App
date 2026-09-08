@@ -1,6 +1,6 @@
 // path: rental-app-main/src/components/EquipmentGrid.tsx
 
-import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import EquipmentCard from '@/components/equipment-card';
 import CompactEquipmentCard from '@/components/CompactEquipmentCard';
 import PackCard from '@/components/PackCard';
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { SkeletonList } from "@/components/ui/skeleton-list";
 import { PackageSearch, FilterX } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
-import { listItem, staggerContainer } from "@/lib/motion";
 import type { Equipment } from "@/types/equipment";
 import type { AvailabilityInfo, DayStatus, EquipmentStatus } from "@/types/availability";
 import type { ViewMode } from '@/store/viewModeStore';
@@ -54,9 +53,9 @@ const GridEquipmentCard: React.FC<GridEquipmentCardProps> = ({
  * добавления/удаления (только transform/opacity).
  */
 const AnimatedGridItem: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <motion.div variants={listItem} layout>
+    <div className="h-full min-w-0">
         {children}
-    </motion.div>
+    </div>
 );
 
 interface EquipmentGridProps {
@@ -89,6 +88,7 @@ export default function EquipmentGrid({
     hasNextPage,
     fetchNextPage, // ✅ 4. Получаем функцию
 }: EquipmentGridProps) {
+    const { t } = useTranslation();
 
     // ✅ 5. Логика Intersection Observer полностью удалена отсюда.
 
@@ -105,16 +105,16 @@ export default function EquipmentGrid({
     if (items.length === 0) {
         return (
             <div className="col-span-full my-8">
-                <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 bg-muted/50 rounded-lg border-2 border-dashed">
-                    {hasActiveFilters ? <FilterX className="w-16 h-16 text-muted-foreground" /> : <PackageSearch className="w-16 h-16 text-muted-foreground" />}
+                <div className="flex flex-col items-center justify-center text-center py-16 px-6 space-y-4 bg-muted/40 rounded-xl">
+                    {hasActiveFilters ? <FilterX className="w-8 h-8 text-muted-foreground" /> : <PackageSearch className="w-8 h-8 text-muted-foreground" />}
                     <div className="space-y-1">
-                        <h3 className="text-lg font-semibold text-foreground">{hasActiveFilters ? "Ничего не найдено" : "Каталог пока пуст"}</h3>
-                        <p className="text-sm text-muted-foreground">{hasActiveFilters ? "Попробуйте изменить или сбросить фильтры." : "Здесь появится оборудование для аренды."}</p>
+                        <h3 className="text-lg font-semibold text-foreground">{t(hasActiveFilters ? "catalogDesign.emptyTitle" : "catalogDesign.emptyCatalog")}</h3>
+                        <p className="text-sm text-muted-foreground">{t(hasActiveFilters ? "catalogDesign.emptyHint" : "catalogDesign.emptyCatalogHint")}</p>
                     </div>
                     {hasActiveFilters && (
                         <div className="mt-4">
                             <Button variant="outline" onClick={onResetFilters}>
-                                Сбросить фильтры
+                                {t("catalogDesign.reset")}
                             </Button>
                         </div>
                     )}
@@ -130,12 +130,7 @@ export default function EquipmentGrid({
     return (
         <>
             {/* Каскадное появление карточек (staggerChildren: 0.05, только transform/opacity) */}
-            <motion.div
-                className={gridClasses}
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-            >
+            <div className={gridClasses}>
                 {items.map((item) => {
                     // --- НАЧАЛО ИЗМЕНЕНИЙ ---
                     if (item.entity_type === 'pack') {
@@ -178,7 +173,7 @@ export default function EquipmentGrid({
                         </AnimatedGridItem>
                     );
                 })}
-            </motion.div>
+            </div>
 
             {/* ✅ 6. Используем наш универсальный компонент */}
             <InfiniteScrollTrigger

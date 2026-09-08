@@ -1,0 +1,479 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - link "Перейти к содержимому" [ref=f6e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f6e5]:
+      - generic [ref=f6e6]:
+        - link "Сбросить фильтры" [ref=f6e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f6e8]: Цифровой
+        - generic [ref=f6e25]:
+          - button "Войти" [ref=f6e28] [cursor=pointer]
+          - button "Открыть меню" [ref=f6e1756] [cursor=pointer]
+    - main [ref=f6e29]:
+      - generic [ref=f6e32]:
+        - generic [ref=f6e33]:
+          - heading "Всё для следующей съёмки." [level=1] [ref=f6e34]
+          - paragraph [ref=f6e35]: Камеры, оптика, свет и звук. Выберите даты и соберите технику под свою задачу.
+        - region [ref=f6e37]:
+          - generic [ref=f6e38]:
+            - heading "Даты аренды" [level=2] [ref=f6e39]
+            - button "Свернуть календарь" [expanded] [active] [ref=f6e1757] [cursor=pointer]
+          - generic [ref=f6e44]:
+            - generic [ref=f6e1760]:
+              - navigation:
+                - button "Go to the Previous Month" [ref=f6e1761] [cursor=pointer]
+                - button "Go to the Next Month" [ref=f6e1764] [cursor=pointer]
+              - generic [ref=f6e1767]:
+                - status [ref=f6e1769]: сентябрь 2026
+                - grid "сентябрь 2026" [ref=f6e1770]:
+                  - rowgroup [aria-hidden] [ref=f6e1771]:
+                    - row [ref=f6e1772]:
+                      - columnheader [ref=f6e1773]: пн
+                      - columnheader [ref=f6e1774]: вт
+                      - columnheader [ref=f6e1775]: ср
+                      - columnheader [ref=f6e1776]: чт
+                      - columnheader [ref=f6e1777]: пт
+                      - columnheader [ref=f6e1778]: сб
+                      - columnheader [ref=f6e1779]: вс
+                  - rowgroup [ref=f6e1780]:
+                    - row [ref=f6e1781]:
+                      - gridcell [ref=f6e1782]:
+                        - button "понедельник, 31 августа 2026 г." [disabled] [ref=f6e1783]: "31"
+                      - gridcell [ref=f6e1784]:
+                        - button "вторник, 1 сентября 2026 г." [disabled] [ref=f6e1785]: "1"
+                      - gridcell [ref=f6e1786]:
+                        - button "среда, 2 сентября 2026 г." [disabled] [ref=f6e1787]: "2"
+                      - gridcell [ref=f6e1788]:
+                        - button "четверг, 3 сентября 2026 г." [disabled] [ref=f6e1789]: "3"
+                      - gridcell [ref=f6e1790]:
+                        - button "пятница, 4 сентября 2026 г." [disabled] [ref=f6e1791]: "4"
+                      - gridcell [ref=f6e1792]:
+                        - button "суббота, 5 сентября 2026 г." [disabled] [ref=f6e1793]: "5"
+                      - gridcell [ref=f6e1794]:
+                        - button "воскресенье, 6 сентября 2026 г." [disabled] [ref=f6e1795]: "6"
+                    - row [ref=f6e1796]:
+                      - gridcell [ref=f6e1797]:
+                        - button "понедельник, 7 сентября 2026 г." [disabled] [ref=f6e1798]: "7"
+                      - gridcell [ref=f6e1799]:
+                        - button "вторник, 8 сентября 2026 г." [disabled] [ref=f6e1800]: "8"
+                      - gridcell [selected] [ref=f6e1801]:
+                        - button "Today, среда, 9 сентября 2026 г., selected" [ref=f6e1802] [cursor=pointer]: "9"
+                      - gridcell [selected] [ref=f6e1803]:
+                        - button "четверг, 10 сентября 2026 г., selected" [ref=f6e1804] [cursor=pointer]: "10"
+                      - gridcell [ref=f6e1805]:
+                        - button "пятница, 11 сентября 2026 г." [ref=f6e1806] [cursor=pointer]: "11"
+                      - gridcell [ref=f6e1807]:
+                        - button "суббота, 12 сентября 2026 г." [ref=f6e1808] [cursor=pointer]: "12"
+                      - gridcell [ref=f6e1809]:
+                        - button "воскресенье, 13 сентября 2026 г." [ref=f6e1810] [cursor=pointer]: "13"
+                    - row [ref=f6e1811]:
+                      - gridcell [ref=f6e1812]:
+                        - button "понедельник, 14 сентября 2026 г." [ref=f6e1813] [cursor=pointer]: "14"
+                      - gridcell [ref=f6e1814]:
+                        - button "вторник, 15 сентября 2026 г." [ref=f6e1815] [cursor=pointer]: "15"
+                      - gridcell [ref=f6e1816]:
+                        - button "среда, 16 сентября 2026 г." [ref=f6e1817] [cursor=pointer]: "16"
+                      - gridcell [ref=f6e1818]:
+                        - button "четверг, 17 сентября 2026 г." [ref=f6e1819] [cursor=pointer]: "17"
+                      - gridcell [ref=f6e1820]:
+                        - button "пятница, 18 сентября 2026 г." [ref=f6e1821] [cursor=pointer]: "18"
+                      - gridcell [ref=f6e1822]:
+                        - button "суббота, 19 сентября 2026 г." [ref=f6e1823] [cursor=pointer]: "19"
+                      - gridcell [ref=f6e1824]:
+                        - button "воскресенье, 20 сентября 2026 г." [ref=f6e1825] [cursor=pointer]: "20"
+                    - row [ref=f6e1826]:
+                      - gridcell [ref=f6e1827]:
+                        - button "понедельник, 21 сентября 2026 г." [ref=f6e1828] [cursor=pointer]: "21"
+                      - gridcell [ref=f6e1829]:
+                        - button "вторник, 22 сентября 2026 г." [ref=f6e1830] [cursor=pointer]: "22"
+                      - gridcell [ref=f6e1831]:
+                        - button "среда, 23 сентября 2026 г." [ref=f6e1832] [cursor=pointer]: "23"
+                      - gridcell [ref=f6e1833]:
+                        - button "четверг, 24 сентября 2026 г." [ref=f6e1834] [cursor=pointer]: "24"
+                      - gridcell [ref=f6e1835]:
+                        - button "пятница, 25 сентября 2026 г." [ref=f6e1836] [cursor=pointer]: "25"
+                      - gridcell [ref=f6e1837]:
+                        - button "суббота, 26 сентября 2026 г." [ref=f6e1838] [cursor=pointer]: "26"
+                      - gridcell [ref=f6e1839]:
+                        - button "воскресенье, 27 сентября 2026 г." [ref=f6e1840] [cursor=pointer]: "27"
+                    - row [ref=f6e1841]:
+                      - gridcell [ref=f6e1842]:
+                        - button "понедельник, 28 сентября 2026 г." [ref=f6e1843] [cursor=pointer]: "28"
+                      - gridcell [ref=f6e1844]:
+                        - button "вторник, 29 сентября 2026 г." [ref=f6e1845] [cursor=pointer]: "29"
+                      - gridcell [ref=f6e1846]:
+                        - button "среда, 30 сентября 2026 г." [ref=f6e1847] [cursor=pointer]: "30"
+                      - gridcell [ref=f6e1848]:
+                        - button "четверг, 1 октября 2026 г." [ref=f6e1849] [cursor=pointer]: "1"
+                      - gridcell [ref=f6e1850]:
+                        - button "пятница, 2 октября 2026 г." [ref=f6e1851] [cursor=pointer]: "2"
+                      - gridcell [ref=f6e1852]:
+                        - button "суббота, 3 октября 2026 г." [ref=f6e1853] [cursor=pointer]: "3"
+                      - gridcell [ref=f6e1854]:
+                        - button "воскресенье, 4 октября 2026 г." [ref=f6e1855] [cursor=pointer]: "4"
+              - generic [ref=f6e1856]:
+                - status [ref=f6e1858]: октябрь 2026
+                - grid "октябрь 2026" [ref=f6e1859]:
+                  - rowgroup [aria-hidden] [ref=f6e1860]:
+                    - row [ref=f6e1861]:
+                      - columnheader [ref=f6e1862]: пн
+                      - columnheader [ref=f6e1863]: вт
+                      - columnheader [ref=f6e1864]: ср
+                      - columnheader [ref=f6e1865]: чт
+                      - columnheader [ref=f6e1866]: пт
+                      - columnheader [ref=f6e1867]: сб
+                      - columnheader [ref=f6e1868]: вс
+                  - rowgroup [ref=f6e1869]:
+                    - row [ref=f6e1870]:
+                      - gridcell [ref=f6e1871]:
+                        - button "понедельник, 28 сентября 2026 г." [ref=f6e1872] [cursor=pointer]: "28"
+                      - gridcell [ref=f6e1873]:
+                        - button "вторник, 29 сентября 2026 г." [ref=f6e1874] [cursor=pointer]: "29"
+                      - gridcell [ref=f6e1875]:
+                        - button "среда, 30 сентября 2026 г." [ref=f6e1876] [cursor=pointer]: "30"
+                      - gridcell [ref=f6e1877]:
+                        - button "четверг, 1 октября 2026 г." [ref=f6e1878] [cursor=pointer]: "1"
+                      - gridcell [ref=f6e1879]:
+                        - button "пятница, 2 октября 2026 г." [ref=f6e1880] [cursor=pointer]: "2"
+                      - gridcell [ref=f6e1881]:
+                        - button "суббота, 3 октября 2026 г." [ref=f6e1882] [cursor=pointer]: "3"
+                      - gridcell [ref=f6e1883]:
+                        - button "воскресенье, 4 октября 2026 г." [ref=f6e1884] [cursor=pointer]: "4"
+                    - row [ref=f6e1885]:
+                      - gridcell [ref=f6e1886]:
+                        - button "понедельник, 5 октября 2026 г." [ref=f6e1887] [cursor=pointer]: "5"
+                      - gridcell [ref=f6e1888]:
+                        - button "вторник, 6 октября 2026 г." [ref=f6e1889] [cursor=pointer]: "6"
+                      - gridcell [ref=f6e1890]:
+                        - button "среда, 7 октября 2026 г." [ref=f6e1891] [cursor=pointer]: "7"
+                      - gridcell [ref=f6e1892]:
+                        - button "четверг, 8 октября 2026 г." [ref=f6e1893] [cursor=pointer]: "8"
+                      - gridcell [ref=f6e1894]:
+                        - button "пятница, 9 октября 2026 г." [ref=f6e1895] [cursor=pointer]: "9"
+                      - gridcell [ref=f6e1896]:
+                        - button "суббота, 10 октября 2026 г." [ref=f6e1897] [cursor=pointer]: "10"
+                      - gridcell [ref=f6e1898]:
+                        - button "воскресенье, 11 октября 2026 г." [ref=f6e1899] [cursor=pointer]: "11"
+                    - row [ref=f6e1900]:
+                      - gridcell [ref=f6e1901]:
+                        - button "понедельник, 12 октября 2026 г." [ref=f6e1902] [cursor=pointer]: "12"
+                      - gridcell [ref=f6e1903]:
+                        - button "вторник, 13 октября 2026 г." [ref=f6e1904] [cursor=pointer]: "13"
+                      - gridcell [ref=f6e1905]:
+                        - button "среда, 14 октября 2026 г." [ref=f6e1906] [cursor=pointer]: "14"
+                      - gridcell [ref=f6e1907]:
+                        - button "четверг, 15 октября 2026 г." [ref=f6e1908] [cursor=pointer]: "15"
+                      - gridcell [ref=f6e1909]:
+                        - button "пятница, 16 октября 2026 г." [ref=f6e1910] [cursor=pointer]: "16"
+                      - gridcell [ref=f6e1911]:
+                        - button "суббота, 17 октября 2026 г." [ref=f6e1912] [cursor=pointer]: "17"
+                      - gridcell [ref=f6e1913]:
+                        - button "воскресенье, 18 октября 2026 г." [ref=f6e1914] [cursor=pointer]: "18"
+                    - row [ref=f6e1915]:
+                      - gridcell [ref=f6e1916]:
+                        - button "понедельник, 19 октября 2026 г." [ref=f6e1917] [cursor=pointer]: "19"
+                      - gridcell [ref=f6e1918]:
+                        - button "вторник, 20 октября 2026 г." [ref=f6e1919] [cursor=pointer]: "20"
+                      - gridcell [ref=f6e1920]:
+                        - button "среда, 21 октября 2026 г." [ref=f6e1921] [cursor=pointer]: "21"
+                      - gridcell [ref=f6e1922]:
+                        - button "четверг, 22 октября 2026 г." [ref=f6e1923] [cursor=pointer]: "22"
+                      - gridcell [ref=f6e1924]:
+                        - button "пятница, 23 октября 2026 г." [ref=f6e1925] [cursor=pointer]: "23"
+                      - gridcell [ref=f6e1926]:
+                        - button "суббота, 24 октября 2026 г." [ref=f6e1927] [cursor=pointer]: "24"
+                      - gridcell [ref=f6e1928]:
+                        - button "воскресенье, 25 октября 2026 г." [ref=f6e1929] [cursor=pointer]: "25"
+                    - row [ref=f6e1930]:
+                      - gridcell [ref=f6e1931]:
+                        - button "понедельник, 26 октября 2026 г." [ref=f6e1932] [cursor=pointer]: "26"
+                      - gridcell [ref=f6e1933]:
+                        - button "вторник, 27 октября 2026 г." [ref=f6e1934] [cursor=pointer]: "27"
+                      - gridcell [ref=f6e1935]:
+                        - button "среда, 28 октября 2026 г." [ref=f6e1936] [cursor=pointer]: "28"
+                      - gridcell [ref=f6e1937]:
+                        - button "четверг, 29 октября 2026 г." [ref=f6e1938] [cursor=pointer]: "29"
+                      - gridcell [ref=f6e1939]:
+                        - button "пятница, 30 октября 2026 г." [ref=f6e1940] [cursor=pointer]: "30"
+                      - gridcell [ref=f6e1941]:
+                        - button "суббота, 31 октября 2026 г." [ref=f6e1942] [cursor=pointer]: "31"
+                      - gridcell [ref=f6e1943]:
+                        - button "воскресенье, 1 ноября 2026 г." [ref=f6e1944] [cursor=pointer]: "1"
+            - generic [ref=f6e1946]:
+              - generic [ref=f6e1947]:
+                - generic [ref=f6e1948]: Начало аренды
+                - textbox "Начало аренды" [ref=f6e1949]: 2026-09-09
+              - generic [ref=f6e1950]:
+                - generic [ref=f6e1951]: Окончание аренды
+                - textbox "Окончание аренды" [ref=f6e1952]: 2026-09-10
+        - button "Промокод и скидка за срок аренды" [ref=f6e59] [cursor=pointer]
+        - region [ref=f6e67]:
+          - generic [ref=f6e68]:
+            - generic [ref=f6e69]:
+              - heading "Каталог техники" [level=2] [ref=f6e70]
+              - status [ref=f6e71]: "Позиций: 14"
+            - group "Переключатель вида карточек" [ref=f6e72]:
+              - radio "Стандартный вид" [checked] [ref=f6e73] [cursor=pointer]
+              - radio "Компактный вид" [ref=f6e74] [cursor=pointer]
+          - generic [ref=f6e75]:
+            - generic [ref=f6e76]:
+              - searchbox "Поиск техники" [ref=f6e78]
+              - generic [ref=f6e79]:
+                - generic [ref=f6e80]:
+                  - checkbox "Только доступное" [ref=f6e81] [cursor=pointer]
+                  - generic [ref=f6e82] [cursor=pointer]: Только доступное
+                - generic [ref=f6e83]:
+                  - checkbox "Объединять одинаковые" [checked] [ref=f6e84] [cursor=pointer]
+                  - generic [ref=f6e85] [cursor=pointer]: Объединять одинаковые
+                - button "Сбросить фильтры" [ref=f6e86] [cursor=pointer]
+            - generic [ref=f6e87]:
+              - generic [ref=f6e88]: Категория
+              - group "Категория" [ref=f6e90]:
+                - button "Вся техника" [ref=f6e91] [cursor=pointer]
+                - button "Фотокамеры" [pressed] [ref=f6e92] [cursor=pointer]
+                - button "Объективы" [ref=f6e890] [cursor=pointer]
+                - button "Видеокамеры и экшн-камеры" [ref=f6e1234] [cursor=pointer]
+                - button "Студийный свет" [ref=f6e1235] [cursor=pointer]
+                - button "Запись звука" [ref=f6e1236] [cursor=pointer]
+                - button "Аккумуляторы и питание" [ref=f6e891] [cursor=pointer]
+                - button "Видеосендеры" [ref=f6e1237] [cursor=pointer]
+                - button "Вспышки и синхронизаторы" [ref=f6e892] [cursor=pointer]
+                - button "Карты памяти" [ref=f6e1238] [cursor=pointer]
+                - button "Мобильный свет" [ref=f6e1239] [cursor=pointer]
+                - button "Светоформирующие насадки" [ref=f6e1240] [cursor=pointer]
+                - button "Студийное оборудование и фоны" [ref=f6e1241] [cursor=pointer]
+                - button "Штативы и стабилизаторы" [ref=f6e1242] [cursor=pointer]
+            - generic [ref=f6e105]:
+              - generic [ref=f6e106]: Бренд
+              - group "Бренд" [ref=f6e107]:
+                - button "Все бренды" [pressed] [ref=f6e108] [cursor=pointer]
+                - button "Canon" [ref=f6e893] [cursor=pointer]
+                - button "Fujifilm" [ref=f6e894] [cursor=pointer]
+                - button "Nikon" [ref=f6e895] [cursor=pointer]
+                - button "Sony" [ref=f6e896] [cursor=pointer]
+            - generic [ref=f6e113]:
+              - generic [ref=f6e114]: Подборка
+              - group "Подборка" [ref=f6e115]:
+                - button "Все подборки" [pressed] [ref=f6e116] [cursor=pointer]
+                - button "Для новичка (Быстрый старт)" [ref=f6e897] [cursor=pointer]
+                - button "Для профессионала (Pro Photo)" [ref=f6e898] [cursor=pointer]
+                - button "Для путешествий и влогов" [ref=f6e1243] [cursor=pointer]
+          - generic [ref=f6e899]:
+            - generic [ref=f6e1245]:
+              - img "Беззеркальный фотоаппарат NIKON Z5 Body" [ref=f6e1247]
+              - generic [ref=f6e1248]:
+                - generic [ref=f6e1249]:
+                  - heading [level=3] [ref=f6e1250]:
+                    - button "Подробнее о Беззеркальный фотоаппарат NIKON Z5 Body" [ref=f6e1251] [cursor=pointer]: Беззеркальный фотоаппарат NIKON Z5 Body
+                  - paragraph [ref=f6e1252]: Nikon • Фотокамеры
+                  - paragraph [ref=f6e1253]: Полнокадровая беззеркалка Nikon 24.3 Мп с 5-осевой стабилизацией и 2 слотами SD.
+                  - paragraph [ref=f6e1254]: "Состояние: Великолепно"
+                  - generic [ref=f6e1255]:
+                    - strong [ref=f6e1256]: 1 500 ₽
+                    - generic [ref=f6e1257]: / в день
+                - button "Аксессуары (14)" [ref=f6e1259] [cursor=pointer]
+                - generic [ref=f6e1266]:
+                  - generic [ref=f6e1267]:
+                    - paragraph [ref=f6e1268]: Свободно
+                    - button "В резерв" [ref=f6e1269] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1270] [cursor=pointer]
+            - generic [ref=f6e901]:
+              - img "Фотоаппарат Canon 6D MarkIl body" [ref=f6e903]
+              - generic [ref=f6e904]:
+                - generic [ref=f6e905]:
+                  - heading [level=3] [ref=f6e906]:
+                    - button "Подробнее о Фотоаппарат Canon 6D MarkIl body" [ref=f6e907] [cursor=pointer]: Фотоаппарат Canon 6D MarkIl body
+                  - paragraph [ref=f6e908]: Canon • Фотокамеры
+                  - paragraph [ref=f6e909]: Надежная зеркальная камера Full Frame 26.2 Мп с поворотным экраном и байонетом EF.
+                  - paragraph [ref=f6e910]: "Состояние: Великолепно"
+                  - generic [ref=f6e911]:
+                    - strong [ref=f6e912]: 700 ₽
+                    - generic [ref=f6e913]: / в день
+                - button "Аксессуары (14)" [ref=f6e915] [cursor=pointer]
+                - generic [ref=f6e922]:
+                  - generic [ref=f6e923]:
+                    - paragraph [ref=f6e924]: Свободно
+                    - button "В резерв" [ref=f6e925] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e926] [cursor=pointer]
+            - generic [ref=f6e965]:
+              - img "Фотоаппарат Canon EOS RP Body" [ref=f6e967]
+              - generic [ref=f6e968]:
+                - generic [ref=f6e969]:
+                  - heading [level=3] [ref=f6e970]:
+                    - button "Подробнее о Фотоаппарат Canon EOS RP Body" [ref=f6e971] [cursor=pointer]: Фотоаппарат Canon EOS RP Body
+                  - paragraph [ref=f6e972]: Canon • Фотокамеры
+                  - paragraph [ref=f6e973]: Доступный и компактный полный кадр Canon RF 26.2 Мп с поворотным экраном.
+                  - paragraph [ref=f6e974]: "Состояние: Великолепно"
+                  - generic [ref=f6e975]:
+                    - strong [ref=f6e976]: 1 000 ₽
+                    - generic [ref=f6e977]: / в день
+                - button "Аксессуары (14)" [ref=f6e979] [cursor=pointer]
+                - generic [ref=f6e986]:
+                  - generic [ref=f6e987]:
+                    - paragraph [ref=f6e988]: Свободно
+                    - button "В резерв" [ref=f6e989] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e990] [cursor=pointer]
+            - generic [ref=f6e1309]:
+              - img "Фотоаппарат Sony ILCE-6400M Body" [ref=f6e1311]
+              - generic [ref=f6e1312]:
+                - generic [ref=f6e1313]:
+                  - heading [level=3] [ref=f6e1314]:
+                    - button "Подробнее о Фотоаппарат Sony ILCE-6400M Body" [ref=f6e1315] [cursor=pointer]: Фотоаппарат Sony ILCE-6400M Body
+                  - paragraph [ref=f6e1316]: Sony • Фотокамеры
+                  - paragraph [ref=f6e1317]: Быстрая камера APS-C 24.2 Мп, автофокус 0.02 сек, откидной селфи-экран 180°.
+                  - paragraph [ref=f6e1318]: "Состояние: Великолепно"
+                  - generic [ref=f6e1319]:
+                    - strong [ref=f6e1320]: 1 000 ₽
+                    - generic [ref=f6e1321]: / в день
+                - button "Аксессуары (14)" [ref=f6e1323] [cursor=pointer]
+                - generic [ref=f6e1330]:
+                  - generic [ref=f6e1331]:
+                    - paragraph [ref=f6e1332]: Свободно
+                    - button "В резерв" [ref=f6e1333] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1334] [cursor=pointer]
+            - generic [ref=f6e1373]:
+              - img "Фотокамера Fujifilm X-S10 Body" [ref=f6e1375]
+              - generic [ref=f6e1376]:
+                - generic [ref=f6e1377]:
+                  - heading [level=3] [ref=f6e1378]:
+                    - button "Подробнее о Фотокамера Fujifilm X-S10 Body" [ref=f6e1379] [cursor=pointer]: Фотокамера Fujifilm X-S10 Body
+                  - paragraph [ref=f6e1380]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e1381]: Универсальная камера 26 Мп со встроенной стабилизацией IBIS и глубоким хватом.
+                  - paragraph [ref=f6e1382]: "Состояние: Великолепно"
+                  - generic [ref=f6e1383]:
+                    - strong [ref=f6e1384]: 1 000 ₽
+                    - generic [ref=f6e1385]: / в день
+                - button "Аксессуары (14)" [ref=f6e1387] [cursor=pointer]
+                - generic [ref=f6e1394]:
+                  - generic [ref=f6e1395]:
+                    - paragraph [ref=f6e1396]: Свободно
+                    - button "В резерв" [ref=f6e1397] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1398] [cursor=pointer]
+            - generic [ref=f6e1437]:
+              - img "Фотокамера Fujifilm X-S10 Body (2)" [ref=f6e1439]
+              - generic [ref=f6e1440]:
+                - generic [ref=f6e1441]:
+                  - heading [level=3] [ref=f6e1442]:
+                    - button "Подробнее о Фотокамера Fujifilm X-S10 Body (2)" [ref=f6e1443] [cursor=pointer]: Фотокамера Fujifilm X-S10 Body (2)
+                  - paragraph [ref=f6e1444]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e1445]: Универсальная камера 26 Мп со встроенной стабилизацией IBIS и глубоким хватом.
+                  - paragraph [ref=f6e1446]: "Состояние: Великолепно"
+                  - generic [ref=f6e1447]:
+                    - strong [ref=f6e1448]: 1 000 ₽
+                    - generic [ref=f6e1449]: / в день
+                - button "Аксессуары (14)" [ref=f6e1451] [cursor=pointer]
+                - generic [ref=f6e1458]:
+                  - generic [ref=f6e1459]:
+                    - paragraph [ref=f6e1460]: Свободно
+                    - button "В резерв" [ref=f6e1461] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1462] [cursor=pointer]
+            - generic [ref=f6e1029]:
+              - img "Фотокамера Canon EOS R6 Body" [ref=f6e1031]
+              - generic [ref=f6e1032]:
+                - generic [ref=f6e1033]:
+                  - heading [level=3] [ref=f6e1034]:
+                    - button "Подробнее о Фотокамера Canon EOS R6 Body" [ref=f6e1035] [cursor=pointer]: Фотокамера Canon EOS R6 Body
+                  - paragraph [ref=f6e1036]: Canon • Фотокамеры
+                  - paragraph [ref=f6e1037]: Репортажный флагман 20 Мп, IBIS до 8 ступеней, 4K 60p, 20 к/с, два слота SD.
+                  - paragraph [ref=f6e1038]: "Состояние: Великолепно"
+                  - generic [ref=f6e1039]:
+                    - strong [ref=f6e1040]: 1 500 ₽
+                    - generic [ref=f6e1041]: / в день
+                - button "Аксессуары (14)" [ref=f6e1043] [cursor=pointer]
+                - generic [ref=f6e1050]:
+                  - generic [ref=f6e1051]:
+                    - paragraph [ref=f6e1052]: Свободно
+                    - button "В резерв" [ref=f6e1053] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1054] [cursor=pointer]
+            - generic [ref=f6e1093]:
+              - img "Фотокамера Canon EOS R8 Body" [ref=f6e1095]
+              - generic [ref=f6e1096]:
+                - generic [ref=f6e1097]:
+                  - heading [level=3] [ref=f6e1098]:
+                    - button "Подробнее о Фотокамера Canon EOS R8 Body" [ref=f6e1099] [cursor=pointer]: Фотокамера Canon EOS R8 Body
+                  - paragraph [ref=f6e1100]: Canon • Фотокамеры
+                  - paragraph [ref=f6e1101]: Легкий полный кадр 24.2 Мп, съемка 40 кадров/с, 4K 60p без кропа из 6K.
+                  - paragraph [ref=f6e1102]: "Состояние: Великолепно"
+                  - generic [ref=f6e1103]:
+                    - strong [ref=f6e1104]: 2 000 ₽
+                    - generic [ref=f6e1105]: / в день
+                - button "Аксессуары (14)" [ref=f6e1107] [cursor=pointer]
+                - generic [ref=f6e1114]:
+                  - generic [ref=f6e1115]:
+                    - paragraph [ref=f6e1116]: Свободно
+                    - button "В резерв" [ref=f6e1117] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1118] [cursor=pointer]
+            - generic [ref=f6e1501]:
+              - img "Фотокамера FujiFilm X-T30S Body" [ref=f6e1503]
+              - generic [ref=f6e1504]:
+                - generic [ref=f6e1505]:
+                  - heading [level=3] [ref=f6e1506]:
+                    - button "Подробнее о Фотокамера FujiFilm X-T30S Body" [ref=f6e1507] [cursor=pointer]: Фотокамера FujiFilm X-T30S Body
+                  - paragraph [ref=f6e1508]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e1509]: Компактная беззеркальная камера 26.1 Мп, быстрый фазовый автофокус, 4K видео.
+                  - paragraph [ref=f6e1510]: "Состояние: Великолепно"
+                  - generic [ref=f6e1511]:
+                    - strong [ref=f6e1512]: 500 ₽
+                    - generic [ref=f6e1513]: / в день
+                - button "Аксессуары (14)" [ref=f6e1515] [cursor=pointer]
+                - generic [ref=f6e1522]:
+                  - generic [ref=f6e1523]:
+                    - paragraph [ref=f6e1524]: Свободно
+                    - button "В резерв" [ref=f6e1525] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1526] [cursor=pointer]
+            - generic [ref=f6e1565]:
+              - img "Фотокамера FujiFilm X-T4" [ref=f6e1567]
+              - generic [ref=f6e1568]:
+                - generic [ref=f6e1569]:
+                  - heading [level=3] [ref=f6e1570]:
+                    - button "Подробнее о Фотокамера FujiFilm X-T4" [ref=f6e1571] [cursor=pointer]: Фотокамера FujiFilm X-T4
+                  - paragraph [ref=f6e1572]: Fujifilm • Фотокамеры
+                  - paragraph [ref=f6e1573]: APS-C флагман 26 Мп, матричная стабилизация IBIS 6.5 ступеней, 4K 60p 10-bit.
+                  - paragraph [ref=f6e1574]: "Состояние: Великолепно"
+                  - generic [ref=f6e1575]:
+                    - strong [ref=f6e1576]: 1 000 ₽
+                    - generic [ref=f6e1577]: / в день
+                - button "Аксессуары (14)" [ref=f6e1579] [cursor=pointer]
+                - generic [ref=f6e1586]:
+                  - generic [ref=f6e1587]:
+                    - paragraph [ref=f6e1588]: Свободно
+                    - button "В резерв" [ref=f6e1589] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1590] [cursor=pointer]
+            - generic [ref=f6e1629]:
+              - img "Фотокамера Sony Alpha ILCE-7CL Body" [ref=f6e1631]
+              - generic [ref=f6e1632]:
+                - generic [ref=f6e1633]:
+                  - heading [level=3] [ref=f6e1634]:
+                    - button "Подробнее о Фотокамера Sony Alpha ILCE-7CL Body" [ref=f6e1635] [cursor=pointer]: Фотокамера Sony Alpha ILCE-7CL Body
+                  - paragraph [ref=f6e1636]: Sony • Фотокамеры
+                  - paragraph [ref=f6e1637]: Ультракомпактный Full-Frame 24 Мп с поворотным экраном и продвинутым автофокусом.
+                  - paragraph [ref=f6e1638]: "Состояние: Великолепно"
+                  - generic [ref=f6e1639]:
+                    - strong [ref=f6e1640]: 1 500 ₽
+                    - generic [ref=f6e1641]: / в день
+                - button "Аксессуары (14)" [ref=f6e1643] [cursor=pointer]
+                - generic [ref=f6e1650]:
+                  - generic [ref=f6e1651]:
+                    - paragraph [ref=f6e1652]: Свободно
+                    - button "В резерв" [ref=f6e1653] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1654] [cursor=pointer]
+            - generic [ref=f6e1693]:
+              - img "Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный" [ref=f6e1695]
+              - generic [ref=f6e1696]:
+                - generic [ref=f6e1697]:
+                  - heading [level=3] [ref=f6e1698]:
+                    - button "Подробнее о Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный" [ref=f6e1699] [cursor=pointer]: Фотокамера Sony Alpha ILCE-7M3 A7 Mark III, Full Frame, 24MP черный
+                  - paragraph [ref=f6e1700]: Sony • Фотокамеры
+                  - paragraph [ref=f6e1701]: Культовый полный кадр 24.2 Мп, 5-осевая стабилизация, широкий динамический диапазон.
+                  - paragraph [ref=f6e1702]: "Состояние: Великолепно"
+                  - generic [ref=f6e1703]:
+                    - strong [ref=f6e1704]: 1 000 ₽
+                    - generic [ref=f6e1705]: / в день
+                - button "Аксессуары (14)" [ref=f6e1707] [cursor=pointer]
+                - generic [ref=f6e1714]:
+                  - generic [ref=f6e1715]:
+                    - paragraph [ref=f6e1716]: Свободно
+                    - button "В резерв" [ref=f6e1717] [cursor=pointer]
+                  - button "Календарь доступности" [ref=f6e1718] [cursor=pointer]
+  - region "Notifications alt+T"

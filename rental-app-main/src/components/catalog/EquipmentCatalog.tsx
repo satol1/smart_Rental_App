@@ -1,6 +1,9 @@
 // src/components/catalog/EquipmentCatalog.tsx
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
+import { useTranslation } from 'react-i18next';
+import ViewModeToggle from '@/components/ViewModeToggle';
+import type { AvailabilityInfo } from '@/types/availability';
 import FilterPanel from "@/components/FilterPanel";
 import EquipmentGrid from "@/components/EquipmentGrid";
 import { useAppFilters } from "@/hooks/features/useAppFilters";
@@ -11,6 +14,7 @@ import { useViewModeStore } from "@/store/viewModeStore";
 import type { CatalogPackItem } from "@/types/pack";
 
 interface EquipmentCatalogProps {
+    collections?: ReactNode;
     editingReservationId?: number;
     intent?: string;
     onOpenPackDetails?: (pack: CatalogPackItem) => void;
@@ -20,7 +24,8 @@ interface EquipmentCatalogProps {
  * Компонент каталога оборудования.
  * Инкапсулирует отображение и фильтрацию каталога оборудования.
  */
-export default function EquipmentCatalog({ editingReservationId: _editingReservationId, intent: _intent, onOpenPackDetails }: EquipmentCatalogProps) {
+export default function EquipmentCatalog({ onOpenPackDetails, collections }: EquipmentCatalogProps) {
+    const { t } = useTranslation();
     const { viewMode } = useViewModeStore();
 
     // 1. Получаем состояние фильтров
@@ -33,6 +38,7 @@ export default function EquipmentCatalog({ editingReservationId: _editingReserva
         availableBrands,
         availableAssociations,
         hasActiveFilters,
+        totalCount,
         isLoading,
         isFetchingNextPage,
         hasNextPage,
@@ -67,7 +73,7 @@ export default function EquipmentCatalog({ editingReservationId: _editingReserva
 
     // Создаем availabilityMap из availabilityData для useReservationManagement
     const availabilityMap = useMemo(() => {
-        const map: Record<number, any> = {};
+        const map: Record<number, AvailabilityInfo> = {};
         availabilityData?.forEach((info) => {
             map[info.equipment_id] = info;
         });
@@ -80,13 +86,22 @@ export default function EquipmentCatalog({ editingReservationId: _editingReserva
     } = useReservationManagement(equipmentOnly, availabilityMap, false);
 
     return (
-        <>
+        <section id="equipment-catalog" className="catalog-workspace" tabIndex={-1} aria-labelledby="catalog-heading">
+            <div className="catalog-toolbar">
+                <div className="flex flex-wrap items-baseline gap-3">
+                    <h2 id="catalog-heading" className="text-2xl font-semibold tracking-tight">{t('catalogDesign.catalog')}</h2>
+                    <span className="text-sm text-muted-foreground" role="status">{!isLoading && t('catalogDesign.catalogCount', { count: totalCount })}</span>
+                </div>
+                <ViewModeToggle />
+            </div>
             <FilterPanel 
                 availableTypes={availableTypes}
                 availableBrands={availableBrands}
                 availableAssociations={availableAssociations}
                 hasActiveFilters={hasActiveFilters}
             />
+
+            {!hasActiveFilters && collections}
 
             <EquipmentGrid
                 isLoading={isLoading}
@@ -103,6 +118,6 @@ export default function EquipmentCatalog({ editingReservationId: _editingReserva
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={isFetchingNextPage}
             />
-        </>
+        </section>
     );
 }

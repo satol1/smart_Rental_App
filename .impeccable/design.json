@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-08T21:51:56.957804+00:00",
+  "title": "Design System: Digital Rental",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Brand blue",
+        "canonical": "hsl(201 71% 38%)",
+        "tonalRamp": [
+          "hsl(201 50% 14%)",
+          "hsl(201 65% 26%)",
+          "hsl(201 72% 32%)",
+          "hsl(201 71% 38%)",
+          "hsl(201 43% 54%)",
+          "hsl(201 40% 74%)",
+          "hsl(200 39% 94%)",
+          "hsl(200 39% 97%)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Warm paper",
+        "canonical": "hsl(40 20% 97%)",
+        "tonalRamp": [
+          "hsl(210 10% 10%)",
+          "hsl(210 8% 21%)",
+          "hsl(210 7% 28%)",
+          "hsl(210 6% 36%)",
+          "hsl(210 4% 53%)",
+          "hsl(40 7% 78%)",
+          "hsl(40 12% 94%)",
+          "hsl(40 20% 97%)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Sage",
+        "canonical": "hsl(145 22% 31%)",
+        "tonalRamp": [
+          "hsl(145 20% 12%)",
+          "hsl(145 25% 21%)",
+          "hsl(145 28% 26%)",
+          "hsl(145 27% 31%)",
+          "hsl(144 20% 51%)",
+          "hsl(142 18% 72%)",
+          "hsl(140 19% 93%)",
+          "hsl(140 19% 97%)"
+        ]
+      },
+      "warning": {
+        "role": "neutral",
+        "displayName": "Sand",
+        "canonical": "hsl(34 45% 32%)",
+        "tonalRamp": [
+          "hsl(32 30% 12%)",
+          "hsl(32 40% 23%)",
+          "hsl(33 45% 28%)",
+          "hsl(34 45% 34%)",
+          "hsl(36 34% 55%)",
+          "hsl(37 35% 73%)",
+          "hsl(38 48% 93%)",
+          "hsl(38 48% 97%)"
+        ]
+      },
+      "destructive": {
+        "role": "neutral",
+        "displayName": "Restrained red",
+        "canonical": "hsl(3 54% 43%)",
+        "tonalRamp": [
+          "hsl(3 35% 15%)",
+          "hsl(3 48% 29%)",
+          "hsl(3 55% 36%)",
+          "hsl(3 54% 43%)",
+          "hsl(4 44% 58%)",
+          "hsl(4 40% 74%)",
+          "hsl(6 42% 95%)",
+          "hsl(6 42% 98%)"
+        ]
+      },
+      "collection-sky": {
+        "role": "neutral",
+        "displayName": "Collection sky",
+        "canonical": "hsl(201 46% 85%)",
+        "tonalRamp": [
+          "hsl(201 32% 25%)",
+          "hsl(201 46% 85%)"
+        ]
+      },
+      "dark-collection-sky": {
+        "role": "neutral",
+        "displayName": "Collection sky, dark theme",
+        "canonical": "hsl(201 32% 25%)",
+        "tonalRamp": [
+          "hsl(201 32% 25%)"
+        ]
+      },
+      "collection-mint": {
+        "role": "neutral",
+        "displayName": "Collection mint",
+        "canonical": "hsl(145 25% 85%)",
+        "tonalRamp": [
+          "hsl(145 20% 24%)",
+          "hsl(145 25% 85%)"
+        ]
+      },
+      "dark-collection-mint": {
+        "role": "neutral",
+        "displayName": "Collection mint, dark theme",
+        "canonical": "hsl(145 20% 24%)",
+        "tonalRamp": [
+          "hsl(145 20% 24%)"
+        ]
+      },
+      "collection-amber": {
+        "role": "neutral",
+        "displayName": "Collection amber",
+        "canonical": "hsl(36 55% 86%)",
+        "tonalRamp": [
+          "hsl(35 28% 24%)",
+          "hsl(36 55% 86%)"
+        ]
+      },
+      "dark-collection-amber": {
+        "role": "neutral",
+        "displayName": "Collection amber, dark theme",
+        "canonical": "hsl(35 28% 24%)",
+        "tonalRamp": [
+          "hsl(35 28% 24%)"
+        ]
+      },
+      "photo-surface": {
+        "role": "neutral",
+        "displayName": "Photographic backing",
+        "canonical": "hsl(40 20% 96%)",
+        "tonalRamp": [
+          "hsl(40 20% 96%)"
+        ]
+      },
+      "dark-photo-surface": {
+        "role": "neutral",
+        "displayName": "Photographic backing, dark theme",
+        "canonical": "hsl(40 20% 96%)",
+        "tonalRamp": [
+          "hsl(40 20% 96%)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Onest headline",
+        "purpose": "Home page heading: 30px below 640px, 36px from 640px and 48px from 1024px; line-height 1.15. Calendar uses the same size scale.",
+        "responsiveSizes": [
+          {
+            "minWidth": "0px",
+            "fontSize": "30px"
+          },
+          {
+            "minWidth": "640px",
+            "fontSize": "36px"
+          },
+          {
+            "minWidth": "1024px",
+            "fontSize": "48px"
+          }
+        ]
+      },
+      "body": {
+        "displayName": "Onest body",
+        "purpose": "Native Cyrillic and Latin with local variable font files."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px hsl(var(--shadow-color) / 0.05)",
+        "purpose": "Minimal control or notification elevation."
+      },
+      {
+        "name": "shadow-popover",
+        "value": "0 8px 28px -8px hsl(var(--shadow-color) / 0.18), 0 2px 6px hsl(var(--shadow-color) / 0.05)",
+        "purpose": "Anchored menus and cookie notice."
+      },
+      {
+        "name": "shadow-dialog",
+        "value": "0 24px 72px -20px hsl(var(--shadow-color) / 0.3)",
+        "purpose": "Protected modal focus above a page."
+      }
+    ],
+    "motion": [
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Shared CSS and Motion interaction scale."
+      },
+      {
+        "name": "duration-base",
+        "value": "200ms",
+        "purpose": "Shared CSS and Motion interaction scale."
+      },
+      {
+        "name": "duration-slow",
+        "value": "300ms",
+        "purpose": "Shared CSS and Motion interaction scale."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Shared CSS and Motion interaction scale."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      }
+    ],
+    "surfaceTokens": {
+      "collection-sky": {
+        "cssVariable": "--collection-sky",
+        "light": "hsl(201 46% 85%)",
+        "dark": "hsl(201 32% 25%)",
+        "foregroundToken": "pastel-sky-fg",
+        "darkMode": "explicit dark override",
+        "purpose": "Editorial collection surface; does not express availability or order status."
+      },
+      "collection-mint": {
+        "cssVariable": "--collection-mint",
+        "light": "hsl(145 25% 85%)",
+        "dark": "hsl(145 20% 24%)",
+        "foregroundToken": "pastel-mint-fg",
+        "darkMode": "explicit dark override",
+        "purpose": "Editorial collection surface; does not express availability or order status."
+      },
+      "collection-amber": {
+        "cssVariable": "--collection-amber",
+        "light": "hsl(36 55% 86%)",
+        "dark": "hsl(35 28% 24%)",
+        "foregroundToken": "pastel-amber-fg",
+        "darkMode": "explicit dark override",
+        "purpose": "Editorial collection surface; does not express availability or order status."
+      },
+      "photo-surface": {
+        "cssVariable": "--photo-surface",
+        "light": "hsl(40 20% 96%)",
+        "dark": "hsl(40 20% 96%)",
+        "foregroundToken": null,
+        "darkMode": "inherits light value",
+        "purpose": "Neutral photo backing for collection collages in dark mode."
+      }
+    },
+    "implementation": {
+      "sources": [
+        "rental-app-main/src/index.css",
+        "rental-app-main/src/styles/catalog.css",
+        "rental-app-main/src/components/ui/button.tsx",
+        "rental-app-main/src/components/catalog/CuratedCollections.tsx",
+        "rental-app-main/src/components/DateRangeSelector.tsx",
+        "rental-app-main/src/components/ReservationFooter.tsx",
+        "rental-app-main/src/components/shared/BrandLogo.tsx"
+      ],
+      "collections": "Nonempty API associations supply real names, equipment IDs and inventory photographs. A collection filters by association ID; it is not an invented kit or a bundle-price promise.",
+      "filters": "Search and all filter rows, including equipment types and brands, are always visible before collection cards. Selected catalog chips use primary fill and primary foreground; generic filter buttons retain their softer accent treatment.",
+      "selectedEquipment": "Primary border and ring; info-soft content area; photograph remains unchanged.",
+      "datePanel": "Flat selected endpoints, store rental-day count, primary date text and pale information accents.",
+      "calendar": "One month below 640px, two from 640px. A media listener changes the count without remounting the picker or resetting the viewed month and selected dates. Navigation and date-state labels are Russian; existing date callbacks and holiday handling remain.",
+      "stickyDates": "Portalled to document.body and fixed below the 80px header; copy states availability on the selected dates.",
+      "reservationFooter": "Appears with a nonzero selection, portalled to document.body and fixed at viewport bottom. Count, selected dates, reset and checkout stay available; safe-area and catalog bottom padding protect content. Entry uses 200ms with instant reduced-motion behavior.",
+      "logoPress": "Fixed SVG outline; inner lens hover scale 0.975 and pressed scale 0.93; shutter pressed rotation -2.5deg. Framer Motion restores the hover or resting state on release, and resting geometry on pointer leave using 150/200ms tokens. No loop, no interception of the enclosing home link, and reduced motion disables feedback."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "44px action control with shared focus and state feedback.",
+      "html": "<button class=\"ds-button-primary\">Reserve equipment</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:background-color 150ms,color 150ms;font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;background:hsl(var(--primary,201 71% 38%));color:hsl(var(--primary-foreground,0 0% 100%));border:none}.ds-button-primary:hover,.ds-button-primary:active{background:hsl(var(--primary-hover,201 72% 32%))}.ds-button-primary:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}.ds-button-primary:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "44px action control with shared focus and state feedback.",
+      "html": "<button class=\"ds-button-secondary\">View details</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:background-color 150ms,color 150ms;font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;background:hsl(var(--secondary,40 14% 93%));color:hsl(var(--secondary-foreground,210 8% 25%));border:none}.ds-button-secondary:hover,.ds-button-secondary:active{background:hsl(var(--muted,40 12% 94%))}.ds-button-secondary:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}.ds-button-secondary:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Outline button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "44px action control with shared focus and state feedback.",
+      "html": "<button class=\"ds-button-outline\">View details</button>",
+      "css": ".ds-button-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:background-color 150ms,color 150ms;font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;background:hsl(var(--card,0 0% 100%));color:hsl(var(--foreground,210 8% 15%));border:1px solid hsl(var(--input,40 7% 58%))}.ds-button-outline:hover,.ds-button-outline:active{background:hsl(var(--muted,40 12% 94%))}.ds-button-outline:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}.ds-button-outline:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "description": "44px action control with shared focus and state feedback.",
+      "html": "<button class=\"ds-button-ghost\">View details</button>",
+      "css": ".ds-button-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:8px 16px;border-radius:10px;cursor:pointer;transition:background-color 150ms,color 150ms;font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;background:hsl(var(--card,0 0% 100%));color:hsl(var(--muted-foreground,210 5% 42%));border:none}.ds-button-ghost:hover,.ds-button-ghost:active{background:hsl(var(--muted,40 12% 94%))}.ds-button-ghost:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}.ds-button-ghost:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "44px field with readable placeholder and explicit focus.",
+      "html": "<input class=\"ds-input\" aria-label=\"Equipment search\" placeholder=\"Search equipment\" />",
+      "css": ".ds-input{width:240px;max-width:100%;height:44px;padding:8px 12px;border:1px solid hsl(var(--input,40 7% 58%));border-radius:10px;background:hsl(var(--card,0 0% 100%));color:hsl(var(--foreground,210 8% 15%));font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;}.ds-input::placeholder{color:hsl(var(--muted-foreground,210 5% 42%));opacity:1}.ds-input:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}.ds-input[aria-invalid=true]{border-color:hsl(var(--destructive,3 54% 43%))}"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Neutral current-route surface and restrained hover.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main navigation\"><a class=\"ds-nav-link\" href=\"#catalog\" aria-current=\"page\">Catalog</a><a class=\"ds-nav-link\" href=\"#calendar\">Calendar</a></nav>",
+      "css": ".ds-nav{display:flex;gap:4px}.ds-nav-link{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:14px;text-decoration:none;color:hsl(var(--muted-foreground,210 5% 42%));font-family:var(--font-sans,Onest,sans-serif);font-size:14px;font-weight:500;line-height:20px;}.ds-nav-link[aria-current=page],.ds-nav-link:hover{background:hsl(var(--secondary,40 14% 93%));color:hsl(var(--foreground,210 8% 15%))}.ds-nav-link:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px;}"
+    },
+    {
+      "name": "Status badge",
+      "kind": "chip",
+      "refersTo": "status-success",
+      "description": "A text label with paired semantic colors.",
+      "html": "<span class=\"ds-status\">Available</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;border-radius:6px;padding:2px 8px;background:hsl(var(--success-soft,140 19% 93%));color:hsl(var(--success,145 22% 31%));font-family:var(--font-sans,Onest,sans-serif);font-size:12px;font-weight:500;line-height:20px}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat working surface; a single border provides separation.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Equipment details</h3><p class=\"ds-card-copy\">Rental dates, condition and included accessories.</p></div>",
+      "css": ".ds-card{max-width:320px;padding:24px;border:1px solid hsl(var(--border,40 9% 86%));border-radius:14px;background:hsl(var(--card,0 0% 100%));color:hsl(var(--foreground,210 8% 15%));font-family:var(--font-sans,Onest,sans-serif)}.ds-card-title{margin:0 0 6px;font-size:18px;font-weight:600;line-height:1.375;letter-spacing:-.025em}.ds-card-copy{margin:0;font-size:14px;line-height:1.625;color:hsl(var(--muted-foreground,210 5% 42%))}"
+    },
+    {
+      "name": "Tonal button",
+      "kind": "button",
+      "refersTo": "button-tonal",
+      "description": "44px secondary action using info-soft and pastel-sky-fg; primary 15% hover and 20% press.",
+      "html": "<button class=\"ds-button-tonal\">View details</button>",
+      "css": ".ds-button-tonal{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:8px 16px;border:0;border-radius:10px;background:hsl(var(--info-soft,200 39% 94%));color:hsl(var(--pastel-sky-fg,201 54% 31%));font:500 14px/20px var(--font-sans,Onest,sans-serif);cursor:pointer;transition:background-color 150ms,color 150ms}.ds-button-tonal:hover{background:hsl(var(--primary,201 71% 38%)/.15)}.ds-button-tonal:active{background:hsl(var(--primary,201 71% 38%)/.2)}.ds-button-tonal:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:3px}.ds-button-tonal:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Selected catalog filter",
+      "kind": "button",
+      "refersTo": "catalog-filter-selected",
+      "description": "Always-visible catalog option; solid primary fill and aria-pressed convey selection.",
+      "html": "<button class=\"ds-catalog-chip\" aria-pressed=\"true\">Sony</button>",
+      "css": ".ds-catalog-chip{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid transparent;border-radius:8px;font:500 14px/20px var(--font-sans,Onest,sans-serif);cursor:pointer}.ds-catalog-chip[aria-pressed=true]{border-color:hsl(var(--primary,201 71% 38%));background:hsl(var(--primary,201 71% 38%));color:hsl(var(--primary-foreground,0 0% 100%))}.ds-catalog-chip[aria-pressed=true]:hover{background:hsl(var(--primary-hover,201 72% 32%))}.ds-catalog-chip:focus-visible{outline:2px solid hsl(var(--ring,201 71% 38%));outline-offset:2px}"
+    },
+    {
+      "name": "Selected equipment card",
+      "kind": "card",
+      "refersTo": "equipment-card-selected",
+      "description": "Selection adds an information tint to the body and a primary boundary; the equipment image keeps its own surface.",
+      "html": "<article class=\"ds-equipment-selected\"><div class=\"ds-equipment-selected-body\">Selected equipment</div></article>",
+      "css": ".ds-equipment-selected{overflow:hidden;border:1px solid hsl(var(--primary,201 71% 38%));border-radius:12px;box-shadow:0 0 0 1px hsl(var(--primary,201 71% 38%));background:hsl(var(--card,0 0% 100%));color:hsl(var(--foreground,210 8% 15%));font:400 16px/1.55 var(--font-sans,Onest,sans-serif)}.ds-equipment-selected-body{padding:16px;background:hsl(var(--info-soft,200 39% 94%))}@media(min-width:640px){.ds-equipment-selected-body{padding:20px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The working equipment catalog",
+    "overview": "The interface supports decisions about equipment, dates and cost. Warm paper surrounds white working surfaces; ink typography establishes hierarchy and the supplied blue mark identifies the service. Photography comes from real inventory. The same controls serve customers, managers and administrators.\n\nThis is the implemented system for `specs/002-rental-design-system/`. Runtime sources are `rental-app-main/src/index.css`, `rental-app-main/src/styles/catalog.css`, `rental-app-main/tailwind.config.js`, `rental-app-main/src/components/ui/` and `rental-app-main/src/lib/motion.ts`. Extracted tokens document those sources; update this record when the system changes.",
+    "keyCharacteristics": [
+      "Warm neutral surfaces and clear ink type.",
+      "Blue actions and selection, colored collection surfaces, and semantic sage, sand and restrained red states.",
+      "Native Cyrillic typography, compact data and generous separation between tasks.",
+      "Restrained feedback, visible focus and complete dark theme roles."
+    ],
+    "rules": [],
+    "dos": [
+      "Do use semantic tokens and existing UI primitives for new screens.",
+      "Do preserve real equipment photographs, dates, prices and role permissions.",
+      "Do check keyboard access, both themes, narrow layouts and reduced motion.",
+      "Do keep cards flat, controls consistent and financial values aligned.",
+      "Do keep every filter visible and source collection names, contents and photographs from real associations and inventory.",
+      "Do preserve the viewport-anchored selection footer and adaptive calendar behavior."
+    ],
+    "donts": [
+      "Don't assign a decorative color to each filter group or user role.",
+      "Don't add gradients, glass, heavy colored rails or scaling on ordinary buttons.",
+      "Don't replace Cyrillic typography with an unsupported display font.",
+      "Don't invent commercial claims, availability, equipment bundles or rental terms."
+    ]
+  }
+}
