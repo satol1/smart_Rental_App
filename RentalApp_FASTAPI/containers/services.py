@@ -64,6 +64,10 @@ class ServicesContainer(containers.DeclarativeContainer):
     discount_service = providers.Factory(DiscountService, discount_repo=discount_repo)
     association_service = providers.Factory(AssociationService, repo=association_repo)
     security_audit_service = providers.Factory(SecurityAuditService, db=db_session)
+    # Factory: у Singleton первый резолв замораживал сессию БД в
+    # security_audit_service (в тестах это давало «connection is closed» на
+    # audit-вставках). Разделяемое состояние счётчиков вынесено на уровень КЛАССА
+    # сервиса — Factory остаётся безопасным для in-memory fallback.
     brute_force_protection_service = providers.Factory(
         BruteForceProtectionService, security_audit_service=security_audit_service,
     )
@@ -287,6 +291,7 @@ class ServicesContainer(containers.DeclarativeContainer):
         RentalUpdateService,
         db=db_session, rental_repo=rental_repo,
         system_service=system_service,
+        validator=order_validator_with_financial,
         balance_service=balance_service,
         financial_service=financial_service,
         promo_code_logic=promo_code_business_logic,
@@ -296,6 +301,8 @@ class ServicesContainer(containers.DeclarativeContainer):
         db=db_session, rental_repo=rental_repo,
         validator=order_validator_with_financial,
         balance_service=balance_service,
+        system_service=system_service,
+        promo_code_logic=promo_code_business_logic,
     )
     reservation_lifecycle_service = providers.Factory(
         ReservationLifecycleService,

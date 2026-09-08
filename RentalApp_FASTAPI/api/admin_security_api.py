@@ -5,7 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from containers import Container
 from api.services.security_audit_service import SecurityAuditService
 from api.services.brute_force_protection_service import BruteForceProtectionService
-from api.dependencies import get_current_admin_user
+from api.permissions import require_admin
 from api.models.user import User as ApiUser
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
@@ -19,7 +19,7 @@ async def get_security_logs(
     severity: Optional[str] = Query(None, description="Фильтр по серьезности"),
     event_type: Optional[str] = Query(None, description="Фильтр по типу события"),
     limit: int = Query(100, ge=1, le=1000, description="Максимальное количество записей"),
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     security_audit_service: SecurityAuditService = Depends(Provide[Container.security_audit_service])
 ):
     """Получение логов безопасности для админов."""
@@ -68,7 +68,7 @@ async def get_security_logs(
 @inject
 async def get_security_stats(
     days: int = Query(7, ge=1, le=30, description="Количество дней для статистики"),
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     security_audit_service: SecurityAuditService = Depends(Provide[Container.security_audit_service])
 ):
     """Получение статистики безопасности."""
@@ -84,7 +84,7 @@ async def get_security_stats(
 @router.get("/brute-force/blocked-ips")
 @inject
 async def get_blocked_ips(
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Получение списка заблокированных IP адресов."""
@@ -108,7 +108,7 @@ async def get_blocked_ips(
 @inject
 async def unblock_ip(
     ip_address: str,
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Разблокировка IP адреса."""
@@ -131,7 +131,7 @@ async def unblock_ip(
 @inject
 async def get_ip_stats(
     ip_address: str,
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Получение статистики попыток для IP адреса."""
@@ -148,7 +148,7 @@ async def get_ip_stats(
 @inject
 async def add_to_whitelist(
     ip_address: str,
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Добавление IP адреса в whitelist."""
@@ -165,7 +165,7 @@ async def add_to_whitelist(
 @inject
 async def remove_from_whitelist(
     ip_address: str,
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Удаление IP адреса из whitelist."""
@@ -181,7 +181,7 @@ async def remove_from_whitelist(
 @router.post("/brute-force/cleanup")
 @inject
 async def cleanup_brute_force_data(
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Очистка истекших данных защиты от брутфорса."""
@@ -197,7 +197,7 @@ async def cleanup_brute_force_data(
 @router.get("/health")
 @inject
 async def security_health_check(
-    current_user: ApiUser = Depends(get_current_admin_user),
+    current_user: ApiUser = Depends(require_admin),
     security_audit_service: SecurityAuditService = Depends(Provide[Container.security_audit_service]),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):

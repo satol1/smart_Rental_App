@@ -17,13 +17,16 @@ def get_request_db_session():
     return session
 
 # Создаем асинхронный движок
+# pool_pre_ping=True: проверка соединения перед выдачей из пула —
+# устраняет "stale" соединения после рестарта БД/сети.
+# Размеры пула настраиваются через env (POSTGRES_POOL_SIZE / POSTGRES_MAX_OVERFLOW).
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
     echo=False,
     future=True,
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=False,
+    pool_size=settings.POSTGRES_POOL_SIZE,
+    max_overflow=settings.POSTGRES_MAX_OVERFLOW,
+    pool_pre_ping=True,
     pool_recycle=3600,
     pool_timeout=30
 )
@@ -44,7 +47,7 @@ try:
     from sqlalchemy import create_engine as create_sync_engine
     from sqlalchemy.orm import sessionmaker
 
-    sync_engine = create_sync_engine(settings.DATABASE_URL.replace("+asyncpg", ""), echo=False)
+    sync_engine = create_sync_engine(settings.database_url.replace("+asyncpg", ""), echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 except ImportError:
     SessionLocal = None

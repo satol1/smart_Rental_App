@@ -3,38 +3,64 @@
 Все переменные окружения и настройки определены в одном месте.
 """
 
+import logging
 from pathlib import Path
-from pydantic import SecretStr, Field, field_validator
+from urllib.parse import quote_plus
+
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+# Dev-значения по умолчанию: допустимы ТОЛЬКО при DEBUG=True (с предупреждением).
+# При DEBUG=False отсутствие или dev-значение любого секрета — ошибка запуска (fail-fast).
+_DEV_DEFAULTS = {
+    "SECRET_KEY": "super-secret-key-dev-32-chars-minimum",
+    "CSRF_SECRET_KEY": "csrf-secret-key-dev-32-chars-minimum",
+    "POSTGRES_PASSWORD": "supersecretpassword",
+}
 
 
 class Settings(BaseSettings):
     """Централизованный класс настроек приложения."""
-    
+
     # ───────────────────────────── База данных ─────────────────────────────
+    # Пароль и URL без дефолтных значений: задаются через окружение,
+    # либо URL собирается из компонентов (см. database_url).
     POSTGRES_USER: str = Field(default="myuser", description="Пользователь PostgreSQL")
-    POSTGRES_PASSWORD: SecretStr = Field(default="supersecretpassword", description="Пароль PostgreSQL")
+    POSTGRES_PASSWORD: SecretStr | None = Field(default=None, description="Пароль PostgreSQL")
     POSTGRES_DB: str = Field(default="rental_db", description="Имя базы данных PostgreSQL")
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://myuser:supersecretpassword@db:5432/rental_db",
-        description="URL подключения к базе данных"
+    POSTGRES_HOST: str = Field(default="db", description="Хост PostgreSQL")
+    POSTGRES_PORT: int = Field(default=5432, description="Порт PostgreSQL")
+    DATABASE_URL: str | None = Field(
+        default=None,
+        description="URL подключения к базе данных (если не задан — собирается из POSTGRES_*)"
     )
-    
+    POSTGRES_POOL_SIZE: int = Field(default=5, ge=1, description="Размер пула соединений SQLAlchemy")
+    POSTGRES_MAX_OVERFLOW: int = Field(default=10, ge=0, description="Overflow пула соединений SQLAlchemy")
+
+    # ───────────────────────────── Redis (опционален) ─────────────────────────────
+    # Redis не обязателен для запуска: при недоступности приложение
+    # деградирует на in-memory хранилища (denylist, brute-force, кэш).
+    REDIS_URL: str = Field(
+        default="redis://localhost:6379/0",
+        description="URL Redis (в контейнере перекрывается compose: redis://redis:6379/0)"
+    )
+
     # ───────────────────────────── Секреты приложения ─────────────────────────────
-    SECRET_KEY: SecretStr = Field(
-        default="super-secret-key-dev-32-chars-minimum", 
-        description="Секретный ключ для JWT (минимум 32 символа)",
-        min_length=32
+    # Дефолтных значений нет: см. модельный валидатор _validate_secrets ниже.
+    SECRET_KEY: SecretStr | None = Field(
+        default=None,
+        description="Секретный ключ для JWT (минимум 32 символа)"
     )
-    CSRF_SECRET_KEY: SecretStr = Field(
-        default="csrf-secret-key-dev-32-chars-minimum", 
-        description="Секретный ключ для CSRF защиты (минимум 32 символа)",
-        min_length=32
+    CSRF_SECRET_KEY: SecretStr | None = Field(
+        default=None,
+        description="Секретный ключ для CSRF защиты (минимум 32 символа)"
     )
     DISABLE_CSRF: bool = Field(default=False, description="Отключить CSRF защиту (для тестов)")
-    
+
     # ───────────────────────────── Настройки окружения ─────────────────────────────
-    DEBUG: bool = Field(default=True, description="Режим отладки")
+    DEBUG: bool = Field(default=False, description="Режим отладки")
     
     # ───────────────────────────── Уведомления ─────────────────────────────
     TELEGRAM_TOKEN: SecretStr = Field(default="default_token_for_dev", description="Токен Telegram бота")
@@ -89,45 +115,71 @@ class Settings(BaseSettings):
         description="Разрешить все источники (ТОЛЬКО для dev, НЕ использовать в production!)"
     )
     
-    # ───────────────────────────── Валидация секретных ключей ─────────────────────────────
-    @field_validator('SECRET_KEY')
-    @classmethod
-    def validate_secret_key(cls, v: SecretStr) -> SecretStr:
-        """Валидация силы SECRET_KEY."""
-        key_value = v.get_secret_value()
-        if len(key_value) < 32:
-            raise ValueError("SECRET_KEY должен содержать минимум 32 символа")
-        
-        # Проверяем разнообразие символов
-        unique_chars = len(set(key_value))
-        if unique_chars < 16:
-            raise ValueError("SECRET_KEY должен содержать минимум 16 уникальных символов")
-        
-        # Предупреждение о дефолтных значениях
-        if key_value in ["super-secret-key-dev", "your-super-secret-key-here"]:
-            raise ValueError("⚠️ КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ: Используется дефолтный SECRET_KEY! Замените на криптографически стойкий ключ.")
-        
-        return v
-    
-    @field_validator('CSRF_SECRET_KEY')
-    @classmethod
-    def validate_csrf_key(cls, v: SecretStr) -> SecretStr:
-        """Валидация силы CSRF_SECRET_KEY."""
-        key_value = v.get_secret_value()
-        if len(key_value) < 32:
-            raise ValueError("CSRF_SECRET_KEY должен содержать минимум 32 символа")
-        
-        # Проверяем разнообразие символов
-        unique_chars = len(set(key_value))
-        if unique_chars < 16:
-            raise ValueError("CSRF_SECRET_KEY должен содержать минимум 16 уникальных символов")
-        
-        # Предупреждение о дефолтных значениях
-        if key_value in ["csrf-secret-key-dev", "your-csrf-secret-key-here"]:
-            raise ValueError("⚠️ КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ: Используется дефолтный CSRF_SECRET_KEY! Замените на криптографически стойкий ключ.")
-        
-        return v
-    
+    # ───────────────────────────── Валидация секретов (fail-fast) ─────────────────────────────
+    @model_validator(mode="after")
+    def _validate_secrets(self) -> "Settings":
+        """Секреты без дефолтов в production.
+
+        - DEBUG=False: отсутствие значения, dev-значение или слабый ключ -> ValueError
+          при старте (fail-fast с понятным сообщением).
+        - DEBUG=True: допускаем dev-значения для локальной разработки,
+          но логируем warning.
+        """
+        problems: list[str] = []
+
+        for name, dev_value in _DEV_DEFAULTS.items():
+            # CSRF выключен целиком (DISABLE_CSRF, только тестовые окружения) —
+            # его секрет не проверяем
+            if name == "CSRF_SECRET_KEY" and self.DISABLE_CSRF:
+                continue
+            value = getattr(self, name)
+            raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+
+            is_missing = raw is None or (isinstance(raw, str) and raw.strip() == "")
+            is_default = isinstance(raw, str) and raw in (
+                dev_value,
+                # Исторические дефолты/плейсхолдеры из старых версий конфига
+                "super-secret-key-dev",
+                "your-super-secret-key-here",
+                "csrf-secret-key-dev",
+                "your-csrf-secret-key-here",
+            )
+
+            if self.DEBUG:
+                if is_missing or is_default:
+                    logger.warning(
+                        "⚠️ %s не задан (или содержит dev-значение) — подставлено dev-значение. "
+                        "Допустимо ТОЛЬКО для локальной разработки!", name
+                    )
+                    setattr(self, name, SecretStr(dev_value))
+                elif name in ("SECRET_KEY", "CSRF_SECRET_KEY"):
+                    if len(raw) < 32 or len(set(raw)) < 16:
+                        logger.warning(
+                            "⚠️ %s слабый (%d симв.): в production запуск упадёт (fail-fast)", name, len(raw)
+                        )
+                continue
+
+            # DEBUG=False — строгие требования
+            if is_missing:
+                problems.append(
+                    f"{name}: значение обязательно (задайте переменную окружения {name})"
+                )
+            elif is_default:
+                problems.append(
+                    f"{name}: используется дефолтное dev-значение — задайте собственный секрет"
+                )
+            elif name in ("SECRET_KEY", "CSRF_SECRET_KEY"):
+                if len(raw) < 32:
+                    problems.append(f"{name}: должен содержать минимум 32 символа")
+                elif len(set(raw)) < 16:
+                    problems.append(f"{name}: должен содержать минимум 16 уникальных символов")
+
+        if problems:
+            raise ValueError(
+                "Проверка секретов не пройдена (DEBUG=False): " + "; ".join(problems)
+            )
+        return self
+
     @field_validator('CORS_ORIGINS')
     @classmethod
     def validate_cors_origins(cls, v: str) -> str:
@@ -160,6 +212,25 @@ class Settings(BaseSettings):
         return v
 
     # ───────────────────────────── Пути ─────────────────────────────
+    @property
+    def database_url(self) -> str:
+        """Эффективный URL подключения к БД.
+
+        Если DATABASE_URL задан явно — используется он, иначе URL собирается
+        из компонентов POSTGRES_* (без зашитого пароля в дефолтах).
+        """
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        password = (
+            self.POSTGRES_PASSWORD.get_secret_value()
+            if isinstance(self.POSTGRES_PASSWORD, SecretStr)
+            else ""
+        )
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{quote_plus(password)}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
+
     @property
     def BASE_DIR(self) -> Path:
         """Корневая директория проекта."""

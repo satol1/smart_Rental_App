@@ -32,19 +32,29 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_user_by_token(
-    token: str, 
+    token: str,
     user_repo: UserRepository
 ) -> ApiUser | None:
-    """Получает пользователя по JWT токену."""
-    from jose import JWTError, jwt
+    """Получает пользователя по JWT токену.
+
+    Типобезопасность: принимаются только access-токены (claim type="access").
+    Refresh-токен (или токен без type) здесь отклоняется.
+    """
+    import jwt
+    from jwt import InvalidTokenError
     from config.core import settings
-    
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY.get_secret_value(), algorithms=["HS256"])
-        email: str = payload.get("sub")
-        if email is None:
-            return None
-    except JWTError:
+    except InvalidTokenError:
+        return None
+
+    if payload.get("type") != "access":
+        # refresh-токен (или легаси-токен без type) нельзя использовать как access
+        return None
+
+    email: str | None = payload.get("sub")
+    if email is None:
         return None
     return await user_repo.get_by_email(email)
 
@@ -81,18 +91,6 @@ async def get_current_user_optional(
     except HTTPException:
         return None
 
-
-@inject
-async def get_current_admin_user(
-    current_user: ApiUser = Depends(get_current_user)
-) -> ApiUser:
-    """Проверяет, что текущий пользователь является администратором."""
-    if current_user.role not in ["admin", "manager"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Недостаточно прав для выполнения операции"
-        )
-    return current_user
 
 @inject
 def get_calendar_service(calendar_service: CalendarService = Depends(Provide[Container.calendar_service])) -> CalendarService:

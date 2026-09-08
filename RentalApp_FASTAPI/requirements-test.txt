@@ -1,32 +1,36 @@
 # Дополнительные зависимости для тестирования RentalApp_FASTAPI
+# (pytest и прочие тестовые пакеты живут здесь, в requirements.txt — только runtime)
 
 # Основной фреймворк для тестирования
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
+pytest==8.4.1
+pytest-asyncio==1.4.0
 
 # Моки и фикстуры
-pytest-mock>=3.11.0
+pytest-mock==3.15.1
 
 # Покрытие кода (опционально)
-pytest-cov>=4.1.0
+pytest-cov==7.1.0
+coverage==7.16.0
 
 # Параллельное выполнение тестов (опционально)
-pytest-xdist>=3.3.0
+pytest-xdist==3.8.0
 
 # Плагины для улучшения отчетности
-pytest-html>=3.2.0
-pytest-json-report>=1.5.0
+pytest-html==4.2.0
+pytest-json-report==1.5.0
 
 # Плагины для профилирования (опционально)
-pytest-benchmark>=4.0.0
+pytest-benchmark==5.3.0
 
 # Утилиты для тестирования
-factory-boy>=3.3.0  # Для создания тестовых данных
-faker>=19.0.0       # Для генерации фейковых данных
+factory-boy==3.3.3  # Для создания тестовых данных
+Faker==40.38.0      # Для генерации фейковых данных
 
 # Дополнительные утилиты
-freezegun>=1.2.0    # Для мокирования времени
-responses>=0.23.0   # Для мокирования HTTP-запросов
+freezegun==1.5.5    # Для мокирования времени
+responses==0.26.3   # Для мокирования HTTP-запросов
 
 # База данных для тестов
-aiosqlite>=0.19.0   # Для SQLite в тестах
+aiosqlite==0.22.1   # Для SQLite в тестах
+# Линтер: используется и в CI (.github/workflows/ci.yml), и в pre-commit
+ruff==0.16.6

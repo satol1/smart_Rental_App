@@ -6,7 +6,7 @@ import time
 import contextvars
 import asyncio
 
-from fastapi import FastAPI, Request, Response, HTTPException, status, APIRouter
+from fastapi import FastAPI, Request, Response, HTTPException, status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 # Импортируем конфигурацию логирования
@@ -16,6 +16,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.datastructures import State
 
 from api.router import router as all_routes
+from api.permissions import require_admin
+from api.models.user import User
 
 # Import schemas to rebuild models with forward references
 import shared.schemas
@@ -33,9 +35,12 @@ from fastapi.responses import JSONResponse
 from config.core import settings
 
 # --- Rate Limiting Imports ---
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+
+# Единый limiter (объявлен в отдельном модуле, чтобы роутеры не импортировали main_api)
+from api.rate_limiter import limiter
 
 # --- НАСТРОЙКА ЛОГГИРОВАНИЯ ---
 logging.basicConfig(level=logging.INFO)
@@ -45,58 +50,67 @@ logger = logging.getLogger(__name__)
 # УДАЛЕНО: Теперь используем request_db_session из containers.py
 
 # --- CSRF Configuration ---
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
-
-class CsrfSettings(BaseSettings):
-    secret_key: str = Field(default="default-csrf-secret-key", alias="CSRF_SECRET_KEY")
-    disable_csrf: bool = Field(default=False, alias="DISABLE_CSRF")
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
-
-# Условная конфигурация CSRF
-csrf_settings = CsrfSettings()
-if not csrf_settings.disable_csrf:
+# Конфигурация берётся из централизованных настроек (config.core.Settings);
+# переключатель DISABLE_CSRF сохранён для тестовых окружений (docker-compose.e2e.yml).
+if not settings.DISABLE_CSRF:
     @CsrfProtect.load_config
     def get_csrf_config():
         return [
-            ("secret_key", csrf_settings.secret_key),
+            ("secret_key", settings.CSRF_SECRET_KEY.get_secret_value()),
         ]
 else:
-    logger.info("CSRF защита отключена для тестов")
+    logger.info("CSRF защита отключена для тестов (DISABLE_CSRF=true)")
 
 # --- Rate Limiter Configuration ---
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+# Limiter создан в api/rate_limiter.py: default 200/minute глобально,
+# точечные лимиты (5/minute) — декораторами на auth-эндпоинтах.
 
 # --- FastAPI App Initialization ---
-app = FastAPI(title="Rental System API")
+# В production (DEBUG=False) интерактивная документация отключена
+app = FastAPI(
+    title="Rental System API",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
+)
 
 # Обработчик ошибок валидации Pydantic
 from pydantic import ValidationError
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
-    """Обработчик ошибок валидации Pydantic"""
+    """Обработчик ошибок валидации Pydantic.
+
+    Полные детали — только в режиме отладки (DEBUG=True); в production
+    возвращается общий формат 422 без внутренних подробностей.
+    """
     import logging
     logger = logging.getLogger(__name__)
-    
+
     logger.error(f"❌ VALIDATION ERROR: {exc}")
     logger.error(f"❌ VALIDATION ERROR: Request URL: {request.url}")
     logger.error(f"❌ VALIDATION ERROR: Request method: {request.method}")
-    
+
     # Логируем детали ошибок валидации
     for error in exc.errors():
         logger.error(f"❌ VALIDATION ERROR: {error}")
-    
+
+    if getattr(settings, "DEBUG", False):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": exc.errors(),
+                "error_type": "ValidationError",
+                "error_message": "Ошибка валидации данных"
+            }
+        )
+
+    # Production: общий формат без internals
     return JSONResponse(
         status_code=422,
         content={
-            "detail": exc.errors(),
-            "error_type": "ValidationError",
-            "error_message": "Ошибка валидации данных"
+            "detail": "Ошибка валидации данных",
+            "error_type": "ValidationError"
         }
     )
 
@@ -145,15 +159,17 @@ app.container = container
 
 # Глобальный контейнер больше не нужен - управление сессиями через Middleware
 
-# --- Rate Limiter State and Exception Handler ---
+# --- Rate Limiter State, Exception Handler and Middleware ---
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- HEALTH CHECK ENDPOINT ---
+# Простой health check: без аутентификации и без rate limit (exempt)
 @app.get("/health")
+@limiter.exempt
 async def health_check():
     """Health check endpoint для мониторинга состояния системы."""
-    return {"status": "healthy", "message": "System is running"}
+    return {"status": "ok"}
 
 @app.get("/test-simple")
 async def test_simple():
@@ -161,11 +177,11 @@ async def test_simple():
     return {"status": "success", "message": "Simple test works"}
 
 @app.get("/monitoring/stats")
-async def get_middleware_stats():
-    """Эндпоинт для мониторинга статистики middleware"""
+async def get_middleware_stats(admin: "User" = Depends(require_admin)):
+    """Эндпоинт для мониторинга статистики middleware (только для администраторов)"""
     # Получаем middleware из состояния приложения
     middleware = getattr(app.state, 'di_middleware', None)
-    
+
     if middleware and hasattr(middleware, 'get_stats'):
         stats = middleware.get_stats()
         return {
@@ -185,9 +201,10 @@ async def get_middleware_stats():
 # --- CSRF Exception Handler ---
 @app.exception_handler(CsrfProtectError)
 def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
+    """CSRF-ошибки единообразно возвращают 403 (независимо от internals библиотеки)."""
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.message}
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": "CSRF validation failed: " + (exc.message or "недействительный CSRF-токен")}
     )
 
 # --- НОВАЯ MIDDLEWARE ДЛЯ ЛОГГИРОВАНИЯ ЗАПРОСОВ ---
@@ -369,6 +386,10 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
 # +++ ДОБАВИТЬ РЕГИСТРАЦИЮ MIDDLEWARE (ВАЖНО: ДО CORS) +++
 app.add_middleware(DIContainerMiddleware)
 app.state.di_middleware = None  # Будет установлен после создания middleware
+
+# Rate limiting: глобальный default 200/minute; точечные лимиты заданы
+# декораторами @limiter.limit на auth-эндпоинтах
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(LoggingMiddleware)
 

@@ -2,9 +2,16 @@
 """
 Скрипт для создания главного администратора при разворачивании новой БД.
 Используется для инициализации системы с административным пользователем.
+
+Пароль берётся (в порядке приоритета):
+1. Аргумент командной строки:  python create_admin.py <password>
+2. Переменная окружения ADMIN_INITIAL_PASSWORD
+3. Если ничего не задано — генерируется случайный и выводится в консоль.
 """
 
 import asyncio
+import secrets
+import string
 import sys
 import os
 from sqlalchemy import select
@@ -18,16 +25,31 @@ from api.utils.password_utils import hash_password
 
 # --- Данные для входа администратора ---
 ADMIN_EMAIL = "admin@rentalapp.com"
-ADMIN_PASSWORD = "AdminRental2024!"  # Безопасный пароль
 ADMIN_FULL_NAME = "Главный Администратор"
 ADMIN_PHONE = "+7 (999) 000-00-00"
 # ------------------------------------
+
+
+def resolve_admin_password() -> str:
+    """Пароль администратора: argv[1] -> env ADMIN_INITIAL_PASSWORD -> случайный."""
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    env_password = os.getenv("ADMIN_INITIAL_PASSWORD")
+    if env_password:
+        return env_password
+
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    generated = "".join(secrets.choice(alphabet) for _ in range(16))
+    print("ℹ️  Пароль не задан (argv/ADMIN_INITIAL_PASSWORD) — сгенерирован случайный.")
+    return generated
+
 
 async def create_admin_user():
     """
     Создает пользователя с правами администратора в базе данных.
     """
     print("🚀 Запуск скрипта создания администратора...")
+    admin_password = resolve_admin_password()
     db_session = AsyncSessionLocal()
     try:
         # Проверяем, существует ли уже пользователь с таким email
@@ -43,7 +65,7 @@ async def create_admin_user():
         new_admin = User(
             full_name=ADMIN_FULL_NAME,
             email=ADMIN_EMAIL,
-            hashed_password=hash_password(ADMIN_PASSWORD),
+            hashed_password=hash_password(admin_password),
             phone=ADMIN_PHONE,
             role="admin",
             is_active=True,
@@ -59,7 +81,7 @@ async def create_admin_user():
         print("✅ Учетная запись администратора успешно создана!")
         print("---")
         print(f"  📧 Email: {ADMIN_EMAIL}")
-        print(f"  🔑 Пароль: {ADMIN_PASSWORD}")
+        print(f"  🔑 Пароль: {admin_password}")
         print("---")
 
     except Exception as e:
@@ -69,5 +91,7 @@ async def create_admin_user():
         await db_session.close()
         print("🏁 Скрипт завершил работу.")
 
+
 if __name__ == "__main__":
     asyncio.run(create_admin_user())
+

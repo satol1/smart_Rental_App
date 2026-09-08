@@ -1,8 +1,11 @@
 # api/auth_api.py
 
-import os
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response # Request может понадобиться для отладки CSRF
+import hmac
+import secrets
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.schemas.user_schema import UserCreate, Token
 from datetime import timedelta
@@ -10,26 +13,59 @@ from api.services.auth_service import AuthService
 from dependency_injector.wiring import inject, Provide
 from config.core import settings
 from containers import Container
-# from api.deps import get_user_by_token  # Импортируем локально в функции
+# from api.deps import get_user_by_token  # Импортируем локально в функциях
 from api.models.user import User
 from api.repositories.user_repository import UserRepository
-from fastapi_csrf_protect import CsrfProtect # <--- Добавлен импорт
-# Удален импорт get_db_session
-
-# Заглушка для CSRF защиты в тестах
-class MockCsrfProtect:
-    def __init__(self):
-        pass
-
-# Функция для условного получения CSRF зависимости
-def get_csrf_protect():
-    if os.getenv("DISABLE_CSRF", "false").lower() == "true":
-        return Depends(lambda: MockCsrfProtect())
-    return Depends(CsrfProtect)
+from fastapi_csrf_protect import CsrfProtect
+from fastapi_csrf_protect.exceptions import CsrfProtectError
+from api.rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["Аутентификация"])
 
-# Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
+# Параметры CSRF-защиты (совместимы с fastapi-csrf-protect и фронтендом)
+CSRF_COOKIE_KEY = "fastapi-csrf-token"
+CSRF_HEADER_KEY = "X-CSRF-Token"
+CSRF_TOKEN_MAX_AGE = 3600  # секунд
+
+
+def _csrf_serializer() -> URLSafeTimedSerializer:
+    """Сериализатор CSRF-токенов с тем же секретом/salt, что у fastapi-csrf-protect."""
+    return URLSafeTimedSerializer(
+        settings.CSRF_SECRET_KEY.get_secret_value(), salt="fastapi-csrf-token"
+    )
+
+
+async def _validate_csrf(request: Request, csrf_protect: CsrfProtect) -> None:
+    """Реальная валидация CSRF-токена запроса (double-submit + подпись).
+
+    Фронтенд шлёт в X-CSRF-Token значение cookie fastapi-csrf-token (или то же
+    значение из JSON /auth/csrf-token), поэтому проверяем:
+    1) заголовок совпадает с cookie (double-submit);
+    2) токен подписан серверным секретом и не истёк.
+
+    При выключенной защите (DISABLE_CSRF=true, только тестовые окружения)
+    проверка пропускается. Ошибки валидации -> CsrfProtectError -> 403
+    (обработчик в main_api).
+    """
+    if settings.DISABLE_CSRF:
+        return
+
+    cookie_token = request.cookies.get(CSRF_COOKIE_KEY)
+    header_token = request.headers.get(CSRF_HEADER_KEY)
+
+    if (
+        not cookie_token
+        or not header_token
+        or not hmac.compare_digest(header_token, cookie_token)
+    ):
+        raise CsrfProtectError(403, "CSRF-токен отсутствует или не совпадает")
+
+    try:
+        _csrf_serializer().loads(cookie_token, max_age=CSRF_TOKEN_MAX_AGE)
+    except SignatureExpired:
+        raise CsrfProtectError(403, "CSRF-токен истёк")
+    except BadData:
+        raise CsrfProtectError(403, "CSRF-токен недействителен")
 
 
 # OAuth2PasswordBearer определяет, что для получения токена нужно обратиться к /auth/token
@@ -58,23 +94,42 @@ def _resolve_cookie_domain(request: Request) -> str | None:
 
 @router.get("/csrf-token")
 @inject
-async def get_csrf_token(request: Request, response: Response):
-    """Получить CSRF токен для защиты от CSRF атак."""
-    import secrets
-    token = secrets.token_urlsafe(32)
-    
-    # Устанавливаем CSRF cookie в ответе
+async def get_csrf_token(
+        request: Request,
+        response: Response,
+        csrf_protect: CsrfProtect = Depends()
+):
+    """Получить CSRF токен для защиты от CSRF атак.
+
+    Токен подписывается секретным ключом сервера. Одно и то же подписанное
+    значение уходит и в cookie fastapi-csrf-token (читается фронтендом), и в
+    JSON-ответе — фронтенд шлёт его обратно в заголовке X-CSRF-Token,
+    где проверяется совпадение с cookie и подпись (double-submit).
+    """
+    if settings.DISABLE_CSRF:
+        # Защита выключена (тестовые окружения) — выдаём простой токен
+        token = secrets.token_urlsafe(32)
+        response.set_cookie(
+            key=CSRF_COOKIE_KEY,
+            value=token,
+            httponly=False,
+            secure=False,
+            samesite="lax",
+        )
+        return {"csrf_token": token}
+
+    _, signed_token = csrf_protect.generate_csrf_tokens()
     response.set_cookie(
-        key="fastapi-csrf-token",
-        value=token,
-        httponly=False,  # Позволяем JavaScript читать cookie
-        secure=False,    # Для разработки
-        samesite="lax"
+        key=CSRF_COOKIE_KEY,
+        value=signed_token,
+        httponly=False,  # фронтенд читает cookie и шлёт значение в заголовке
+        secure=False,    # TLS терминируется на nginx, бэкенд видит http
+        samesite="lax",
     )
-    
-    return {"csrf_token": token}
+    return {"csrf_token": signed_token}
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 @inject
 async def register_user(
         user_data: UserCreate,
@@ -82,26 +137,21 @@ async def register_user(
         auth_service: AuthService = Depends(Provide[Container.auth_service]),
         csrf_protect: CsrfProtect = Depends()
 ):
-    try:
-        # Валидируем CSRF-токен (если защита не отключена через переменную окружения)
-        try:
-            csrf_protect.validate_csrf(request)
-        except Exception as _:
-            # Библиотека сама бросит корректный HTTPException; дублировать не нужно
-            pass
-        user = await auth_service.create_user(user_data)
-        
-        return {
-            "message": "Пользователь успешно зарегистрирован", 
-            "email": user.email,
-            "full_name": user.full_name,
-            "role": user.role
-        }
-    except Exception:
-        raise
+    # Валидируем CSRF-токен: при ошибке CsrfProtectError -> 403 (обработчик в main_api)
+    await _validate_csrf(request, csrf_protect)
+
+    user = await auth_service.create_user(user_data)
+
+    return {
+        "message": "Пользователь успешно зарегистрирован",
+        "email": user.email,
+        "full_name": user.full_name,
+        "role": user.role
+    }
 
 
 @router.post("/token", response_model=Token)
+@limiter.limit("5/minute")
 @inject
 async def login(
         request: Request,
@@ -109,11 +159,9 @@ async def login(
         auth_service: AuthService = Depends(Provide[Container.auth_service]),
         csrf_protect: CsrfProtect = Depends()
 ):
-    # Валидируем CSRF-токен
-    try:
-        csrf_protect.validate_csrf(request)
-    except Exception as _:
-        pass
+    # Валидируем CSRF-токен: при ошибке CsrfProtectError -> 403 (обработчик в main_api)
+    await _validate_csrf(request, csrf_protect)
+
     user = await auth_service.authenticate_user(form_data.username, form_data.password, request)
     if not user:
         raise HTTPException(
@@ -144,6 +192,7 @@ async def login(
 
 
 @router.post("/refresh")
+@limiter.limit("5/minute")
 @inject
 async def refresh_token_endpoint(
         request: Request,
@@ -152,15 +201,14 @@ async def refresh_token_endpoint(
         csrf_protect: CsrfProtect = Depends()
 ):
     """Обновляет access-токен по refresh-токену из httpOnly cookie."""
-    # Валидируем CSRF-токен
-    try:
-        csrf_protect.validate_csrf(request)
-    except Exception as _:
-        pass
+    # Валидируем CSRF-токен: при ошибке CsrfProtectError -> 403 (обработчик в main_api)
+    await _validate_csrf(request, csrf_protect)
+
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh токен отсутствует")
 
+    # verify_refresh_token проверяет подпись, type="refresh" и denylist (logout)
     payload = auth_service.verify_refresh_token(refresh_token)
     subject = payload.get("sub")
     if not subject:
@@ -178,11 +226,18 @@ async def logout(
         auth_service: AuthService = Depends(Provide[Container.auth_service]),
         csrf_protect: CsrfProtect = Depends()
 ):
-    """Очищает refresh-cookie, деаутентифицируя клиента."""
-    try:
-        csrf_protect.validate_csrf(request)
-    except Exception as _:
-        pass
+    """Очищает refresh-cookie и отзывает refresh-токен (denylist), деаутентифицируя клиента.
+
+    Logout не требует валидного access-токена: refresh декодируется напрямую
+    из cookie, чтобы отзыв сработал даже при истёкшем access.
+    """
+    await _validate_csrf(request, csrf_protect)
+
+    # Отзываем refresh-токен по jti (с TTL до момента его истечения)
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        auth_service.revoke_refresh_token(refresh_token)
+
     secure_cookie = not settings.DEBUG
     cookie_domain = _resolve_cookie_domain(request)
     from fastapi.responses import JSONResponse

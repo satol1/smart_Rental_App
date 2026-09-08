@@ -16,7 +16,7 @@ async def create_test_database():
     """Создает тестовую базу данных с идентичной структурой реальной БД."""
     try:
         # Получаем URL тестовой базы данных
-        test_database_url = os.getenv('TEST_DATABASE_URL', settings.DATABASE_URL)
+        test_database_url = os.getenv('TEST_DATABASE_URL', settings.database_url)
         
         print(f"=== Создание тестовой базы данных ===")
         print(f"URL: {test_database_url}")

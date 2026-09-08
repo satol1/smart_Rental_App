@@ -1,18 +1,23 @@
 # api/services/auth_service.py
 
+import logging
+import uuid
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from jwt import InvalidTokenError
+from fastapi import HTTPException, Depends, Request
+
 from api.models.user import User
-from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from shared.schemas.user_schema import UserCreate
-from datetime import datetime, timedelta
 from config.core import settings
-from fastapi import HTTPException, Depends, Request
 from api.repositories.user_repository import UserRepository
 from api.utils.password_utils import hash_password, verify_password
 from api.services.security_audit_service import SecurityAuditService
 from api.services.brute_force_protection_service import BruteForceProtectionService
-import logging
+from api.services.token_denylist_service import TokenDenylistService, get_token_denylist
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -24,11 +29,19 @@ class AuthService:
     Сервис для аутентификации и авторизации пользователей.
     Инкапсулирует всю бизнес-логику работы с аутентификацией.
     """
-    
-    def __init__(self, user_repo: UserRepository, security_audit_service: SecurityAuditService, brute_force_protection: BruteForceProtectionService):
+
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        security_audit_service: SecurityAuditService,
+        brute_force_protection: BruteForceProtectionService,
+        token_denylist: TokenDenylistService | None = None,
+    ):
         self.user_repo = user_repo
         self.security_audit_service = security_audit_service
         self.brute_force_protection = brute_force_protection
+        # In-memory denylist; позже заменяется на Redis-хранилище
+        self.token_denylist = token_denylist or get_token_denylist()
 
     async def create_user(self, user_data: UserCreate) -> User:
         import logging
@@ -72,12 +85,10 @@ class AuthService:
             logger.info(f"🔍 [AUTH_SERVICE] Вызываем user_repo.create...")
             user = await self.user_repo.create(user_create_data)
             logger.info(f"🔍 [AUTH_SERVICE] Пользователь создан в репозитории")
-            
-            # Коммитим транзакцию
-            logger.info(f"🔍 [AUTH_SERVICE] Коммитим транзакцию...")
-            await self.user_repo.db.commit()
-            logger.info(f"✅ [AUTH_SERVICE] Пользователь успешно создан: {user.email}")
-            
+
+            # Коммитом управляет DIContainerMiddleware (request-scoped транзакция);
+            # ручной commit в сервисе не нужен.
+
             return user
         except HTTPException as http_exc:
             logger.error(f"❌ [AUTH_SERVICE] HTTPException: {http_exc.status_code} - {http_exc.detail}")
@@ -157,26 +168,63 @@ class AuthService:
             return None
 
     def create_access_token(self, data: dict, expires_delta: timedelta = None) -> str:
-        """Создание JWT токена доступа."""
+        """Создание JWT токена доступа (claim type=access)."""
         to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-        to_encode.update({"exp": expire})
+        expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        to_encode.update({"exp": expire, "type": "access"})
         return jwt.encode(to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM)
 
     def create_refresh_token(self, data: dict, expires_delta: timedelta = None) -> str:
-        """Создание JWT refresh-токена с более длительным сроком жизни."""
+        """Создание JWT refresh-токена (type=refresh, уникальный jti для denylist)."""
         to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
-        to_encode.update({"exp": expire, "type": "refresh"})
+        expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+        to_encode.update({"exp": expire, "type": "refresh", "jti": uuid.uuid4().hex})
         return jwt.encode(to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM)
 
     def verify_refresh_token(self, token: str) -> dict:
-        """Проверка и декодирование refresh-токена. Бросает HTTPException при ошибке."""
+        """Проверка и декодирование refresh-токена (type=refresh, не отозван). Бросает HTTPException."""
         try:
             payload = jwt.decode(token, settings.SECRET_KEY.get_secret_value(), algorithms=[ALGORITHM])
-            if payload.get("type") != "refresh":
-                raise HTTPException(status_code=401, detail="Недействительный тип токена")
-            return payload
-        except JWTError:
+        except InvalidTokenError:
             raise HTTPException(status_code=401, detail="Недействительный или просроченный refresh токен")
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Недействительный тип токена")
+
+        jti = payload.get("jti")
+        if jti and self.token_denylist.is_denied(jti):
+            raise HTTPException(status_code=401, detail="Refresh токен отозван (logout)")
+
+        return payload
+
+    def decode_refresh_token(self, token: str) -> dict | None:
+        """Декодирует refresh-токен без бросания исключений (для logout).
+
+        Возвращает payload валидного refresh-токена либо None — logout не должен
+        падать из-за некорректной/истёкшей cookie, её достаточно просто удалить.
+        """
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY.get_secret_value(), algorithms=[ALGORITHM])
+        except InvalidTokenError:
+            return None
+        if payload.get("type") != "refresh":
+            return None
+        return payload
+
+    def revoke_refresh_token(self, token: str) -> bool:
+        """Отзывает refresh-токен: jti вносится в denylist с TTL до истечения.
+
+        Вызывается при logout — работает даже если access-токен уже истёк,
+        т.к. refresh декодируется напрямую, без аутентификации запроса.
+        """
+        payload = self.decode_refresh_token(token)
+        if not payload:
+            return False
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+        if not jti or not exp:
+            # Токен без jti/exp нельзя точечно отозвать (легаси-формат)
+            return False
+        self.token_denylist.deny(jti, expires_at=float(exp))
+        return True
 
