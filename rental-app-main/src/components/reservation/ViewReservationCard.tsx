@@ -184,25 +184,25 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
 
     return (
         <>
-            <Card className={`w-full px-5 py-4 rounded-2xl border shadow-sm hover:shadow-md transition-all ${cardColor}`}>
-                <div className="space-y-3">
+            <Card className={`w-full px-5 py-4 rounded-2xl border border-border/75 shadow-xs hover:shadow-md transition-all ${cardColor}`}>
+                <div className="space-y-3.5">
                     <div className="flex justify-between items-center">
-                        <div className="text-base font-semibold text-sky-700 flex items-center gap-2">
+                        <div className="text-base font-bold text-foreground flex items-center gap-2">
                             <span
-                                className={`${onEdit && status === 'active' ? 'cursor-pointer hover:text-sky-800 hover:underline transition-colors' : ''}`}
+                                className={`${onEdit && status === 'active' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
                                 onClick={onEdit && status === 'active' ? onEdit : undefined}
                             >
                                 Резерв #{id}
                             </span>
                             {/* Бейдж "Новый" при подсветке нового резерва */}
                             {isNewReservation(id) && (
-                                <span className="px-2 py-0.5 text-[11px] rounded-md bg-violet-100 text-violet-700 border border-violet-200">Новый</span>
+                                <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pastel-lavender text-pastel-lavender-fg border border-purple-200/50">Новый</span>
                             )}
                             {/* Grace-период: отменить можно, даже если дата близко */}
                             {inGrace && isActionable && !isAdminOrManager && daysUntilStart !== null && daysUntilStart <= 2 && (
-                                <span className="px-2 py-0.5 text-[11px] rounded-md bg-green-100 text-green-700 border border-green-200 flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    Отмена бесплатно ещё {graceHoursLeft} ч
+                                <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-pastel-mint text-pastel-mint-fg border border-emerald-200/50 flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    Бесплатная отмена ещё {graceHoursLeft} ч
                                 </span>
                             )}
                         </div>
@@ -213,7 +213,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                                     variant="outline"
                                     size="sm"
                                     onClick={handleRentalClick}
-                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+                                    className="text-pastel-amber-fg bg-pastel-amber border-amber-200/60 hover:bg-amber-100/80 rounded-lg text-xs"
                                 >
                                     <ExternalLink className="w-3 h-3 mr-1" />
                                     Аренда #{rental_id}
@@ -222,14 +222,14 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-2 border-t border-dashed">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-2.5 border-t border-dashed border-border/70">
                         {start && end ? (
-                            <div className="flex items-center gap-2 text-sm">
-                                <CalendarRange className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-xl bg-pastel-sky/50 text-pastel-sky-fg border border-sky-200/60">
+                                <CalendarRange className="w-4 h-4 text-primary flex-shrink-0" />
                                 <span>{formatDateEuropean(start)} — {formatDateEuropean(end)}</span>
                             </div>
                         ) : (
-                            <p className="text-red-600 text-sm">Ошибка в дате резерва</p>
+                            <p className="text-destructive text-sm font-medium">Ошибка в дате резерва</p>
                         )}
 
                         <FinancialInfoBlock
@@ -243,7 +243,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
 
                     {statusInfo.showMessage && status === 'active' && (
                         <div className="flex items-center gap-2 text-sm">
-                            <div className={`px-2 py-1 rounded-md text-xs ${statusInfo.className} bg-opacity-10`}>
+                            <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.className} bg-pastel-sky/40 border border-sky-200/50`}>
                                 {statusInfo.message}
                             </div>
                         </div>

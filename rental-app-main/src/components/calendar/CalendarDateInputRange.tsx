@@ -77,9 +77,9 @@ export default function CalendarDateInputRange({
 
   if (compact) {
     return (
-      <div className={cn("flex items-center gap-2 sm:gap-3", className)}>
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <label className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+      <div className={cn("flex items-center gap-1.5 sm:gap-3", className)}>
+        <div className="flex items-center gap-1">
+          <label className="text-[11px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap">
             С:
           </label>
           <input
@@ -87,18 +87,18 @@ export default function CalendarDateInputRange({
             value={localStartDate}
             onChange={handleStartDateChange}
             className={cn(
-              "h-8 px-2 py-1 text-xs sm:text-sm rounded border bg-background text-foreground transition-colors",
+              "h-8 max-w-[124px] sm:max-w-none px-1.5 sm:px-2.5 py-1 text-xs sm:text-sm rounded-lg border bg-background text-foreground transition-all shadow-sm",
               startDateError 
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
-                : "border-input hover:border-sky-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                ? "border-destructive focus:ring-2 focus:ring-destructive/20 focus:border-destructive" 
+                : "border-border hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
             min={formatDateForInput(new Date())}
             title={startDateError || undefined}
           />
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <label className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+        <div className="flex items-center gap-1">
+          <label className="text-[11px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap">
             По:
           </label>
           <input
@@ -106,10 +106,10 @@ export default function CalendarDateInputRange({
             value={localEndDate}
             onChange={handleEndDateChange}
             className={cn(
-              "h-8 px-2 py-1 text-xs sm:text-sm rounded border bg-background text-foreground transition-colors",
+              "h-8 max-w-[124px] sm:max-w-none px-1.5 sm:px-2.5 py-1 text-xs sm:text-sm rounded-lg border bg-background text-foreground transition-all shadow-sm",
               endDateError 
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
-                : "border-input hover:border-sky-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                ? "border-destructive focus:ring-2 focus:ring-destructive/20 focus:border-destructive" 
+                : "border-border hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
             min={minEndDate}
             title={endDateError || undefined}
@@ -118,7 +118,7 @@ export default function CalendarDateInputRange({
 
         {!isRangeValid && (
           <span
-            className="hidden lg:inline-flex text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800"
+            className="hidden lg:inline-flex text-xs font-medium text-pastel-amber-fg bg-pastel-amber px-2.5 py-0.5 rounded-full border border-amber-200/60"
             title="Выбранные даты содержат выходные дни"
           >
             ⚠️ Выходные
@@ -129,28 +129,29 @@ export default function CalendarDateInputRange({
   }
 
   return (
-    <div className={`flex flex-col gap-4 ${className}`}>
+    <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 mb-1">
-            С:
+          <label className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">
+            Дата начала:
           </label>
           <input
             type="date"
             value={localStartDate}
             onChange={handleStartDateChange}
-            className={`border rounded px-2 py-1 text-sm ${
+            className={cn(
+              "h-10 border rounded-lg px-3 py-1.5 text-sm bg-background text-foreground shadow-sm transition-all",
               startDateError 
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
-                : "border-gray-300 focus:ring-sky-500 focus:border-sky-500"
-            }`}
+                ? "border-destructive focus:ring-2 focus:ring-destructive/20 focus:border-destructive" 
+                : "border-border hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            )}
             min={formatDateForInput(new Date())}
           />
           {startDateError && (
-            <div className="text-xs text-red-600 mt-1">
+            <div className="text-xs text-destructive mt-1.5 font-medium">
               <p>{startDateError}</p>
               {suggestedStartDate && (
-                <p className="text-blue-600">
+                <p className="text-primary mt-0.5">
                   Следующий рабочий день: {formatDate(suggestedStartDate)}
                 </p>
               )}
@@ -159,25 +160,26 @@ export default function CalendarDateInputRange({
         </div>
         
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 mb-1">
-            По:
+          <label className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">
+            Дата окончания:
           </label>
           <input
             type="date"
             value={localEndDate}
             onChange={handleEndDateChange}
-            className={`border rounded px-2 py-1 text-sm ${
+            className={cn(
+              "h-10 border rounded-lg px-3 py-1.5 text-sm bg-background text-foreground shadow-sm transition-all",
               endDateError 
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
-                : "border-gray-300 focus:ring-sky-500 focus:border-sky-500"
-            }`}
+                ? "border-destructive focus:ring-2 focus:ring-destructive/20 focus:border-destructive" 
+                : "border-border hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            )}
             min={minEndDate}
           />
           {endDateError && (
-            <div className="text-xs text-red-600 mt-1">
+            <div className="text-xs text-destructive mt-1.5 font-medium">
               <p>{endDateError}</p>
               {suggestedEndDate && (
-                <p className="text-blue-600">
+                <p className="text-primary mt-0.5">
                   Следующий рабочий день: {formatDate(suggestedEndDate)}
                 </p>
               )}
@@ -187,8 +189,8 @@ export default function CalendarDateInputRange({
       </div>
       
       {!isRangeValid && (
-        <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-          ⚠️ Выбранные даты содержат выходные дни. Рекомендуется выбрать рабочие дни.
+        <div className="text-xs text-pastel-amber-fg bg-pastel-amber p-2.5 rounded-lg border border-amber-200/60 font-medium text-center">
+          ⚠️ Выбранные даты содержат выходные дни. Рекомендуется выбрать рабочие дни для выдачи и возврата.
         </div>
       )}
     </div>

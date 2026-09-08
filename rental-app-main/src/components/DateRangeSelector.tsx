@@ -127,43 +127,47 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     // Удаляем функции форматирования, так как они теперь в CalendarDateInputRange
 
     return (
-        <div className="mb-4 border rounded-md p-4 bg-white dark:bg-card shadow-sm transition-all duration-300 ease-in-out">
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200">Выбирайте даты начала и окончания аренды:</h2>
+        <div className="mb-4 border border-border/80 rounded-2xl p-5 bg-card text-card-foreground shadow-sm transition-all duration-200">
+            <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-primary" />
+                    <h2 className="text-sm font-semibold text-foreground tracking-tight">Период аренды фототехники</h2>
+                </div>
                 <button
                     type="button"
                     onClick={() => setInternalCollapsed(!internalCollapsed)}
-                    className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition p-1 cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-accent/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer"
                     title={collapsed ? "Развернуть календарь" : "Свернуть календарь"}
                 >
-                    {collapsed ? <ChevronsDown className="w-5 h-5" /> : <ChevronsUp className="w-5 h-5" />}
+                    <span>{collapsed ? "Развернуть календарь" : "Свернуть"}</span>
+                    {collapsed ? <ChevronsDown className="w-4 h-4" /> : <ChevronsUp className="w-4 h-4" />}
                 </button>
             </div>
 
             {showInitialCards ? (
                     <div
-                        className="flex justify-center items-center gap-4 mt-4 cursor-pointer group"
+                        className="flex justify-center items-center gap-4 sm:gap-6 mt-3 cursor-pointer group select-none py-2"
                         onClick={() => setInternalCollapsed(false)}
-                        title="Нажмите, чтобы изменить даты"
+                        title="Нажмите, чтобы развернуть календарь и изменить даты"
                     >
-                        <div className="text-center p-3 rounded-lg bg-sky-50 border-2 border-sky-200 w-40 transition-all group-hover:border-sky-400 group-hover:shadow-lg">
-                            <div className="text-sm font-medium text-sky-700">Начало</div>
-                            <div className="text-4xl font-bold text-sky-900 leading-tight">{format(startDate, "dd")}</div>
-                            <div className="text-lg font-semibold text-sky-800 capitalize">{format(startDate, "LLLL", { locale: ru })}</div>
-                            <div className="text-sm text-sky-600">{format(startDate, "yyyy")}</div>
+                        <div className="text-center p-4 rounded-xl bg-pastel-sky/50 border border-sky-200/70 w-36 sm:w-44 transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md group-hover:-translate-y-0.5">
+                            <div className="text-xs font-semibold text-pastel-sky-fg uppercase tracking-wider mb-1">Начало аренды</div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-foreground leading-none my-1 tracking-tight">{format(startDate, "dd")}</div>
+                            <div className="text-sm sm:text-base font-medium text-foreground/80 capitalize">{format(startDate, "LLLL", { locale: ru })}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{format(startDate, "yyyy")}</div>
                         </div>
-                        <div className="text-3xl font-light text-gray-300 pb-8">-</div>
-                        <div className={`text-center p-3 rounded-lg w-40 transition-all group-hover:shadow-lg ${
+                        <div className="text-2xl font-light text-muted-foreground/50 pb-4">→</div>
+                        <div className={`text-center p-4 rounded-xl w-36 sm:w-44 transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${
                             isAutoUpdating
-                                ? 'bg-green-50 border-2 border-green-300 animate-pulse'
-                                : 'bg-sky-50 border-2 border-sky-200 group-hover:border-sky-400'
+                                ? 'bg-pastel-mint/60 border border-emerald-300/80 animate-pulse'
+                                : 'bg-pastel-sky/50 border border-sky-200/70 group-hover:border-primary/50'
                         }`}>
-                            <div className="text-sm font-medium text-sky-700">
+                            <div className="text-xs font-semibold text-pastel-sky-fg uppercase tracking-wider mb-1">
                                 {isAutoUpdating ? 'Обновляется...' : 'Окончание'}
                             </div>
-                            <div className="text-4xl font-bold text-sky-900 leading-tight">{format(endDate, "dd")}</div>
-                            <div className="text-lg font-semibold text-sky-800 capitalize">{format(endDate, "LLLL", { locale: ru })}</div>
-                            <div className="text-sm text-sky-600">{format(endDate, "yyyy")}</div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-foreground leading-none my-1 tracking-tight">{format(endDate, "dd")}</div>
+                            <div className="text-sm sm:text-base font-medium text-foreground/80 capitalize">{format(endDate, "LLLL", { locale: ru })}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{format(endDate, "yyyy")}</div>
                         </div>
                     </div>
                 ) : showExpandedCalendar ? (
@@ -182,28 +186,28 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
                                 min={2}
                                 modifiers={{ holiday: holidays }}
                                 classNames={{
-                                    months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
+                                    months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-6 sm:space-y-0',
                                     month: 'space-y-4',
                                     table: 'w-full border-collapse space-y-1',
                                     head_row: 'flex',
                                     head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
                                     row: 'flex w-full mt-2',
-                                    cell: 'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-                                    day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100',
+                                    cell: 'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-pastel-sky/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+                                    day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md transition-colors hover:bg-accent',
                                     nav: 'space-x-1 flex items-center',
                                     caption: 'flex justify-center pt-1 relative items-center',
-                                    caption_label: 'text-sm font-medium',
-                                    nav_button: 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100'
+                                    caption_label: 'text-sm font-semibold tracking-tight',
+                                    nav_button: 'h-7 w-7 bg-transparent p-0 opacity-60 hover:opacity-100 hover:bg-accent rounded-md transition-all'
                                 }}
                                 modifiersClassNames={{
-                                    today: 'bg-accent text-accent-foreground',
-                                    selected: 'bg-sky-600 text-white hover:bg-sky-600 hover:text-white focus:bg-sky-600 focus:text-white',
+                                    today: 'bg-accent font-semibold text-accent-foreground',
+                                    selected: 'bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 focus:bg-primary',
                                     range_start: 'rounded-l-full',
                                     range_end: 'rounded-r-full',
-                                    range_middle: 'aria-selected:bg-sky-100 aria-selected:text-sky-900',
-                                    outside: 'day-outside text-muted-foreground opacity-50',
-                                    disabled: 'text-muted-foreground opacity-50 cursor-not-allowed',
-                                    holiday: 'text-red-600 bg-red-50 border-red-200 font-bold',
+                                    range_middle: 'aria-selected:bg-pastel-sky aria-selected:text-pastel-sky-fg',
+                                    outside: 'day-outside text-muted-foreground opacity-40',
+                                    disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
+                                    holiday: 'text-destructive bg-pastel-coral/60 border border-destructive/20 font-semibold',
                                 }}
                             />
                         </div>

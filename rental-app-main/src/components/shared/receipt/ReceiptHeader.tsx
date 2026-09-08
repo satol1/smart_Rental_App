@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.webp";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 interface ReceiptHeaderProps {
     rentalId: number;
@@ -21,11 +21,7 @@ export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }
         return (
             <div className="text-center mb-2">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                    <img 
-                        src={logo} 
-                        alt="Логотип" 
-                        className="w-10 h-10"
-                    />
+                    <BrandLogo size={36} showText={false} animated={false} />
                     <div>
                         <h1 className="text-lg font-bold text-gray-900">
                             Цифровой. Умная аренда техники
@@ -35,11 +31,11 @@ export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }
                         </p>
                     </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                    <h2 className="text-base font-semibold text-blue-900">
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-2">
+                    <h2 className="text-base font-semibold text-sky-950">
                         БЛАНК АРЕНДЫ №{rentalId}
                     </h2>
-                    <p className="text-xs text-blue-700">
+                    <p className="text-xs text-sky-700">
                         Дата выдачи: {formatDateTime(createdAt)}
                     </p>
                 </div>
@@ -50,11 +46,7 @@ export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }
     return (
         <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-4 mb-4">
-                <img 
-                    src={logo} 
-                    alt="Логотип" 
-                    className="w-16 h-16"
-                />
+                <BrandLogo size={56} showText={false} animated={false} />
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
                         Цифровой. Умная аренда техники
@@ -64,11 +56,11 @@ export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }
                     </p>
                 </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h2 className="text-xl font-semibold text-blue-900">
+            <div className="bg-sky-50 border border-sky-200 rounded-xl p-4">
+                <h2 className="text-xl font-semibold text-sky-950">
                     БЛАНК АРЕНДЫ №{rentalId}
                 </h2>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-sky-700">
                     Дата выдачи: {formatDateTime(createdAt)}
                 </p>
             </div>

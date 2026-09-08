@@ -42,24 +42,24 @@ export function getEquipmentCardStyles(
     
     if (isUnderRepair) {
         return {
-            background: "bg-gray-100",
-            border: "border-gray-300 cursor-not-allowed opacity-70",
-            text: "text-gray-500"
+            background: "bg-muted/40 dark:bg-muted/20",
+            border: "border-border/60 cursor-not-allowed opacity-65",
+            text: "text-muted-foreground"
         };
     }
     
     if (isSelected) {
         return {
-            background: "bg-white",
-            border: "ring-2 ring-offset-1 ring-sky-500 border-sky-400",
-            text: "text-gray-900"
+            background: "bg-card",
+            border: "ring-2 ring-primary ring-offset-2 ring-offset-background border-primary/60 shadow-md",
+            text: "text-foreground"
         };
     }
     
     return {
-        background: "bg-white",
-        border: "border-gray-200 hover:shadow-lg",
-        text: "text-gray-900"
+        background: "bg-card",
+        border: "border-border/75 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5",
+        text: "text-foreground"
     };
 }
 

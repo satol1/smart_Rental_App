@@ -7,7 +7,11 @@ export default {
 	],
 	theme: {
 		extend: {
+			fontFamily: {
+				sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+			},
 			borderRadius: {
+				xl: 'calc(var(--radius) + 4px)',
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
@@ -46,6 +50,18 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
+				pastel: {
+					sky: 'hsl(var(--pastel-sky))',
+					'sky-fg': 'hsl(var(--pastel-sky-fg))',
+					mint: 'hsl(var(--pastel-mint))',
+					'mint-fg': 'hsl(var(--pastel-mint-fg))',
+					amber: 'hsl(var(--pastel-amber))',
+					'amber-fg': 'hsl(var(--pastel-amber-fg))',
+					coral: 'hsl(var(--pastel-coral))',
+					'coral-fg': 'hsl(var(--pastel-coral-fg))',
+					lavender: 'hsl(var(--pastel-lavender))',
+					'lavender-fg': 'hsl(var(--pastel-lavender-fg))',
+				},
 				chart: {
 					'1': 'hsl(var(--chart-1))',
 					'2': 'hsl(var(--chart-2))',

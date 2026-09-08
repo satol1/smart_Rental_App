@@ -101,12 +101,12 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
     return (
         <>
             <div
-                className={`relative group rounded-xl shadow transition w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden ${backgroundClass} ${selectionClass}`}
+                className={`relative group rounded-2xl border transition-all duration-200 w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden shadow-xs hover:shadow-md ${backgroundClass} ${selectionClass}`}
                 onClick={handleCardClick}
                 onDoubleClick={handleCardClick}
                 tabIndex={0}
             >
-                {isSelected && <div className="absolute top-2.5 right-2.5 z-10 bg-sky-600 text-white rounded-full p-1 shadow"><CheckCircle className="w-5 h-5" /></div>}
+                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow-sm animate-in zoom-in-75"><CheckCircle className="w-4 h-4" /></div>}
 
                 <CardImage imageUrl={equipment.image_url} name={equipment.name} />
 
@@ -205,12 +205,12 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
     return (
         <>
             <div
-                className={`relative group rounded-xl shadow transition w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden ${backgroundClass} ${selectionClass}`}
+                className={`relative group rounded-2xl border transition-all duration-200 w-full max-w-sm flex flex-col justify-between cursor-pointer overflow-hidden shadow-xs hover:shadow-md ${backgroundClass} ${selectionClass}`}
                 onClick={handleCardClick}
                 onDoubleClick={handleCardClick}
                 tabIndex={0}
             >
-                {isSelected && <div className="absolute top-2.5 right-2.5 z-10 bg-sky-600 text-white rounded-full p-1 shadow"><CheckCircle className="w-5 h-5" /></div>}
+                {isSelected && <div className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground rounded-full p-1 shadow-sm animate-in zoom-in-75"><CheckCircle className="w-4 h-4" /></div>}
 
                 <CardImage imageUrl={equipment.image_url} name={equipment.name} />
 

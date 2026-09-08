@@ -26,7 +26,6 @@ import { useReservationNavigation } from "@/hooks/useReservationNavigation"; // 
 import { useAllEquipment } from "@/hooks/useAllEquipment"; // <-- СПРАВОЧНИК ВСЕГО ОБОРУДОВАНИЯ
 import { useAvailabilityForEquipment } from "@/hooks/useAvailabilityForEquipment"; // <-- ХУК ДЛЯ ДОСТУПНОСТИ ОБОРУДОВАНИЯ ПАЧКИ
 import { createAvailabilityMap } from "@/lib/equipmentUtils"; // <-- УТИЛИТАРНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КАРТЫ ДОСТУПНОСТИ
-import { cn } from "@/lib/utils";
 
 export default function HomePage() {
     const location = useLocation();
@@ -38,7 +37,6 @@ export default function HomePage() {
     
     // Состояние для управления "липким" компактным блоком выбора дат
     const [isSticky, setIsSticky] = useState(false);
-    const [placeholderHeight, setPlaceholderHeight] = useState<number>(0);
     const dateSelectorRef = useRef<HTMLDivElement>(null);
     
     // Получаем нужные данные и функции из хранилищ
@@ -94,34 +92,18 @@ export default function HomePage() {
     // Создаем availabilityMap для оборудования пачки
     const availabilityMapForModal = useMemo(() => createAvailabilityMap(availabilityForModal), [availabilityForModal]);
 
-    // Измеряем реальную высоту развернутого блока выбора дат, чтобы при сворачивании не прыгала страница
-    useEffect(() => {
-        if (!dateSelectorRef.current) return;
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                if (!isSticky && entry.target) {
-                    const height = (entry.target as HTMLElement).offsetHeight;
-                    if (height > 0) {
-                        setPlaceholderHeight(height);
-                    }
-                }
-            }
-        });
-        resizeObserver.observe(dateSelectorRef.current);
-        return () => resizeObserver.disconnect();
-    }, [isSticky]);
 
-    // Отслеживаем скролл: когда верх модуля выбора дат доходит до шапки (80px),
-    // он сворачивается и магнитится к шапке в виде компактного StickyDateBar
+    // Отслеживаем скролл: когда большой модуль выбора дат полностью скрывается за шапкой (80px),
+    // активируется компактный плавающий StickyDateBar, который остаётся прикреплённым к шапке
+    // до самого низа страницы и плавно скрывается при возврате наверх
     useEffect(() => {
         let ticking = false;
 
         const updateStickyState = () => {
             if (!dateSelectorRef.current) return;
             const rect = dateSelectorRef.current.getBoundingClientRect();
-            // Высота шапки — 80px (h-20). Когда верхний край модуля касается шапки,
-            // он сворачивается в компактный sticky bar
-            const shouldBeSticky = rect.top <= 80;
+            // Порог: нижний край модуля ушёл под шапку (80px)
+            const shouldBeSticky = rect.bottom <= 80;
             setIsSticky((prev) => (prev !== shouldBeSticky ? shouldBeSticky : prev));
         };
 
@@ -207,20 +189,13 @@ export default function HomePage() {
                 <h1 className="text-2xl font-bold mt-4 text-center">Каталог оборудования</h1>
 
                 <div 
+                    id="main-date-range-selector"
                     ref={dateSelectorRef}
-                    style={{ minHeight: isSticky && placeholderHeight > 0 ? `${placeholderHeight}px` : undefined }}
-                    className="transition-all duration-200"
+                    className="w-full"
                 >
-                    <div className={cn(
-                        "transition-opacity duration-200",
-                        isSticky ? "opacity-0 invisible pointer-events-none" : "opacity-100 visible"
-                    )}>
-                        <DateRangeSelector 
-                            containerRef={containerRef} 
-                            collapsed={isSticky ? true : undefined} 
-                            isSticky={isSticky} 
-                        />
-                    </div>
+                    <DateRangeSelector 
+                        containerRef={containerRef} 
+                    />
                 </div>
                 <DiscountCalculator />
 

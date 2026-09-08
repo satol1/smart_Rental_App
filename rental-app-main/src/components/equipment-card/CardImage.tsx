@@ -8,17 +8,19 @@ interface CardImageProps {
 }
 
 export const CardImage: React.FC<CardImageProps> = ({ imageUrl, name }) => (
-    <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-44 bg-muted/40 flex items-center justify-center overflow-hidden border-b border-border/50">
         {imageUrl ? (
             <img
                 src={imageUrl}
                 alt={name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
                 loading="lazy"
             />
         ) : (
-            <ImageIcon className="w-12 h-12 text-gray-300" />
+            <div className="flex flex-col items-center justify-center text-muted-foreground/50">
+                <ImageIcon className="w-10 h-10 stroke-1" />
+                <span className="text-[10px] mt-1 uppercase tracking-wider font-medium">Фото отсутствует</span>
+            </div>
         )}
-        <div className="absolute inset-0 bg-black/40 transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0" />
     </div>
 );

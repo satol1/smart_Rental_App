@@ -10,10 +10,12 @@ body {
   min-height: 100vh;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
   Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -29,60 +31,85 @@ button {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* Современная чистая светлая палитра: благородный фарфор, мягкий сине-стальной primary */
+    --background: 210 20% 98.5%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --popover-foreground: 222 47% 11%;
+    --primary: 201 71% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 204 33% 96%;
+    --secondary-foreground: 201 71% 28%;
+    --muted: 210 20% 95.5%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 202 60% 94%;
+    --accent-foreground: 201 71% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 201 71% 38%;
+
+    /* Пастельные функциональные токены */
+    --pastel-sky: 202 85% 95%;
+    --pastel-sky-fg: 201 71% 32%;
+    --pastel-mint: 152 68% 94%;
+    --pastel-mint-fg: 160 84% 26%;
+    --pastel-amber: 43 92% 94%;
+    --pastel-amber-fg: 38 92% 30%;
+    --pastel-coral: 0 80% 95%;
+    --pastel-coral-fg: 0 72% 40%;
+    --pastel-lavender: 260 70% 95%;
+    --pastel-lavender-fg: 262 70% 38%;
+
+    --chart-1: 201 71% 38%;
+    --chart-2: 152 68% 40%;
+    --chart-3: 43 92% 50%;
+    --chart-4: 260 70% 55%;
+    --chart-5: 0 72% 55%;
+    --radius: 0.75rem;
   }
   .dark {
-    /* Тёмная тема — производная от светлой: глубокий нейтральный фон
-       с лёгким тёплым подтоном, тёплые акценты сохраняют читаемость. */
-    --background: 24 10% 6%;
-    --foreground: 30 20% 95%;
-    --card: 24 8% 9%;
-    --card-foreground: 30 20% 95%;
-    --popover: 24 9% 8%;
-    --popover-foreground: 30 20% 95%;
-    --primary: 35 28% 90%;
-    --primary-foreground: 24 12% 10%;
-    --secondary: 24 8% 14%;
-    --secondary-foreground: 30 18% 95%;
-    --muted: 24 8% 13%;
-    --muted-foreground: 28 8% 66%;
-    --accent: 26 10% 17%;
-    --accent-foreground: 30 20% 96%;
-    --destructive: 0 68% 52%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 24 8% 17%;
-    --input: 24 8% 18%;
-    --ring: 35 30% 60%;
-    --chart-1: 12 78% 62%;
-    --chart-2: 173 52% 46%;
-    --chart-3: 197 42% 56%;
-    --chart-4: 43 76% 60%;
-    --chart-5: 27 85% 64%;
-    --radius: 0.5rem;
+    /* Современная глубокая тёмная палитра */
+    --background: 222 47% 8%;
+    --foreground: 210 20% 98%;
+    --card: 222 40% 11%;
+    --card-foreground: 210 20% 98%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 201 75% 55%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 30% 16%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 222 30% 20%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 68% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 30% 19%;
+    --input: 222 30% 19%;
+    --ring: 201 75% 55%;
+
+    --pastel-sky: 201 50% 18%;
+    --pastel-sky-fg: 201 80% 75%;
+    --pastel-mint: 155 45% 16%;
+    --pastel-mint-fg: 152 75% 70%;
+    --pastel-amber: 40 45% 16%;
+    --pastel-amber-fg: 43 85% 70%;
+    --pastel-coral: 0 45% 18%;
+    --pastel-coral-fg: 0 80% 75%;
+    --pastel-lavender: 262 40% 18%;
+    --pastel-lavender-fg: 260 75% 75%;
+
+    --chart-1: 201 75% 55%;
+    --chart-2: 152 68% 50%;
+    --chart-3: 43 92% 55%;
+    --chart-4: 260 70% 65%;
+    --chart-5: 0 68% 60%;
+    --radius: 0.75rem;
   }
 }
 

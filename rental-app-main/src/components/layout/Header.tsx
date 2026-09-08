@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import logo from "@/assets/logo.webp";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { useCurrentUser } from "@/hooks/useProfile";
 import { useHomePageReset } from "@/hooks/useHomePageReset";
 import UserNav from "./UserNav";
@@ -31,7 +31,7 @@ const UserStatus = () => {
             </div>
             {userStatus && (
                 <>
-                    <div className="h-4 w-px bg-gray-200" />
+                    <div className="h-4 w-px bg-border" />
                     <StatusBadge status={userStatus} className="text-xs" />
                 </>
             )}
@@ -67,39 +67,35 @@ export default function Header() {
 
     return (
         <>
-            <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm sticky top-0 z-50">
+            <header className="bg-background/90 backdrop-blur-md border-b border-border/70 sticky top-0 z-50 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex-shrink-0">
                             <button 
                                 onClick={handleLogoClick}
                                 aria-label={isHomePage ? t("nav.resetFilters") : t("nav.goHome")}
-                                className="transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+                                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl p-1 transition-transform"
                             >
-                                <img
-                                    src={logo}
-                                    alt={t("nav.logoAlt")}
-                                    className="h-16 w-auto"
-                                />
+                                <BrandLogo size={42} showText={true} />
                             </button>
                         </div>
 
                         {/* Навигационные пункты для всех пользователей */}
-                        <div className="hidden lg:flex items-center gap-6 text-sm">
+                        <div className="hidden lg:flex items-center gap-2 text-sm font-medium text-muted-foreground">
                             {user && (
                                 <>
                                     <UserStatus />
-                                    <div className="h-6 w-px bg-gray-200" />
+                                    <div className="h-5 w-px bg-border mx-2" />
                                 </>
                             )}
-                            <Link to="/how-it-works" className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <HelpCircle className="w-4 h-4" aria-hidden="true" /> {t("nav.howItWorks")}
+                            <Link to="/how-it-works" className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:text-foreground hover:bg-accent/60 transition-all">
+                                <HelpCircle className="w-4 h-4 text-primary/70" aria-hidden="true" /> {t("nav.howItWorks")}
                             </Link>
-                            <Link to="/rules" className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <AlertTriangle className="w-4 h-4" aria-hidden="true" /> {t("nav.ourRules")}
+                            <Link to="/rules" className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:text-foreground hover:bg-accent/60 transition-all">
+                                <AlertTriangle className="w-4 h-4 text-amber-500/80" aria-hidden="true" /> {t("nav.ourRules")}
                             </Link>
-                            <button onClick={() => setContactOpen(true)} className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <Send className="w-4 h-4" aria-hidden="true" /> {t("nav.contact")}
+                            <button onClick={() => setContactOpen(true)} className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:text-foreground hover:bg-accent/60 transition-all cursor-pointer">
+                                <Send className="w-4 h-4 text-sky-500/80" aria-hidden="true" /> {t("nav.contact")}
                             </button>
                         </div>
 
@@ -129,19 +125,20 @@ export default function Header() {
                                         <Button
                                             variant="default"
                                             onClick={() => navigate("/reservations/my")}
-                                            className="h-10 px-4 text-sm bg-black hover:bg-gray-800 text-white"
+                                            className="h-9 px-3.5 text-xs sm:text-sm font-medium rounded-lg shadow-sm"
                                         >
-                                            <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            <FileText className="mr-1.5 h-4 w-4" aria-hidden="true" />
                                             {t("nav.myOrders")}
                                         </Button>
                                         <Button
+                                            variant="secondary"
                                             onClick={() => navigate("/calendar")}
-                                            className="h-10 px-4 text-sm bg-amber-500 hover:bg-amber-600 text-white"
+                                            className="h-9 px-3.5 text-xs sm:text-sm font-medium rounded-lg bg-pastel-amber text-pastel-amber-fg border border-amber-200/50 hover:bg-amber-100/80 transition-colors"
                                         >
-                                            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            <Calendar className="mr-1.5 h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
                                             {t("nav.calendar")}
                                         </Button>
-                                        <div className="h-8 w-px bg-gray-200 mx-2" />
+                                        <div className="h-6 w-px bg-border mx-1" />
                                         <UserNav />
                                     </>
                                 ) : (
@@ -150,17 +147,19 @@ export default function Header() {
                                         <Button
                                             variant="outline"
                                             onClick={() => navigate("/calendar")}
-                                            className="h-10 px-4 text-sm"
+                                            className="h-9 px-2.5 sm:px-4 text-xs sm:text-sm"
+                                            title={t("nav.calendar")}
                                         >
-                                            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
-                                            {t("nav.calendar")}
+                                            <Calendar className="sm:mr-2 h-4 w-4" aria-hidden="true" />
+                                            <span className="hidden sm:inline">{t("nav.calendar")}</span>
                                         </Button>
                                         <Button 
                                             onClick={() => setAuthDialogOpen(true)}
-                                            className="h-10 px-4 text-sm"
+                                            className="h-9 px-3 sm:px-4 text-xs sm:text-sm"
                                         >
-                                            <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
-                                            {t("nav.loginRegister")}
+                                            <LogIn className="sm:mr-2 h-4 w-4" aria-hidden="true" />
+                                            <span className="hidden sm:inline">{t("nav.loginRegister")}</span>
+                                            <span className="sm:hidden">Войти</span>
                                         </Button>
                                     </>
                                 )}
