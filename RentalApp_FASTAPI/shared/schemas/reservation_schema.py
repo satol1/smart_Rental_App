@@ -1,7 +1,7 @@
 # shared/schemas/reservation_schema.py
 
 from pydantic import BaseModel, ConfigDict, Field
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional, Dict, Literal
 
 from .user_schema import UserOut
@@ -56,6 +56,8 @@ class ReservationItem(FinancialsBase):
     status: Literal['active', 'fulfilled', 'cancelled', 'overdue']
     accessory_links: List[ReservationAccessoryDetail] = []
     rental_id: Optional[int] = Field(None, validation_alias='rental.id')
+    # Момент создания: нужен фронтенду для grace-периода отмены/редактирования
+    created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 

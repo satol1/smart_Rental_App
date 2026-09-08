@@ -168,11 +168,50 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         )
     
     async def increment_usage_counter(self, promo_code_id: int) -> None:
-        """Увеличивает счетчик использований промокода"""
-        promo_code = await self.get_by_id(promo_code_id)
-        if promo_code:
-            promo_code.times_used += 1
-            await self.db.flush()
+        """Увеличивает счетчик использований промокода (атомарно на стороне БД)."""
+        from sqlalchemy import update
+        from api.models.promo_code import PromoCode
+
+        await self.db.execute(
+            update(PromoCode)
+            .where(PromoCode.id == promo_code_id)
+            .values(times_used=PromoCode.times_used + 1)
+        )
+
+    async def decrement_usage_counter(self, promo_code_id: int) -> None:
+        """Уменьшает счетчик использований промокода (не ниже нуля, атомарно).
+
+        Используется при отмене резерва/удалении аренды, чтобы освобождать
+        лимит промокода.
+        """
+        from sqlalchemy import update
+        from api.models.promo_code import PromoCode
+
+        await self.db.execute(
+            update(PromoCode)
+            .where(PromoCode.id == promo_code_id, PromoCode.times_used > 0)
+            .values(times_used=PromoCode.times_used - 1)
+        )
+
+    async def remove_latest_promo_code_usage(self, user_id: int, promo_code_id: int) -> None:
+        """Удаляет последнюю запись об использовании промокода пользователем."""
+        from sqlalchemy import select
+        from api.models.promo_code import promo_code_usages
+
+        result = await self.db.execute(
+            select(promo_code_usages.c.id)
+            .where(
+                promo_code_usages.c.user_id == user_id,
+                promo_code_usages.c.promo_code_id == promo_code_id,
+            )
+            .order_by(promo_code_usages.c.used_at.desc())
+            .limit(1)
+        )
+        row = result.first()
+        if row is not None:
+            await self.db.execute(
+                promo_code_usages.delete().where(promo_code_usages.c.id == row[0])
+            )
 
     async def delete(self, promo_code_id: int) -> bool:
         """

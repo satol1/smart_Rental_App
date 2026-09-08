@@ -62,17 +62,9 @@ class AvailabilityBaseService:
         except Exception as e:
             logger.error(f"Ошибка при выполнении запроса _get_overlapping_reservations: {e}", exc_info=True)
             
-            # Используем сервис обработки ошибок для восстановления
-            from api.services.error_handler_service import error_handler
-            recovery_result = error_handler.handle_database_error(e, "_get_overlapping_reservations")
-            
-            if recovery_result and recovery_result.get("recovered"):
-                logger.info("Успешно восстановлено после ошибки базы данных")
-                return recovery_result.get("data", [])
-            else:
-                # Если восстановление невозможно, возвращаем пустой результат
-                logger.warning("Не удалось восстановить после ошибки, возвращаем пустой результат")
-                return []
+            # Fail-closed: вернуть «пусто» = «оборудование доступно» — значит
+            # позволить бронирование поверх существующих заказов. Безопаснее 500.
+            raise
 
     async def _get_overlapping_rentals(
         self,
@@ -106,17 +98,9 @@ class AvailabilityBaseService:
         except Exception as e:
             logger.error(f"Ошибка при выполнении запроса _get_overlapping_rentals: {e}", exc_info=True)
             
-            # Используем сервис обработки ошибок для восстановления
-            from api.services.error_handler_service import error_handler
-            recovery_result = error_handler.handle_database_error(e, "_get_overlapping_rentals")
-            
-            if recovery_result and recovery_result.get("recovered"):
-                logger.info("Успешно восстановлено после ошибки базы данных")
-                return recovery_result.get("data", [])
-            else:
-                # Если восстановление невозможно, возвращаем пустой результат
-                logger.warning("Не удалось восстановить после ошибки, возвращаем пустой результат")
-                return []
+            # Fail-closed: вернуть «пусто» = «оборудование доступно» — значит
+            # позволить бронирование поверх существующих заказов. Безопаснее 500.
+            raise
 
     def _filter_equipment_in_list(
         self,

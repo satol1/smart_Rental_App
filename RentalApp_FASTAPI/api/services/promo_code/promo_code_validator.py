@@ -76,26 +76,39 @@ class PromoCodeValidator(IPromoCodeValidator):
             if not any(eq_type in equipment_types_in_cart for eq_type in applicable_types):
                 raise PromoCodeInvalidEquipmentTypeError()
     
-    async def validate_user_permissions(self, promo_code: PromoCode, user: Optional[User]) -> None:
+    async def validate_user_permissions(self, promo_code: PromoCode, user: Optional[User], skip_usage_limits: bool = False) -> None:
         """Проверяет права пользователя на использование промокода"""
         # Проверка персонального промокода
         if promo_code.specific_to_user_id:
             if not user or user.id != promo_code.specific_to_user_id:
                 raise PromoCodePersonalCodeForbiddenError()
-        
+
         # Проверка лимита использований на пользователя
-        if promo_code.max_uses_per_user and user:
+        if promo_code.max_uses_per_user and user and not skip_usage_limits:
             user_uses_count = await self.promo_code_repo.get_user_usage_count(user.id, promo_code.id)
             if user_uses_count >= promo_code.max_uses_per_user:
                 raise PromoCodeUserUsageLimitError()
-    
-    async def validate_complete(self, code: str, order_amount: float, equipment_ids: List[int], user: Optional[User]) -> PromoCode:
-        """Выполняет полную валидацию промокода"""
+
+    async def validate_complete(
+        self,
+        code: str,
+        order_amount: float,
+        equipment_ids: List[int],
+        user: Optional[User],
+        skip_usage_limits: bool = False
+    ) -> PromoCode:
+        """Выполняет полную валидацию промокода.
+
+        skip_usage_limits=True — для перевалидации промокода, уже применённого
+        к редактируемому заказу: его собственное использование записано в счётчиках,
+        и повторная проверка лимитов отвергла бы его же самого.
+        """
         promo_code = await self.validate_basic_existence(code)
         self.validate_status_and_dates(promo_code)
-        self.validate_usage_limits(promo_code)
+        if not skip_usage_limits:
+            self.validate_usage_limits(promo_code)
         self.validate_order_amount(promo_code, order_amount)
         await self.validate_equipment_applicability(promo_code, equipment_ids)
-        await self.validate_user_permissions(promo_code, user)
-        
+        await self.validate_user_permissions(promo_code, user, skip_usage_limits=skip_usage_limits)
+
         return promo_code 

@@ -35,14 +35,27 @@ class DashboardRepository(BaseRepository):
         """
         try:
             cutoff_date = date.today() - timedelta(days=days)
+            # Число единиц оборудования в каждой аренде: при join M2M total_cost
+            # аренды иначе попадает в выручку каждой её единицы (завышение кратно
+            # числу позиций). Делим стоимость аренды поровну между единицами.
+            from api.models.rental import rental_equipment_association
+            units_per_rental = (
+                select(
+                    rental_equipment_association.c.rental_id.label("r_id"),
+                    func.count().label("units"),
+                )
+                .group_by(rental_equipment_association.c.rental_id)
+                .subquery()
+            )
             query = (
                 select(
                     Equipment.id.label("equipment_id"),
                     Equipment.name.label("equipment_name"),
                     func.count(Rental.id).label("rental_count"),
-                    func.sum(Rental.total_cost).label("revenue")
+                    func.sum(Rental.total_cost / units_per_rental.c.units).label("revenue")
                 )
                 .join(Rental.equipment)
+                .join(units_per_rental, units_per_rental.c.r_id == Rental.id)
                 .where(Rental.created_at >= cutoff_date)
                 .group_by(Equipment.id, Equipment.name)
                 .order_by(desc("rental_count"))

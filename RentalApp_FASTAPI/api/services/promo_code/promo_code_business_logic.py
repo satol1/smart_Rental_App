@@ -22,17 +22,23 @@ class PromoCodeBusinessLogic(IPromoCodeBusinessLogic):
         self.promo_code_repo = promo_code_repo
     
     async def validate_and_get_promo_code(
-        self, 
-        code: str, 
-        order_amount: float, 
-        equipment_ids: List[int], 
-        user: Optional[User]
+        self,
+        code: str,
+        order_amount: float,
+        equipment_ids: List[int],
+        user: Optional[User],
+        skip_usage_limits: bool = False
     ) -> PromoCode:
         """
         Валидирует промокод и возвращает его объект.
         Основной метод для валидации промокодов.
+
+        skip_usage_limits=True — при перевалидации промокода, уже применённого
+        к редактируемому/конвертируемому заказу (его использование уже учтено).
         """
-        return await self.validator.validate_complete(code, order_amount, equipment_ids, user)
+        return await self.validator.validate_complete(
+            code, order_amount, equipment_ids, user, skip_usage_limits=skip_usage_limits
+        )
     
     def create_validation_response(self, promo_code: PromoCode) -> PromoCodeValidateResponse:
         """Создает ответ для валидации промокода"""
@@ -46,27 +52,28 @@ class PromoCodeBusinessLogic(IPromoCodeBusinessLogic):
         """
         Записывает использование промокода пользователем.
         Увеличивает счетчик использований.
+
+        Вызывается в той же транзакции, что и создание заказа (коммитит middleware).
         """
-        # Все операции с БД теперь внутри одного блока транзакции
-        async with self.db.begin_nested():
-            # Увеличиваем общий счетчик использований через репозиторий
-            await self.promo_code_repo.increment_usage_counter(promo_code.id)
-            
-            # Записываем использование пользователем, если он авторизован
-            if user:
-                # Проверяем, не записано ли уже использование через репозиторий
-                user_usage_count = await self.promo_code_repo.get_user_usage_count(user.id, promo_code.id)
-                
-                if user_usage_count == 0:
-                    # Добавляем запись об использовании через репозиторий
-                    await self.promo_code_repo.record_promo_code_usage(
-                        user.id, 
-                        promo_code.id, 
-                        datetime.now(timezone.utc)
-                    )
-        
-        # Явно коммитим транзакцию
-        await self.db.commit()
+        await self.promo_code_repo.increment_usage_counter(promo_code.id)
+
+        if user:
+            await self.promo_code_repo.record_promo_code_usage(
+                user.id,
+                promo_code.id,
+                datetime.now(timezone.utc)
+            )
+
+    async def release_promo_code_usage(self, promo_code_id: int, user_id: Optional[int]) -> None:
+        """
+        Освобождает использование промокода при отмене резерва/удалении аренды:
+        уменьшает общий счетчик (не ниже нуля) и удаляет последнюю запись
+        об использовании пользователем.
+        """
+        await self.promo_code_repo.decrement_usage_counter(promo_code_id)
+
+        if user_id:
+            await self.promo_code_repo.remove_latest_promo_code_usage(user_id, promo_code_id)
     
     def calculate_discount_amount(self, base_amount: float, promo_code: PromoCode) -> float:
         """Рассчитывает сумму скидки по промокоду"""

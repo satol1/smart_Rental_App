@@ -13,7 +13,7 @@ from config.core import settings
 from api.models.discount import DurationDiscount
 
 # Подключение к БД, используя централизованную конфигурацию
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def populate_duration_discounts():

@@ -16,7 +16,7 @@ from api.services.financial_service import FinancialService
 from api.repositories.holiday_repository import HolidayRepository
 from api.repositories.reservation_repository import ReservationRepository
 from shared.constants.order_status import OrderStatus
-from shared.constants.user_status import EDIT_RESTRICTION_DAYS
+from shared.constants.user_status import EDIT_RESTRICTION_DAYS, RESERVATION_GRACE_PERIOD_HOURS
 from shared.utils.user_status_utils import parse_user_status
 import logging
 
@@ -50,7 +50,15 @@ class OrderValidator:
         if not self.financial_service:
             raise ValueError("FinancialService не инициализирован. Проверьте настройки DI-контейнера.")
         self.financial_service.validate_date_range(start_date, end_date)
-        
+
+        # Дата начала не может быть в прошлом: такой резерв сразу считался бы
+        # «просроченным» и блокировал бы пользователя правилами отмены
+        if start_date < date.today():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Дата начала не может быть в прошлом.",
+            )
+
         # Проверяем выходные дни для резервов (возвращаем 409 с типом DATE_IS_HOLIDAY)
         is_start_holiday = await self.holiday_repo.is_holiday(start_date)
         is_end_holiday = await self.holiday_repo.is_holiday(end_date)
@@ -100,15 +108,35 @@ class OrderValidator:
                 }
             )
 
-    async def validate_equipment_availability(self, equipment_ids: list[int], start_date: date, end_date: date, exclude_reservation_id: Optional[int] = None):
+    async def validate_equipment_availability(
+        self,
+        equipment_ids: list[int],
+        start_date: date,
+        end_date: date,
+        exclude_reservation_id: Optional[int] = None,
+        exclude_rental_id: Optional[int] = None
+    ):
+        # Сериализация конкурирующих созданий заказов: advisory-локировка строк
+        # оборудования в рамках текущей транзакции закрывает гонку «два резерва
+        # на один слот прошли проверку и закоммитились» (ovербукинг).
+        await self._lock_equipment_ids(equipment_ids)
         conflicting_ids = await self.availability_service.get_conflicting_equipment_ids(
-            equipment_ids, start_date, end_date, exclude_reservation_id
+            equipment_ids, start_date, end_date, exclude_reservation_id, exclude_rental_id
         )
         if conflicting_ids:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Оборудование с ID {conflicting_ids} недоступно в выбранный период."
             )
+
+    async def _lock_equipment_ids(self, equipment_ids: list[int]) -> None:
+        """pg_advisory_xact_lock по каждому equipment_id (в порядке сортировки —
+        от одинакового порядка блокировка дедлоков не даёт)."""
+        if not equipment_ids:
+            return
+        from sqlalchemy import text
+        for eq_id in sorted(set(equipment_ids)):
+            await self.db.execute(text(f"SELECT pg_advisory_xact_lock({int(eq_id)})"))
 
     def validate_accessories_for_equipment(self, selected_accessories: Optional[Dict[int, List[int]]], equipment_ids: List[int]):
         if not selected_accessories:
@@ -137,6 +165,57 @@ class OrderValidator:
     def validate_accessories_returned(self, rental: Rental, confirmation: bool):
         if rental.accessory_links and not confirmation:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Требуется подтверждение возврата всех аксессуаров.")
+
+    def validate_rental_is_returnable(self, rental: Rental):
+        """Возврат возможен только для активной аренды.
+
+        Без этого guard'а повторный POST /return (двойной клик, повтор после
+        сетевой ошибки) создавал бы повторные транзакции штрафа/возврата
+        и перезаписывал final_cost. OVERDUE не отбиваем — это динамический
+        статус, в БД такая аренда остаётся active.
+        """
+        if rental.status != OrderStatus.ACTIVE:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Аренда #{rental.id} уже возвращена — повторный возврат невозможен."
+            )
+
+    def validate_return_date(self, rental: Rental, actual_return_date: date):
+        """Фактическая дата возврата: не раньше начала аренды и не в будущем
+        относительно сегодняшнего дня, кроме возврата «в плановую дату».
+
+        Границы закрывают денежные дыры: дата раньше start_date даёт кредит
+        больше списанного (unused_billable_days > planned_days), а будущая дата
+        позже end_date — завышенный штраф за просрочку. Регистрация возврата
+        ровно в плановую end_date (в т.ч. будущую) разрешена: «возврат по плану».
+        """
+        today = date.today()
+        if actual_return_date < rental.start_date:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"Дата возврата ({actual_return_date.strftime('%d.%m.%Y')}) не может быть "
+                    f"раньше начала аренды ({rental.start_date.strftime('%d.%m.%Y')})."
+                ),
+            )
+        if actual_return_date > rental.end_date and actual_return_date > today:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"Дата возврата ({actual_return_date.strftime('%d.%m.%Y')}) позже планового "
+                    f"окончания аренды и позже сегодняшнего дня: просрочку нельзя "
+                    "зарегистрировать заранее."
+                ),
+            )
+
+    def validate_reservation_is_editable(self, reservation: Reservation):
+        """Редактирование выданного (fulfilled) резерва запрещено: он уже
+        сконвертирован в аренду, сдвиг дат создал бы расхождение с арендой."""
+        if reservation.rental:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Резерв уже преобразован в аренду #{reservation.rental.id} и не подлежит редактированию."
+            )
 
     def validate_rental_for_revert(self, rental: Rental):
         if not rental.reservation_id:
@@ -247,81 +326,97 @@ class OrderValidator:
                     )
     
     async def validate_user_can_edit_reservation(
-        self, 
-        user: User, 
-        reservation: Reservation, 
+        self,
+        user: User,
+        reservation: Reservation,
         user_status_service: Optional['UserStatusService'] = None,
-        is_manager: bool = False
+        is_manager: bool = False,
+        new_start_date: Optional[date] = None
     ):
         """
         Проверяет, может ли пользователь редактировать резерв.
-        
+
         Args:
             user: Объект пользователя
             reservation: Резерв для редактирования
             user_status_service: Сервис управления статусами (опционально)
             is_manager: True, если действие выполняется менеджером
-            
+            new_start_date: Предлагаемая новая дата начала (опционально) —
+                редактирование не должно позволять обойти ограничение по дням,
+                переставив «далёкий» резерв на близкую дату
+
         Raises:
             HTTPException: Если пользователь не может редактировать резерв
         """
         # Менеджеры могут редактировать всегда
         if is_manager:
             return
-        
+
         service = user_status_service or self.user_status_service
         if not service:
             # Если сервис не доступен, пропускаем проверку (для обратной совместимости)
             return
-        
-        can_edit = await service.can_user_edit_reservation(user, reservation.start_date)
+
+        can_edit = await service.can_user_edit_reservation(user, reservation.start_date, reservation.created_at)
+        if can_edit and new_start_date is not None:
+            # Проверяем и новую дату начала: иначе «далёкий» резерв можно
+            # передвинуть на завтра, минуя ограничение по дням
+            can_edit = await service.can_user_edit_reservation(user, new_start_date, reservation.created_at)
         if not can_edit:
             from shared.constants.user_status import UserStatus
             user_status = parse_user_status(user.status)
             restriction_days = EDIT_RESTRICTION_DAYS.get(user_status, 0)
-            
+
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Редактирование резерва возможно только за {restriction_days} или более дней до начала. Обратитесь к менеджеру."
+                detail=(
+                    f"Редактирование резерва доступно не позднее чем за {restriction_days + 1} дн. "
+                    f"до начала (ваш статус: «{user_status.value}») либо в течение "
+                    f"{RESERVATION_GRACE_PERIOD_HOURS} ч после создания. Обратитесь к менеджеру."
+                )
             )
-    
+
     async def validate_user_can_cancel_reservation(
-        self, 
-        user: User, 
-        reservation: Reservation, 
+        self,
+        user: User,
+        reservation: Reservation,
         user_status_service: Optional['UserStatusService'] = None,
         is_manager: bool = False
     ):
         """
         Проверяет, может ли пользователь отменить резерв.
-        
+
         Args:
             user: Объект пользователя
             reservation: Резерв для отмены
             user_status_service: Сервис управления статусами (опционально)
             is_manager: True, если действие выполняется менеджером
-            
+
         Raises:
             HTTPException: Если пользователь не может отменить резерв
         """
         # Менеджеры могут отменять всегда
         if is_manager:
             return
-        
+
         service = user_status_service or self.user_status_service
         if not service:
             # Если сервис не доступен, пропускаем проверку (для обратной совместимости)
             return
-        
-        can_cancel = await service.can_user_cancel_reservation(user, reservation.start_date)
+
+        can_cancel = await service.can_user_cancel_reservation(user, reservation.start_date, reservation.created_at)
         if not can_cancel:
             from shared.constants.user_status import UserStatus
             user_status = parse_user_status(user.status)
             restriction_days = EDIT_RESTRICTION_DAYS.get(user_status, 0)
-            
+
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Отмена резерва возможна только за {restriction_days} или более дней до начала. Обратитесь к менеджеру."
+                detail=(
+                    f"Отмена резерва доступна не позднее чем за {restriction_days + 1} дн. "
+                    f"до начала (ваш статус: «{user_status.value}») либо в течение "
+                    f"{RESERVATION_GRACE_PERIOD_HOURS} ч после создания. Обратитесь к менеджеру."
+                )
             )
     
     async def validate_user_can_receive_rental(self, user: User, user_status_service: Optional['UserStatusService'] = None):

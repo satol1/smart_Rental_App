@@ -27,16 +27,13 @@ class BalanceService:
         Amount: положительное число для начисления, отрицательное для списания.
         Управление транзакцией (commit/rollback) остается за вызывающим сервисом.
         """
-        # Используем репозиторий для получения пользователя с блокировкой
+        # FOR UPDATE БЕЗ skip_locked: конкурентные транзакции с балансом ждут
+        # освобождения строки. Прежний fallback «продолжить без блокировки»
+        # приводил к lost update (одно из двух изменений баланса терялось).
         user = await self.user_repo.get_by_id_for_update(user_id)
         if not user:
-            # Если пользователь заблокирован другим запросом, пробуем без блокировки
-            user = await self.user_repo.get_by_id(user_id)
-            if not user:
-                logger.error(f"Попытка провести транзакцию для несуществующего пользователя ID={user_id}")
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден.")
-            else:
-                logger.warning(f"Пользователь ID={user_id} заблокирован другим запросом, используем без блокировки")
+            logger.error(f"Попытка провести транзакцию для несуществующего пользователя ID={user_id}")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден.")
 
         # 1. Создаем запись в истории
         new_history_entry = BalanceHistory(

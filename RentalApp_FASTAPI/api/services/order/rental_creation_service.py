@@ -19,6 +19,9 @@ from api.services.order.rental_notification_helper import RentalNotificationHelp
 from api.services.balance_service import BalanceService
 from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
+from api.services.cache_service import invalidate_dashboard_summary
+from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from shared.constants.balance_operations import BalanceOperationType
 from shared.schemas.rental_schema import (
     RentalCreateFromReservationRequest,
@@ -62,27 +65,34 @@ class RentalCreationService:
             async with self.db.begin_nested():
                 # Получаем и валидируем резерв
                 reservation = await self._get_and_validate_reservation_for_conversion(reservation_id, request)
-                
+
                 # Валидация статуса пользователя - проверка прав на получение аренды
                 if self.validator.user_status_service:
                     user = await self.user_repo.get_by_id(reservation.user_id)
                     if user:
                         await self.validator.validate_user_can_receive_rental(user)
-                
+
                 # Подготавливаем данные для создания аренды
                 equipment_ids, selected_accessories = self._extract_reservation_data(reservation)
                 new_start_date = date.today()
-                
+
                 # Пересчитываем стоимость с учетом новой даты
                 price_details = await self._recalculate_price_for_conversion(
                     reservation, equipment_ids, selected_accessories, new_start_date
                 )
-                
+
                 # Создаем аренду
-                rental = await self._create_rental_from_reservation(
-                    reservation, manager, request, price_details, new_start_date
-                )
-                
+                try:
+                    rental = await self._create_rental_from_reservation(
+                        reservation, manager, request, price_details, new_start_date
+                    )
+                except IntegrityError:
+                    # Гонка двух конвертаций: unique(reservation_id) уже занят
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Резерв уже был преобразован в аренду другим менеджером.",
+                    )
+
                 # Создаем транзакции баланса
                 await self._create_balance_transactions_for_conversion(rental, request)
 
@@ -91,7 +101,8 @@ class RentalCreationService:
             
             # Логируем успешную конвертацию
             self.notification_helper.log_rental_converted_from_reservation(rental, reservation, manager)
-            
+            invalidate_dashboard_summary()
+
             return rental_with_details
 
         except Exception as e:
@@ -108,15 +119,32 @@ class RentalCreationService:
             async with self.db.begin_nested():
                 # Валидация и подготовка данных
                 logger.debug("Этап 1: Валидация и подготовка данных")
-                user, equipment, promo_code_obj = await self._validate_and_prepare_rental_data(request)
-                
-                # Финансовые расчеты
+                user, equipment = await self._validate_and_prepare_rental_data(request)
+
+                # Финансовые расчеты: сначала без промокода — его min_order_amount
+                # нужно проверять по фактической сумме заказа (как в резервах),
+                # а не по 0 (иначе промо с порогом всегда отклонялся)
                 logger.debug("Этап 2: Финансовые расчеты")
+                preliminary_price = await self.financial_service.calculate_final_price(
+                    request.equipment_ids,
+                    request.selected_accessories,
+                    request.start_date,
+                    request.end_date,
+                    None
+                )
+                promo_code_obj = None
+                if request.promo_code:
+                    promo_code_obj = await self.promo_code_logic.validate_and_get_promo_code(
+                        code=request.promo_code,
+                        order_amount=preliminary_price.final_total,
+                        equipment_ids=request.equipment_ids,
+                        user=user
+                    )
                 price_details = await self.financial_service.calculate_final_price(
-                    request.equipment_ids, 
-                    request.selected_accessories, 
-                    request.start_date, 
-                    request.end_date, 
+                    request.equipment_ids,
+                    request.selected_accessories,
+                    request.start_date,
+                    request.end_date,
                     promo_code_obj
                 )
 
@@ -129,10 +157,14 @@ class RentalCreationService:
                 # Добавляем аксессуары
                 logger.debug("Этап 4: Добавление аксессуаров")
                 await self._add_accessories_to_rental(rental, request.selected_accessories)
-                
+
                 # Создаем транзакции баланса
                 logger.debug("Этап 5: Создание транзакций баланса")
                 await self._create_balance_transactions_for_new_rental(rental, request, user)
+
+                # Учитываем использование промокода в лимитах
+                if promo_code_obj:
+                    await self.promo_code_logic.record_promo_code_usage(promo_code_obj, user)
 
             # Получаем аренду с предзагруженными связями
             logger.debug("Этап 6: Получение аренды с деталями")
@@ -141,7 +173,8 @@ class RentalCreationService:
             # Логируем успешное создание
             logger.info(f"Успешно создана аренда #{rental.id}")
             self.notification_helper.log_rental_created(rental, manager, user)
-            
+            invalidate_dashboard_summary()
+
             return rental_with_details
         except Exception as e:
             logger.error(f"Ошибка при создании аренды: {e}", exc_info=True)
@@ -155,13 +188,37 @@ class RentalCreationService:
     ) -> Reservation:
         """Получает и валидирует резерв для конвертации в аренду."""
         reservation = await self.reservation_repo.get_by_id_with_details(reservation_id)
+        if not reservation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Резерв #{reservation_id} не найден.",
+            )
         self.validator.validate_reservation_for_conversion(reservation)
-        
+
+        # Конвертация просроченного резерва дала бы аренду с end < start
+        # и нулевой стоимостью (дни считаются от today)
+        if reservation.end_date < date.today():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Дата окончания резерва ({reservation.end_date.strftime('%d.%m.%Y')}) "
+                    "уже прошла — конвертация невозможна. Создайте аренду с нуля."
+                ),
+            )
+
         new_start_date = date.today()
         await self.validator.validate_issue_on_holiday(
             new_start_date, request.force_issue_on_holiday
         )
-        
+
+        # Аренда начинается сегодня и может начинаться раньше start_date резерва —
+        # проверяем, что расширенный период не занят другими заказами
+        equipment_ids = [eq.id for eq in reservation.equipment]
+        await self.validator.validate_equipment_availability(
+            equipment_ids, new_start_date, reservation.end_date,
+            exclude_reservation_id=reservation.id
+        )
+
         return reservation
     
     def _extract_reservation_data(self, reservation: Reservation) -> tuple[List[int], Dict[int, List[int]]]:
@@ -187,17 +244,21 @@ class RentalCreationService:
         )
         
         # Перепроверка промокода
+        # skip_usage_limits: использование уже записано за этим резервом —
+        # повторная проверка счётчиков отвергла бы его же самого и молча
+        # создала аренду без скидки
         re_validated_promo_obj = None
         if reservation.promo_code_id:
             original_promo_code = await self.system_service.get_promo_code_by_id(reservation.promo_code_id)
-            
+
             if original_promo_code:
                 try:
                     re_validated_promo_obj = await self.promo_code_logic.validate_and_get_promo_code(
                         code=original_promo_code.code,
                         order_amount=preliminary_price.final_total,
                         equipment_ids=equipment_ids,
-                        user=reservation.user
+                        user=reservation.user,
+                        skip_usage_limits=True
                     )
                 except Exception:
                     re_validated_promo_obj = None
@@ -254,37 +315,38 @@ class RentalCreationService:
     
     async def _validate_and_prepare_rental_data(
         self, request: RentalCreateFromScratchRequest
-    ) -> tuple[User, List[Any], Any]:
-        """Валидирует данные и подготавливает объекты для создания аренды."""
+    ) -> tuple[User, List[Any]]:
+        """Валидирует данные и подготавливает объекты для создания аренды.
+
+        Промокод здесь не валидируется: его min_order_amount проверяется
+        в create_rental_from_scratch по фактической предварительной сумме.
+        """
         # Валидация пользователя
         user = await self.user_repo.get_user_by_id_or_fail(request.user_id)
-        
+
         # Валидация статуса пользователя - проверка прав на получение аренды
         if self.validator.user_status_service:
             await self.validator.validate_user_can_receive_rental(user)
-        
-        # Валидация дат
+
+        # Валидация дат: без проверки диапазона аренда с end < start создаётся
+        # с нулевой стоимостью (get_rental_days возвращает 0)
+        self.validator.validate_date_range(request.start_date, request.end_date)
+        if request.start_date < date.today():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Дата начала аренды не может быть в прошлом.",
+            )
         await self.validator.validate_issue_on_holiday(
             request.start_date, request.force_issue_on_holiday
         )
         await self.validator.validate_equipment_availability(
             request.equipment_ids, request.start_date, request.end_date
         )
-        
+
         # Получаем оборудование
         equipment = await self.equipment_repo.get_equipment_by_ids_or_fail(request.equipment_ids)
-        
-        # Валидация и получение промокода
-        promo_code_obj = None
-        if request.promo_code:
-            promo_code_obj = await self.promo_code_logic.validate_and_get_promo_code(
-                code=request.promo_code,
-                order_amount=0,  # Будет пересчитано после расчета стоимости
-                equipment_ids=request.equipment_ids,
-                user=user
-            )
-        
-        return user, equipment, promo_code_obj
+
+        return user, equipment
     
     async def _create_rental_instance(
         self, user: User, manager: User, request: RentalCreateFromScratchRequest,

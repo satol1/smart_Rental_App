@@ -240,15 +240,18 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         """
         Получение пользователя по ID с блокировкой на уровне строки для обновления.
         Используется для предотвращения race conditions при обновлении баланса.
-        
+
+        FOR UPDATE без skip_locked: конкурентная транзакция ждёт освобождения
+        строки, а не «проскакивает» без блокировки (lost update).
+
         Args:
             user_id: ID пользователя
-            
+
         Returns:
             Объект User или None, если пользователь не найден
         """
         result = await self.db.execute(
-            select(User).filter(User.id == user_id).with_for_update(skip_locked=True)
+            select(User).filter(User.id == user_id).with_for_update()
         )
         return result.scalars().first()
     

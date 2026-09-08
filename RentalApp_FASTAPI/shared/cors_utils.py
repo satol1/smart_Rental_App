@@ -51,14 +51,20 @@ def validate_cors_origin(origin: str, debug: bool = True) -> bool:
     """
     if not origin or not origin.strip():
         raise ValueError("Источник не может быть пустым")
-    
+
+    # Wildcard проверяем до urlparse: у "*" нет схемы, и парсер упал бы
+    # на более ранней проверке протокола, не дойдя до этого сообщения
+    if origin == "*":
+        raise ValueError("Wildcard '*' разрешен только через CORS_ALLOW_WILDCARD=True")
+
     try:
         parsed = urlparse(origin)
-        
-        # Проверяем наличие схемы
-        if not parsed.scheme:
+
+        # Проверяем наличие схемы (http/https: urlparse трактует "localhost:5173"
+        # как scheme="localhost", поэтому явно ограничиваем допустимые схемы)
+        if parsed.scheme not in ("http", "https"):
             raise ValueError(f"Источник '{origin}' должен содержать протокол (http:// или https://)")
-        
+
         # В production режиме требуем HTTPS (кроме localhost)
         if not debug and parsed.scheme != "https":
             # Разрешаем HTTP только для localhost в любом режиме
@@ -67,17 +73,13 @@ def validate_cors_origin(origin: str, debug: bool = True) -> bool:
                     f"В production режиме источники должны использовать HTTPS. "
                     f"Источник '{origin}' использует {parsed.scheme}"
                 )
-        
+
         # Проверяем наличие netloc (домена)
         if not parsed.netloc:
             raise ValueError(f"Источник '{origin}' должен содержать домен")
-        
-        # Проверяем, что это не wildcard (кроме специального случая)
-        if origin == "*":
-            raise ValueError("Wildcard '*' разрешен только через CORS_ALLOW_WILDCARD=True")
-        
+
         return True
-        
+
     except Exception as e:
         if isinstance(e, ValueError):
             raise

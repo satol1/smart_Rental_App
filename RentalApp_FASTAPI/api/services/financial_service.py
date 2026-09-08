@@ -82,8 +82,12 @@ class FinancialService:
         if start_date == end_date:
             return 1
         total_days = (end_date - start_date).days
-        # Подсчитываем количество выходных дней в диапазоне
-        holidays = await self.holiday_repo.get_holidays_in_range(start_date, end_date)
+        # Подсчитываем выходные в тарифицируемом окне: end_date не тарифицируется
+        # (аренда заканчивается в этот день), поэтому диапазон праздников —
+        # полуоткрытый [start, end): праздник в end_date не уменьшает стоимость
+        holidays = await self.holiday_repo.get_holidays_in_range(
+            start_date, end_date - timedelta(days=1)
+        )
         holidays_count = len(holidays)
         return total_days - holidays_count
 
@@ -116,8 +120,16 @@ class FinancialService:
         if selected_accessories:
             all_accessory_ids = [acc_id for equip_accs in selected_accessories.values() for acc_id in equip_accs]
             if all_accessory_ids:
-                # Получаем аксессуары по ID
+                # Получаем аксессуары по ID; несуществующие ID — ошибка,
+                # а не молчаливое игнорирование (иначе цена считается без них)
                 found_accessories = await self.accessory_repo.get_by_ids(all_accessory_ids)
+                found_ids = {acc.id for acc in found_accessories}
+                missing_ids = set(all_accessory_ids) - found_ids
+                if missing_ids:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Accessory with IDs {list(missing_ids)} not found.",
+                    )
                 accessories_cost = sum(acc.price for acc in found_accessories)
 
         full_total = (base_equipment_cost + accessories_cost) * rental_days
@@ -202,8 +214,9 @@ class FinancialService:
         unused_billable_days = await self.get_rental_days(actual_return_date, rental.end_date)
         if unused_billable_days <= 0:
             return 0.0
-            
-        credit_amount = unused_billable_days * daily_rate
+
+        # Кредит не может превышать списанную стоимость аренды
+        credit_amount = min(unused_billable_days * daily_rate, rental.total_cost)
         return round(credit_amount, 2)
     
     async def get_rental_calculation_summary(self, rental: Rental, actual_return_date: date, planned_days: int) -> dict:

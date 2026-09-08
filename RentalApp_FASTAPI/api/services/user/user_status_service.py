@@ -8,7 +8,7 @@
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Dict
 import logging
 
@@ -22,7 +22,8 @@ from shared.constants.user_status import (
     COMPLETED_RENTALS_FOR_VIP,
     OVERDUE_RESERVATIONS_FOR_BLOCK,
     MAX_RESERVATIONS_BY_STATUS,
-    EDIT_RESTRICTION_DAYS
+    EDIT_RESTRICTION_DAYS,
+    RESERVATION_GRACE_PERIOD_HOURS
 )
 from shared.utils.user_status_utils import parse_user_status
 
@@ -194,54 +195,85 @@ class UserStatusService:
         user_status = parse_user_status(user.status)
         return MAX_RESERVATIONS_BY_STATUS.get(user_status, 0)
     
-    async def can_user_edit_reservation(self, user: User, reservation_start_date: date) -> bool:
+    async def can_user_edit_reservation(
+        self,
+        user: User,
+        reservation_start_date: date,
+        reservation_created_at: Optional[datetime] = None
+    ) -> bool:
         """
         Проверяет, может ли пользователь редактировать резерв.
-        
+
         Правила:
         - VIP: нет ограничений (кроме прошедших дат)
         - Постоянный: за 1 день до начала - только через менеджера
         - Новый: за 2 дня до начала - только через менеджера
         - Заблокирован: за 2 дня до начала - только через менеджера
-        - Персона НонГрата: нельзя редактировать
-        
+        - Персона Нон Грата: нельзя редактировать
+        - Grace-период: в течение RESERVATION_GRACE_PERIOD_HOURS после создания
+          резерв можно редактировать независимо от близости даты начала
+          (пользователь мог ошибиться с датами при оформлении)
+
         Args:
             user: Объект пользователя
             reservation_start_date: Дата начала резерва
-            
+            reservation_created_at: Дата/время создания резерва (для grace-периода)
+
         Returns:
             True, если пользователь может редактировать, False - если нет
         """
         user_status = parse_user_status(user.status)
-        
+
         if user_status == UserStatus.PERSONA_NON_GRATA:
             return False
-        
+
         # Прошедшие даты нельзя редактировать
         if reservation_start_date < date.today():
             return False
-        
+
+        # Grace-период: свежесозданный резерв можно редактировать без ограничений
+        if self._is_in_grace_period(reservation_created_at):
+            return True
+
         restriction_days = EDIT_RESTRICTION_DAYS.get(user_status, 0)
         if restriction_days == 0:
             return True  # VIP - нет ограничений (кроме прошедших дат)
-        
+
         days_until_start = (reservation_start_date - date.today()).days
         return days_until_start > restriction_days
-    
-    async def can_user_cancel_reservation(self, user: User, reservation_start_date: date) -> bool:
+
+    async def can_user_cancel_reservation(
+        self,
+        user: User,
+        reservation_start_date: date,
+        reservation_created_at: Optional[datetime] = None
+    ) -> bool:
         """
         Проверяет, может ли пользователь отменить резерв.
-        
+
         Использует те же правила, что и редактирование.
-        
+
         Args:
             user: Объект пользователя
             reservation_start_date: Дата начала резерва
-            
+            reservation_created_at: Дата/время создания резерва (для grace-периода)
+
         Returns:
             True, если пользователь может отменить, False - если нет
         """
-        return await self.can_user_edit_reservation(user, reservation_start_date)
+        return await self.can_user_edit_reservation(user, reservation_start_date, reservation_created_at)
+
+    @staticmethod
+    def _is_in_grace_period(reservation_created_at: Optional[datetime]) -> bool:
+        """Проверяет, находится ли момент создания резерва в grace-периоде."""
+        if reservation_created_at is None:
+            return False
+        created_at = reservation_created_at
+        if created_at.tzinfo is None:
+            # Наивное время считаем UTC (DateTime(timezone=True) в PostgreSQL
+            # с asyncpg возвращает aware, но защита от наивных значений не помешает)
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) - created_at < timedelta(hours=RESERVATION_GRACE_PERIOD_HOURS)
     
     async def can_user_create_reservation(self, user: User) -> bool:
         """

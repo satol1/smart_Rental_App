@@ -3,6 +3,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any, Optional
+from datetime import date
 import logging
 
 from api.models.user import User
@@ -12,6 +13,7 @@ from api.services.order.order_validator import OrderValidator
 from api.services.order.rental_notification_helper import RentalNotificationHelper
 from api.services.balance_service import BalanceService
 from api.services.financial_service import FinancialService
+from api.services.cache_service import invalidate_dashboard_summary
 from shared.constants.balance_operations import BalanceOperationType
 from shared.schemas.rental_schema import RentalReturnRequest
 
@@ -44,9 +46,14 @@ class RentalReturnService:
             async with self.db.begin_nested():
                 # Получаем и валидируем аренду
                 rental = await self.rental_repo.get_rental_by_id_or_fail(rental_id)
+                self.validator.validate_rental_is_returnable(rental)
                 self.validator.validate_accessories_returned(
                     rental, request.accessories_returned_confirmation
                 )
+                # Дата возврата — в границах [начало аренды; сегодня]: без этого
+                # дата раньше начала даёт кредит больше списанного, будущая —
+                # завышенный штраф
+                self.validator.validate_return_date(rental, request.actual_return_date)
 
                 # Рассчитываем дополнительные платежи/возвраты
                 credit_amount, surcharge_amount = await self._calculate_return_adjustments(
@@ -84,7 +91,8 @@ class RentalReturnService:
             
             # Логируем успешный возврат
             self.notification_helper.log_rental_returned(rental, manager, request.actual_return_date)
-            
+            invalidate_dashboard_summary()
+
             return rental_with_details
         except Exception as e:
             self.notification_helper.log_rental_error("возврате аренды", rental_id, e, manager)
@@ -93,7 +101,7 @@ class RentalReturnService:
     # Приватные методы для возврата аренды
     
     async def _calculate_return_adjustments(
-        self, rental: Rental, actual_return_date: str
+        self, rental: Rental, actual_return_date: date
     ) -> tuple[float, float]:
         """Рассчитывает дополнительные платежи или возвраты при возврате аренды."""
         credit_amount = 0.0

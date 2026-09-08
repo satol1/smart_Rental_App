@@ -13,6 +13,7 @@ from api.services.order.system_repository import SystemService
 from api.services.order.order_validator import OrderValidator
 from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
+from api.services.cache_service import invalidate_dashboard_summary
 from shared.constants.order_status import OrderStatus
 from shared.constants.user_status import UserStatus
 from shared.utils.user_status_utils import parse_user_status
@@ -75,7 +76,7 @@ class ReservationLifecycleService:
                         equipment_ids=request.equipment_ids,
                         user=user
                     )
-                
+
                 # Финальный расчет уже с валидным промокодом
                 price_details = await self.financial_service.calculate_final_price(
                     request.equipment_ids,
@@ -95,7 +96,7 @@ class ReservationLifecycleService:
                     discount_amount=price_details.discount_amount,
                     promo_code_id=promo_code_obj.id if promo_code_obj else None,
                 )
-                
+
                 # Добавляем аксессуары
                 if request.selected_accessories:
                     from api.models.reservation import ReservationAccessory
@@ -105,12 +106,16 @@ class ReservationLifecycleService:
                             if acc_id != eq_id:  # Фильтруем некорректные ID
                                 links.append(ReservationAccessory(equipment_id=eq_id, accessory_id=acc_id))
                     reservation.accessory_links = links
-                
+
                 # Сохраняем через репозиторий
                 await self.reservation_repo.save_object(reservation)
-                # Убираем ручной коммит - middleware автоматически коммитит транзакцию
+
+                # Учитываем использование промокода в лимитах (max_uses/max_uses_per_user)
+                if promo_code_obj:
+                    await self.promo_code_logic.record_promo_code_usage(promo_code_obj, user)
 
             logger.info(f"User {user.id} created reservation #{reservation.id}")
+            invalidate_dashboard_summary()
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -131,12 +136,22 @@ class ReservationLifecycleService:
                     from fastapi import HTTPException, status
                     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found or you do not have permission to access it.")
                 
-                # Валидация прав на редактирование резерва
+                # Валидация прав на редактирование резерва (включая предлагаемую
+                # новую дату начала — иначе «далёкий» резерв можно передвинуть
+                # на близкую дату, минуя ограничение по дням)
                 if self.validator.user_status_service:
-                    await self.validator.validate_user_can_edit_reservation(user, reservation, is_manager=False)
-                
+                    await self.validator.validate_user_can_edit_reservation(
+                        user, reservation, is_manager=False, new_start_date=request.start_date
+                    )
+
+                # Выданный (fulfilled) резерв редактировать нельзя — он уже аренда
+                self.validator.validate_reservation_is_editable(reservation)
+
+                # confirm_date_adjustment: пользователь подтвердил дату на выходной
+                # (после диалога подтверждения) — не отбиваем её повторным 409
                 await self.validator.validate_dates_and_holidays(
-                    request.start_date, request.end_date
+                    request.start_date, request.end_date,
+                    force_issue_on_holiday=request.confirm_date_adjustment
                 )
                 equipment = await self.equipment_repo.get_equipment_by_ids_or_fail(request.equipment_ids)
                 self.validator.validate_accessories_for_equipment(
@@ -155,15 +170,35 @@ class ReservationLifecycleService:
                     request.start_date, request.end_date, None
                 )
 
+                old_promo_code_id = reservation.promo_code_id
+                promo_sent = 'promo_code' in request.model_fields_set
+
+                # Текущий код резерва: если прислан тот же промокод, что уже
+                # применён, лимиты использования не перепроверяем — собственная
+                # запись использования отвергла бы его же самого
+                current_promo_code = (
+                    await self.system_service.get_promo_code_by_id(old_promo_code_id)
+                    if old_promo_code_id else None
+                )
+                same_promo_sent = (
+                    promo_sent and current_promo_code is not None
+                    and request.promo_code == current_promo_code.code
+                )
+
                 promo_code_obj = None
                 if request.promo_code:
                     promo_code_obj = await self.promo_code_logic.validate_and_get_promo_code(
                         code=request.promo_code,
                         order_amount=preliminary_price_details.final_total,
                         equipment_ids=request.equipment_ids,
-                        user=user
+                        user=user,
+                        skip_usage_limits=same_promo_sent
                     )
-                
+                elif not promo_sent and reservation.promo_code_id:
+                    # Поле promo_code не прислано — сохраняем действующий промокод
+                    # (старое поведение молча стирало скидку при PUT без поля)
+                    promo_code_obj = current_promo_code
+
                 # Финальный расчет уже с валидным промокодом
                 price_details = await self.financial_service.calculate_final_price(
                     request.equipment_ids,
@@ -180,6 +215,14 @@ class ReservationLifecycleService:
                 reservation.total_cost = price_details.final_total
                 reservation.discount_amount = price_details.discount_amount
                 reservation.promo_code_id = promo_code_obj.id if promo_code_obj else None
+
+                # Пересчёт использования промокодов в лимитах при смене
+                new_promo_code_id = reservation.promo_code_id
+                if old_promo_code_id != new_promo_code_id:
+                    if old_promo_code_id:
+                        await self.promo_code_logic.release_promo_code_usage(old_promo_code_id, reservation.user_id)
+                    if promo_code_obj and not same_promo_sent:
+                        await self.promo_code_logic.record_promo_code_usage(promo_code_obj, user)
                 
                 # Обновляем аксессуары
                 # Используем clear() для удаления старых связей (cascade="all, delete-orphan" обработает это автоматически)
@@ -198,6 +241,8 @@ class ReservationLifecycleService:
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
 
             logger.info(f"User {user.id} updated reservation #{reservation.id}")
+            # даты/состав/стоимость влияют на метрики дашборда
+            invalidate_dashboard_summary()
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -220,11 +265,17 @@ class ReservationLifecycleService:
                 # Валидация прав на отмену резерва
                 if self.validator.user_status_service:
                     await self.validator.validate_user_can_cancel_reservation(user, reservation, is_manager=False)
-                
+
                 self.validator.validate_reservation_is_cancellable(reservation)
+                # Отмена освобождает лимит использованного промокода
+                if reservation.promo_code_id:
+                    await self.promo_code_logic.release_promo_code_usage(
+                        reservation.promo_code_id, reservation.user_id
+                    )
                 await self.reservation_repo.delete(reservation.id)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.info(f"User {user.id} cancelled reservation #{reservation_id}")
+            invalidate_dashboard_summary()
 
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
@@ -307,11 +358,16 @@ class ReservationLifecycleService:
                             if acc_id != eq_id:  # Фильтруем некорректные ID
                                 links.append(ReservationAccessory(equipment_id=eq_id, accessory_id=acc_id))
                     reservation.accessory_links = links
-                
+
                 # Сохраняем через репозиторий
                 await self.reservation_repo.save_object(reservation)
 
+                # Учитываем использование промокода в лимитах
+                if promo_code_obj:
+                    await self.promo_code_logic.record_promo_code_usage(promo_code_obj, user)
+
             logger.info(f"Admin created reservation #{reservation.id} for user {user.id}")
+            invalidate_dashboard_summary()
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -336,9 +392,14 @@ class ReservationLifecycleService:
         # Менеджеры могут редактировать всегда (is_manager=True)
         try:
             async with self.db.begin_nested():
-                # Пропускаем валидацию прав на редактирование для менеджера
+                # Выданный (fulfilled) резерв редактировать нельзя — он уже аренда
+                self.validator.validate_reservation_is_editable(reservation)
+
+                # Пропускаем валидацию прав на редактирование для менеджера;
+                # confirm_date_adjustment прокидываем как подтверждение даты-выходного
                 await self.validator.validate_dates_and_holidays(
-                    request.start_date, request.end_date
+                    request.start_date, request.end_date,
+                    force_issue_on_holiday=request.confirm_date_adjustment
                 )
                 equipment = await self.equipment_repo.get_equipment_by_ids_or_fail(request.equipment_ids)
                 self.validator.validate_accessories_for_equipment(
@@ -357,15 +418,32 @@ class ReservationLifecycleService:
                     request.start_date, request.end_date, None
                 )
 
+                old_promo_code_id = reservation.promo_code_id
+                promo_sent = 'promo_code' in request.model_fields_set
+
+                # Текущий код резерва: тот же присланный код не перепроверяет лимиты
+                current_promo_code = (
+                    await self.system_service.get_promo_code_by_id(old_promo_code_id)
+                    if old_promo_code_id else None
+                )
+                same_promo_sent = (
+                    promo_sent and current_promo_code is not None
+                    and request.promo_code == current_promo_code.code
+                )
+
                 promo_code_obj = None
                 if request.promo_code:
                     promo_code_obj = await self.promo_code_logic.validate_and_get_promo_code(
                         code=request.promo_code,
                         order_amount=preliminary_price_details.final_total,
                         equipment_ids=request.equipment_ids,
-                        user=user
+                        user=user,
+                        skip_usage_limits=same_promo_sent
                     )
-                
+                elif not promo_sent and reservation.promo_code_id:
+                    # Поле promo_code не прислано — сохраняем действующий промокод
+                    promo_code_obj = current_promo_code
+
                 # Финальный расчет уже с валидным промокодом
                 price_details = await self.financial_service.calculate_final_price(
                     request.equipment_ids,
@@ -382,6 +460,13 @@ class ReservationLifecycleService:
                 reservation.total_cost = price_details.final_total
                 reservation.discount_amount = price_details.discount_amount
                 reservation.promo_code_id = promo_code_obj.id if promo_code_obj else None
+
+                # Пересчёт использования промокодов в лимитах при смене
+                if old_promo_code_id != reservation.promo_code_id:
+                    if old_promo_code_id:
+                        await self.promo_code_logic.release_promo_code_usage(old_promo_code_id, reservation.user_id)
+                    if promo_code_obj and not same_promo_sent:
+                        await self.promo_code_logic.record_promo_code_usage(promo_code_obj, user)
 
                 # Обновляем аксессуары
                 # Используем clear() для удаления старых связей (cascade="all, delete-orphan" обработает это автоматически)
@@ -400,6 +485,7 @@ class ReservationLifecycleService:
                 await self.reservation_repo.save_object(reservation)
 
             logger.info(f"Admin updated reservation #{reservation.id}")
+            invalidate_dashboard_summary()
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -424,9 +510,15 @@ class ReservationLifecycleService:
                 
                 # Менеджеры могут отменять всегда (пропускаем валидацию прав на отмену)
                 self.validator.validate_reservation_is_cancellable(reservation)
+                # Отмена освобождает лимит использованного промокода
+                if reservation.promo_code_id:
+                    await self.promo_code_logic.release_promo_code_usage(
+                        reservation.promo_code_id, reservation.user_id
+                    )
                 await self.reservation_repo.delete(reservation.id)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.warning(f"Admin cancelled reservation #{reservation_id}")
+            invalidate_dashboard_summary()
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
             logger.error(
@@ -454,6 +546,11 @@ class ReservationLifecycleService:
                     return
 
                 for reservation in cancellable:
+                    # Отмена освобождает лимит использованного промокода
+                    if reservation.promo_code_id:
+                        await self.promo_code_logic.release_promo_code_usage(
+                            reservation.promo_code_id, reservation.user_id
+                        )
                     await self.reservation_repo.delete(reservation.id)
                 
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
