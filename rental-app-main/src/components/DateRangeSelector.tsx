@@ -10,7 +10,6 @@ import { useSandboxCalculatorStore } from "@/store/sandboxCalculatorStore";
 import { useHolidayStore } from "@/store/holidayStore";
 import { DateService } from '@/core/services/DateService';
 import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange';
-import { cn } from '@/lib/utils';
 
 interface DateRangeSelectorProps {
     containerRef: RefObject<HTMLDivElement | null>;
@@ -18,7 +17,7 @@ interface DateRangeSelectorProps {
     isSticky?: boolean;
 }
 
-export default function DateRangeSelector({ containerRef, collapsed: externalCollapsed, isSticky = false }: DateRangeSelectorProps) {
+export default function DateRangeSelector({ containerRef, collapsed: externalCollapsed, isSticky: _isSticky = false }: DateRangeSelectorProps) {
     const { startDate, endDate, setRange } = useDateStore();
     const { isCalculatorVisible, syncWithDateStore, refreshCalculator } = useSandboxCalculatorStore();
 
@@ -26,11 +25,17 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     
     // Используем внешнее состояние collapsed, если оно передано, иначе внутреннее
     const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+
+    // Синхронизируем внутреннее состояние при изменении внешнего (например, при скролле вниз)
+    useEffect(() => {
+        if (externalCollapsed !== undefined) {
+            setInternalCollapsed(externalCollapsed);
+        }
+    }, [externalCollapsed]);
     
     // Определяем, что показывать в зависимости от состояния
-    const showInitialCards = collapsed && !isSticky; // Изначальные крупные карточки
-    const showExpandedCalendar = !collapsed && !isSticky; // Развернутый календарь
-    const hideMainBlock = isSticky; // Скрываем основной блок при показе липкой полоски
+    const showInitialCards = collapsed; // Изначальные крупные карточки
+    const showExpandedCalendar = !collapsed; // Развернутый календарь
     const [month, setMonth] = useState(startDate);
 
     const lastChangeSource = useRef<'calendar' | 'slider' | 'manual' | null>(null);
@@ -122,15 +127,13 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     // Удаляем функции форматирования, так как они теперь в CalendarDateInputRange
 
     return (
-        <div className={cn(
-            "mb-4 border rounded-md p-4 bg-white shadow-sm transition-all duration-300 ease-in-out",
-            hideMainBlock ? "opacity-0 max-h-0 overflow-hidden p-0 mb-0" : "opacity-100"
-        )}>
+        <div className="mb-4 border rounded-md p-4 bg-white dark:bg-card shadow-sm transition-all duration-300 ease-in-out">
             <div className="flex justify-between items-center mb-2">
-                <h2 className="text-base font-semibold text-gray-700">Выбирайте даты начала и окончания аренды:</h2>
+                <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200">Выбирайте даты начала и окончания аренды:</h2>
                 <button
+                    type="button"
                     onClick={() => setInternalCollapsed(!internalCollapsed)}
-                    className="text-gray-600 hover:text-gray-800 transition p-1"
+                    className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition p-1 cursor-pointer"
                     title={collapsed ? "Развернуть календарь" : "Свернуть календарь"}
                 >
                     {collapsed ? <ChevronsDown className="w-5 h-5" /> : <ChevronsUp className="w-5 h-5" />}

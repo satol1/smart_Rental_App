@@ -5,16 +5,18 @@ import { useDateRange } from "@/hooks/useDateRange";
 import { useHolidayStore } from "@/store/holidayStore";
 import { useSandboxCalculatorStore } from "@/store/sandboxCalculatorStore";
 import { useUnifiedDateValidation } from "@/hooks/useUnifiedDateValidation";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 interface CalendarDateInputRangeProps {
   onRangeChange?: (startDate: Date, endDate: Date, source?: 'calendar' | 'slider' | 'manual') => void;
   className?: string;
+  compact?: boolean;
 }
 
 export default function CalendarDateInputRange({ 
   onRangeChange, 
-  className = "" 
+  className = "",
+  compact = false
 }: CalendarDateInputRangeProps) {
   const { startDate, endDate, setRange } = useDateStore();
   const { holidays } = useHolidayStore();
@@ -72,6 +74,59 @@ export default function CalendarDateInputRange({
     startUTC.setDate(startUTC.getDate() + 1);
     return formatDateForInput(startUTC);
   })();
+
+  if (compact) {
+    return (
+      <div className={cn("flex items-center gap-2 sm:gap-3", className)}>
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <label className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+            С:
+          </label>
+          <input
+            type="date"
+            value={localStartDate}
+            onChange={handleStartDateChange}
+            className={cn(
+              "h-8 px-2 py-1 text-xs sm:text-sm rounded border bg-background text-foreground transition-colors",
+              startDateError 
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
+                : "border-input hover:border-sky-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+            )}
+            min={formatDateForInput(new Date())}
+            title={startDateError || undefined}
+          />
+        </div>
+
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <label className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">
+            По:
+          </label>
+          <input
+            type="date"
+            value={localEndDate}
+            onChange={handleEndDateChange}
+            className={cn(
+              "h-8 px-2 py-1 text-xs sm:text-sm rounded border bg-background text-foreground transition-colors",
+              endDateError 
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500" 
+                : "border-input hover:border-sky-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+            )}
+            min={minEndDate}
+            title={endDateError || undefined}
+          />
+        </div>
+
+        {!isRangeValid && (
+          <span
+            className="hidden lg:inline-flex text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800"
+            title="Выбранные даты содержат выходные дни"
+          >
+            ⚠️ Выходные
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
