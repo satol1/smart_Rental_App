@@ -25,7 +25,7 @@ type PromoCodeActions = {
 
 type PromoCodeStore = PromoCodeState & PromoCodeActions;
 
-export const usePromoCodeStore = create<PromoCodeStore>((set, get) => ({
+export const usePromoCodeStore = create<PromoCodeStore>((set) => ({
     // State
     promoCodeInput: "",
     appliedPromoCode: "",

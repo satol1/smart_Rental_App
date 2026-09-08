@@ -1,12 +1,7 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Shield, FileText, Eye, Lock, Database, AlertTriangle, CheckCircle, Phone, Mail, MapPin } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Shield, FileText, Eye, Lock, Database, CheckCircle, Phone, MapPin } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
 
 interface PrivacyPolicyModalProps {
   open: boolean;

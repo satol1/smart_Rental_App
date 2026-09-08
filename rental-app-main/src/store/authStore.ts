@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             // Возвращаем true при успешной регистрации
             return true
         } catch (err: unknown) {
-            const error = err as { response?: { data?: { detail?: any } } }
+            const error = err as { response?: { data?: { detail?: string | Array<{ loc?: Array<string | number>; msg?: string }> } } }
 
             // Обрабатываем ошибки валидации Pydantic
             let errorMessage = "Ошибка регистрации"
@@ -95,7 +95,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 if (Array.isArray(error.response.data.detail)) {
                     // Ошибки валидации Pydantic
                     errorMessage = error.response.data.detail
-                        .map((e: any) => `${e.loc?.join('.')}: ${e.msg}`)
+                        .map((e) => `${e.loc?.join('.')}: ${e.msg}`)
                         .join('; ')
                 } else if (typeof error.response.data.detail === 'string') {
                     // Обычная ошибка

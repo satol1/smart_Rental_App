@@ -4,6 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 import type { Equipment } from "@/types/equipment";
 import { EquipmentService, type EquipmentCopyRequest } from "@/core/services/EquipmentService";
 
@@ -39,8 +40,8 @@ export function useCreateEquipment() {
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование успешно создано");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при создании оборудования");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании оборудования"));
         },
     });
 }
@@ -61,8 +62,8 @@ export function useDeleteEquipment() {
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование удалено");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении оборудования");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении оборудования"));
         },
     });
 }
@@ -87,7 +88,7 @@ export function useBulkDeleteEquipment() {
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success(`Удалено ${data.deleted_count} единиц оборудования`);
         },
-        onError: (error: any) => {
+        onError: () => {
             toast.error("Ошибка при массовом удалении оборудования");
         },
     });
@@ -111,7 +112,7 @@ export function useBulkUpdateRates() {
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
             toast.success(`Обновлены тарифы для ${data.updated_count} единиц оборудования`);
         },
-        onError: (error: any) => {
+        onError: () => {
             toast.error("Ошибка при массовом обновлении тарифов");
         },
     });
@@ -132,8 +133,8 @@ export function useCopyEquipment() {
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование успешно скопировано");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при копировании оборудования");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при копировании оборудования"));
         },
     });
 }

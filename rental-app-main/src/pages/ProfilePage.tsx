@@ -13,10 +13,11 @@ import { useAuthStore } from "@/store/authStore"
 import { toast } from "sonner"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { adminUserUpdateSchema, type AdminUserUpdateSchema } from "@/lib/validationSchemas"
 // ✅ 1. Импортируем наш новый компонент для отображения истории
 import BalanceHistoryTable from "@/components/profile/BalanceHistoryTable";
+import { SkeletonList } from "@/components/ui/skeleton-list";
 
 export default function ProfilePage() {
     const navigate = useNavigate()
@@ -29,7 +30,7 @@ export default function ProfilePage() {
     const { data: user, isLoading } = useCurrentUser()
     const updateProfile = useProfileUpdate()
 
-    const [emailChanged, setEmailChanged] = useState(false)
+    const [, setEmailChanged] = useState(false)
     const [originalEmail, setOriginalEmail] = useState("")
     const [showEmailWarning, setShowEmailWarning] = useState(false)
 
@@ -83,10 +84,15 @@ export default function ProfilePage() {
             const emailChanged = user && data.email !== user.email;
 
             // Подготавливаем данные для отправки
-            const updateData: any = { 
-                full_name: data.full_name, 
-                email: data.email, 
-                phone: data.phone || null 
+            const updateData: {
+                full_name: string;
+                email: string;
+                phone?: string | null;
+                telegram_username?: string | null;
+            } = {
+                full_name: data.full_name ?? "",
+                email: data.email ?? "",
+                phone: data.phone || null
             };
             
             // Добавляем telegram_username только если он не пустой
@@ -111,7 +117,11 @@ export default function ProfilePage() {
     }
 
     if (isLoading) {
-        return <p className="text-center mt-12 text-gray-500">Загрузка...</p>
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-8" role="status" aria-label="Загрузка профиля">
+                <SkeletonList count={1} columns="single" />
+            </div>
+        )
     }
 
     if (!user) {

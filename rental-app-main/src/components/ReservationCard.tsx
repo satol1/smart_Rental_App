@@ -29,13 +29,14 @@ type Props = {
     accessory_links?: AccessoryLink[];
     rental_id?: number | null;
     fullEquipmentData?: Equipment[];
+    created_at?: string | null;
 };
 
 export default function ReservationCard({
                                             id, equipment, start_date, end_date, status, onRemoveItem, onCancel,
                                             cancelDisabled, onRepeat, autoStartEdit = false,
                                             total_cost, discount_amount, promo_code, selected_accessories,
-                                            accessory_links, rental_id, fullEquipmentData
+                                            accessory_links, rental_id, fullEquipmentData, created_at
                                         }: Props) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -55,7 +56,8 @@ export default function ReservationCard({
         id, equipment_ids: equipment.map(e => e.id), start_date, end_date, status,
         total_cost, discount_amount, promo_code,
         selected_accessories: selected_accessories || {},
-    }), [id, equipment, start_date, end_date, status, total_cost, discount_amount, promo_code, selected_accessories]);
+        created_at,
+    }), [id, equipment, start_date, end_date, status, total_cost, discount_amount, promo_code, selected_accessories, created_at]);
 
     useEffect(() => {
         if (autoStartEdit && !isEditing && !hasAutoStarted) {
@@ -80,7 +82,7 @@ export default function ReservationCard({
     // ✨ 2. Мы больше не используем хук useInlineReservationEdit напрямую здесь.
     // Вместо этого мы управляем состоянием isEditing и рендерим либо View, либо Provider+Edit.
 
-    const { getHighlightClasses, isNewReservation, elementRef } = useHighlightLogic({ 
+    const { getHighlightClasses, elementRef } = useHighlightLogic({ 
         enableScrollToHighlight: true 
     });
     const highlightClasses = getHighlightClasses(id);
@@ -121,6 +123,7 @@ export default function ReservationCard({
                     promo_code={promo_code}
                     accessory_links={accessory_links}
                     rental_id={rental_id}
+                    created_at={created_at}
                 />
             )}
 

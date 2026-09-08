@@ -1,5 +1,5 @@
 // src/lib/queryClient.ts
-import { QueryClient, QueryCacheNotifyEvent, Query } from "@tanstack/react-query"
+import { QueryClient, type QueryCacheNotifyEvent, Query } from "@tanstack/react-query"
 
 export const queryClient = new QueryClient({
     defaultOptions: {

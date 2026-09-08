@@ -18,7 +18,7 @@ export default function EquipmentAccessoriesSelector({
     allAccessories, 
     isLoadingAccessories 
 }: Props) {
-    const { control, formState: { errors } } = useFormContext<EquipmentUpdateFormData>();
+    const { control } = useFormContext<EquipmentUpdateFormData>();
     // Состояние для управления фильтром по типу аксессуаров
     const [accessoryTypeFilter, setAccessoryTypeFilter] = useState<string | null>(null);
 

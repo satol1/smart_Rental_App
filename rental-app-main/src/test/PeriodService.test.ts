@@ -27,7 +27,7 @@ describe('PeriodService', () => {
     });
 
     it('должен вычислять даты для квартального периода', () => {
-      const { startDate, endDate } = PeriodService.getPeriodDates('quarter', 0);
+      const { startDate } = PeriodService.getPeriodDates('quarter', 0);
 
       // Проверяем, что это первый день квартала
       expect(startDate.getDate()).toBe(1);
@@ -164,7 +164,7 @@ describe('PeriodService', () => {
 
   describe('граничные случаи', () => {
     it('должен корректно обрабатывать переход между годами', () => {
-      const { startDate, endDate } = PeriodService.getPeriodDates('month', 1);
+      const { startDate } = PeriodService.getPeriodDates('month', 1);
       const currentMonth = new Date().getMonth();
 
       if (currentMonth === 11) { // Декабрь
@@ -174,7 +174,7 @@ describe('PeriodService', () => {
     });
 
     it('должен корректно обрабатывать переход между кварталами', () => {
-      const { startDate, endDate } = PeriodService.getPeriodDates('quarter', 1);
+      const { startDate } = PeriodService.getPeriodDates('quarter', 1);
       const currentMonth = new Date().getMonth();
 
       if (currentMonth >= 9) { // Q4 (Октябрь, Ноябрь, Декабрь)

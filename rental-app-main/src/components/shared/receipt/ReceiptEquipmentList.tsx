@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Receipt } from "lucide-react";
 import type { AdminRentalOut } from "@/types/rental";
@@ -12,8 +12,10 @@ interface ReceiptEquipmentListProps {
 
 export default function ReceiptEquipmentList({ rentalData, isCompact = false, useCard = true }: ReceiptEquipmentListProps) {
     // Группируем аксессуары по оборудованию
-    const equipmentWithAccessories = useMemo(() => {
-        const equipmentMap = new Map();
+    type EquipmentWithAccessories = AdminRentalOut['equipment'][number] & { accessories: AdminRentalOut['accessory_links'][number]['accessory'][] };
+
+    const equipmentWithAccessories = useMemo<EquipmentWithAccessories[]>(() => {
+        const equipmentMap = new Map<number, EquipmentWithAccessories>();
         
         // Добавляем оборудование
         rentalData.equipment.forEach(equipment => {
@@ -63,7 +65,7 @@ export default function ReceiptEquipmentList({ rentalData, isCompact = false, us
                             <TableCell className={isCompact ? "text-xs" : ""}>
                                 {equipment.accessories.length > 0 ? (
                                     <ul className={`${isCompact ? 'text-xs space-y-0' : 'text-sm space-y-1'}`}>
-                                        {equipment.accessories.map((accessory: any, accIndex: number) => (
+                                        {equipment.accessories.map((accessory) => (
                                             <li key={accessory.id} className="text-gray-600">
                                                 • {accessory.name}
                                             </li>

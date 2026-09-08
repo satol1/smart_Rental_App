@@ -1,12 +1,7 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { FileText, Shield, Clock, CreditCard, AlertTriangle, CheckCircle, User, Calendar, Phone, Mail, MapPin, Camera } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FileText, Shield, Clock, CreditCard, AlertTriangle, CheckCircle, User, Calendar, Phone, MapPin, Camera } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
 
 interface TermsOfServiceModalProps {
   open: boolean;

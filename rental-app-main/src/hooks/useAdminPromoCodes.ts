@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 // +++ НАЧАЛО ИЗМЕНЕНИЙ: Импортируем новый тип +++
 import type {
     PromoCodeOut,
@@ -63,8 +64,8 @@ export function useCreatePromoCode() {
             void queryClient.invalidateQueries({ queryKey: PROMO_CODES_QUERY_KEY });
             toast.success("Промокод успешно создан");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при создании промокода");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании промокода"));
         },
     });
 }
@@ -83,8 +84,8 @@ export function useUpdatePromoCode() {
             void queryClient.invalidateQueries({ queryKey: PROMO_CODES_QUERY_KEY });
             toast.success(`Промокод "${updatedPromoCode.code}" успешно обновлен`);
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при обновлении промокода");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при обновлении промокода"));
         },
     });
 }
@@ -100,8 +101,8 @@ export function useDeletePromoCode() {
             void queryClient.invalidateQueries({ queryKey: PROMO_CODES_QUERY_KEY });
             toast.success("Промокод удален");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении промокода");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении промокода"));
         },
     });
 }

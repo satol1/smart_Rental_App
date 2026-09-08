@@ -3,7 +3,7 @@
  * Управляет всеми зависимостями и их жизненным циклом
  */
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, type ReactNode } from 'react';
 
 // Импорты сервисов
 import { EquipmentService } from '../services/EquipmentService';

@@ -2,9 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import type { DayStatus } from "@/types/availability";
-
-type DailyAvailabilityData = Record<number, Record<string, DayStatus>>; // { equipmentId: { "DD.MM.YYYY": DayStatus } }
+import type { DailyAvailabilityData } from "@/types/availability";
 
 type Params = {
     ids: number[];

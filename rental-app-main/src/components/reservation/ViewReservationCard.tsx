@@ -4,12 +4,20 @@ import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { MinusCircle, CalendarRange, Edit2, RotateCcw, Trash2, ExternalLink } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { CalendarRange, Edit2, RotateCcw, Trash2, ExternalLink, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { formatDateEuropean } from "@/lib/utils";
+import { daysUntilDate } from "@/utils/dates";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useCurrentUser } from "@/hooks/useProfile";
-import { canUserEditReservation, canUserCancelReservation, USER_STATUS, mapLegacyUserStatus, EDIT_RESTRICTION_DAYS, type UserStatus } from "@/constants/userStatusConstants";
+import {
+    canUserEditReservation,
+    canUserCancelReservation,
+    mapLegacyUserStatus,
+    EDIT_RESTRICTION_DAYS,
+    isInReservationGracePeriod,
+    remainingGraceHours,
+} from "@/constants/userStatusConstants";
 import type { Reservation, AccessoryLink } from "@/types/reservation";
 import type { Equipment } from "@/types/equipment";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
@@ -34,6 +42,7 @@ interface ViewReservationCardProps {
     promo_code?: string | null;
     rental_id?: number | null;
     accessory_links?: AccessoryLink[];
+    created_at?: string | null;
 }
 
 const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
@@ -53,118 +62,50 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
         promo_code,
         rental_id,
         accessory_links,
+        created_at,
     } = props;
 
     const navigate = useNavigate();
-    const location = useLocation();
     const [isContactDialogOpen, setContactDialogOpen] = useState(false);
     const { isNewReservation } = useHighlightLogic();
     const { data: currentUser } = useCurrentUser();
 
-    // Отладочная информация при загрузке компонента
-    console.log('[ViewReservationCard] Component loaded for reservation:', id, {
-        currentUser: currentUser ? {
-            id: currentUser.id,
-            role: currentUser.role,
-            status: currentUser.status
-        } : null,
-        start_date,
-        end_date,
-        status
-    });
-
     const start = start_date ? new Date(start_date) : null;
     const end = end_date ? new Date(end_date) : null;
 
-    // Нормализуем даты, чтобы сравнивать только даты без времени
-    const normalizeDate = (date: Date): Date => {
-        const normalized = new Date(date);
-        normalized.setHours(0, 0, 0, 0);
-        return normalized;
-    };
-
-    const now = normalizeDate(new Date());
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
     const isPast = !!end && end < now;
 
-    // Вычисляем дни до начала, нормализуя обе даты для корректного сравнения
-    const calculateDaysUntil = (targetDate: Date | null): number | null => {
-        if (!targetDate) return null;
-        const normalizedTarget = normalizeDate(targetDate);
-        const diffTime = normalizedTarget.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
-    };
-
-    const daysUntilStart = calculateDaysUntil(start);
-    const daysUntilEnd = end ? Math.floor((normalizeDate(end).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+    // Единая нормализованная формула дней (см. utils/dates) — синхронна с бэкендом
+    const daysUntilStart = start ? daysUntilDate(start) : null;
+    const daysUntilEnd = end ? daysUntilDate(end) : null;
 
     const isActionable = status === 'active';
-    
+    const inGrace = isActionable && isInReservationGracePeriod(created_at);
+    const graceHoursLeft = inGrace ? remainingGraceHours(created_at) : 0;
+
     // Проверяем, является ли пользователь админом или менеджером
     const isAdminOrManager = useMemo(() => {
         return currentUser?.role === USER_ROLES.ADMIN || currentUser?.role === USER_ROLES.MANAGER;
     }, [currentUser?.role]);
-    
-    // Проверка прав на редактирование/отмену на основе статуса пользователя и дней до начала
+
+    const userStatus = useMemo(() => mapLegacyUserStatus(currentUser?.status), [currentUser?.status]);
+
+    // Права на редактирование/отмену — зеркало бэкенда (статус + дни + grace-период)
     const canEdit = useMemo(() => {
-        // Админы и менеджеры всегда могут редактировать свои резервы
         if (isAdminOrManager) return true;
-        
         if (!isActionable || daysUntilStart === null) return false;
-        
-        // Если резерв уже начался (отрицательное или нулевое значение), запрещаем редактирование
-        if (daysUntilStart <= 0) return false;
-        
-        if (!currentUser?.status) return false;
-        
-        // Используем маппинг старых статусов для обратной совместимости
-        const userStatus = mapLegacyUserStatus(currentUser.status);
-        
-        // Если статус не удалось определить, запрещаем редактирование
-        if (!userStatus) {
-            console.warn(`[ViewReservationCard] Не удалось определить статус пользователя для статуса: ${currentUser.status}`);
-            return false;
-        }
-        
-        const canEditResult = canUserEditReservation(userStatus, daysUntilStart);
-        
-        // Отладочная информация (всегда выводим для диагностики)
-        console.log(`[ViewReservationCard] canEdit check:`, {
-            reservationId: id,
-            userStatus,
-            userStatusRaw: currentUser.status,
-            daysUntilStart,
-            restrictionDays: EDIT_RESTRICTION_DAYS[userStatus],
-            canEdit: canEditResult,
-            isActionable,
-            isAdminOrManager
-        });
-        
-        return canEditResult;
-    }, [isAdminOrManager, isActionable, currentUser?.status, daysUntilStart, id]);
+        if (!userStatus) return false;
+        return canUserEditReservation(userStatus, daysUntilStart, created_at);
+    }, [isAdminOrManager, isActionable, userStatus, daysUntilStart, created_at]);
 
     const canCancel = useMemo(() => {
-        // Админы и менеджеры всегда могут отменять свои резервы
         if (isAdminOrManager) return true;
-        
         if (!isActionable || daysUntilStart === null) return false;
-        
-        // Если резерв уже начался (отрицательное или нулевое значение), запрещаем отмену
-        if (daysUntilStart <= 0) return false;
-        
-        if (!currentUser?.status) return false;
-        
-        // Используем маппинг старых статусов для обратной совместимости
-        const userStatus = mapLegacyUserStatus(currentUser.status);
-        
-        // Если статус не удалось определить, запрещаем отмену
-        if (!userStatus) {
-            console.warn(`[ViewReservationCard] Не удалось определить статус пользователя для статуса: ${currentUser.status}`);
-            return false;
-        }
-        
-        return canUserCancelReservation(userStatus, daysUntilStart);
-    }, [isAdminOrManager, isActionable, currentUser?.status, daysUntilStart]);
+        if (!userStatus) return false;
+        return canUserCancelReservation(userStatus, daysUntilStart, created_at);
+    }, [isAdminOrManager, isActionable, userStatus, daysUntilStart, created_at]);
 
     // Резерв защищен только если пользователь не может ни редактировать, ни отменить
     const isProtected = !canEdit && !canCancel;
@@ -211,6 +152,25 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
 
     const statusInfo = getStatusInfo();
 
+    // Понятное объяснение, почему действие недоступно (Booking-паттерн: причина + срок + альтернатива)
+    const restrictionHint = useMemo(() => {
+        if (!isProtected || !userStatus || daysUntilStart === null) return null;
+        const restrictionDays = EDIT_RESTRICTION_DAYS[userStatus];
+        if (restrictionDays === 999) {
+            return "Редактирование и отмена резервов для вашего статуса доступны только через менеджера.";
+        }
+        const needDays = restrictionDays + 1;
+        return (
+            `Начало через ${daysUntilStart} дн. При статусе «${userStatus}» самостоятельно ` +
+            `отменить/изменить резерв можно не позднее чем за ${needDays} дн. до начала. ` +
+            `Бесплатная отмена в течение 24 часов после создания уже не доступна.`
+        );
+    }, [isProtected, userStatus, daysUntilStart]);
+
+    const contactContextMessage = useMemo(() => (
+        `Здравствуйте! Прошу помочь по резерву #${id} (${formatDateEuropean(new Date(start_date))} — ${formatDateEuropean(new Date(end_date))}).`
+    ), [id, start_date, end_date]);
+
     const handleRentalClick = useCallback(() => {
         if (rental_id) {
             navigate("/reservations/my", {
@@ -228,7 +188,7 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <div className="text-base font-semibold text-sky-700 flex items-center gap-2">
-                            <span 
+                            <span
                                 className={`${onEdit && status === 'active' ? 'cursor-pointer hover:text-sky-800 hover:underline transition-colors' : ''}`}
                                 onClick={onEdit && status === 'active' ? onEdit : undefined}
                             >
@@ -237,6 +197,13 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                             {/* Бейдж "Новый" при подсветке нового резерва */}
                             {isNewReservation(id) && (
                                 <span className="px-2 py-0.5 text-[11px] rounded-md bg-violet-100 text-violet-700 border border-violet-200">Новый</span>
+                            )}
+                            {/* Grace-период: отменить можно, даже если дата близко */}
+                            {inGrace && isActionable && !isAdminOrManager && daysUntilStart !== null && daysUntilStart <= 2 && (
+                                <span className="px-2 py-0.5 text-[11px] rounded-md bg-green-100 text-green-700 border border-green-200 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    Отмена бесплатно ещё {graceHoursLeft} ч
+                                </span>
                             )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -309,6 +276,9 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                                     <p className="text-sm font-medium text-rose-700">
                                         Отмена и редактирование только через менеджера
                                     </p>
+                                    {restrictionHint && (
+                                        <p className="text-xs text-gray-600 max-w-md">{restrictionHint}</p>
+                                    )}
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -348,7 +318,11 @@ const ViewReservationCardComponent = (props: ViewReservationCardProps) => {
                     )}
                 </div>
             </Card>
-            <ContactDialog open={isContactDialogOpen} onOpenChange={setContactDialogOpen} />
+            <ContactDialog
+                open={isContactDialogOpen}
+                onOpenChange={setContactDialogOpen}
+                contextMessage={contactContextMessage}
+            />
         </>
     );
 };

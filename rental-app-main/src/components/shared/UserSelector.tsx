@@ -1,7 +1,7 @@
 // src/components/shared/UserSelector.tsx
 
 import { useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -10,10 +10,10 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import type { UserOut } from "@/types/user";
 import { cn } from "@/lib/utils";
 
-interface UserSelectorProps {
+interface UserSelectorProps<TFieldValues extends FieldValues = FieldValues> {
   // Основные пропсы
-  name: string;
-  control: any; // UseFormReturn<any>['control']
+  name: FieldPath<TFieldValues>;
+  control: Control<TFieldValues>;
   label: string;
   placeholder?: string;
   
@@ -36,7 +36,7 @@ interface UserSelectorProps {
  * Переиспользуемый компонент для выбора пользователя из списка.
  * Использует Command компонент для поиска и выбора.
  */
-export default function UserSelector({
+export default function UserSelector<TFieldValues extends FieldValues = FieldValues>({
   name,
   control,
   label,
@@ -47,7 +47,7 @@ export default function UserSelector({
   disabled = false,
   className,
   popoverClassName
-}: UserSelectorProps) {
+}: UserSelectorProps<TFieldValues>) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

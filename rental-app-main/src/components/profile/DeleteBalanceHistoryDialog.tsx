@@ -1,9 +1,9 @@
 // src/components/profile/DeleteBalanceHistoryDialog.tsx
 
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { Button } from "@/components/ui/button";
+
 import { useDeleteBalanceHistory } from "@/hooks/useDeleteBalanceHistory";
-import { Loader2 } from "lucide-react";
+
 
 interface Props {
     isOpen: boolean;
@@ -44,20 +44,6 @@ export default function DeleteBalanceHistoryDialog({
 
     const amountSign = amount > 0 ? '+' : '';
     const formattedAmount = `${amountSign} ${amount.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
-
-    const dialogDescription = (
-        <div className="space-y-2">
-            <p>Вы уверены, что хотите удалить эту запись? Это действие необратимо.</p>
-            <div className="bg-gray-50 p-3 rounded-md">
-                <p><strong>Описание:</strong> {description}</p>
-                <p><strong>Сумма:</strong> {formattedAmount}</p>
-            </div>
-            <p className="text-red-600 font-medium">
-                ⚠️ После удаления баланс пользователя будет автоматически пересчитан.
-            </p>
-        </div>
-    );
-
 
     return (
         <ConfirmationDialog

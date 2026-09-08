@@ -1,0 +1,163 @@
+import { jsx as _jsx } from "react/jsx-runtime";
+// src/contexts/ReservationEditProvider.tsx
+import { useMemo } from "react";
+import { useReservationEditState } from "@/hooks/reservation/useReservationEditState";
+import { useReservationData } from "@/hooks/reservation/useReservationData";
+import { useEditReservation } from "@/hooks/useEditReservation";
+import { useHolidayValidation } from "@/hooks/useHolidayValidation";
+import { useReserveStore } from "@/store/reserveStore";
+import { ReservationEditContext } from "./ReservationEditContext";
+import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
+import { isApiErrorLike } from "@/lib/queryHelpers";
+export const ReservationEditProvider = ({ children, reservation, initialEquipmentForDisplay, onFullCancellation, isAdminContext = false, onFinishEditing, }) => {
+    // Управление состоянием формы редактирования
+    const { state, actions: stateActions, allEquipment, clearReserveStore } = useReservationEditState(reservation, initialEquipmentForDisplay);
+    // Адаптер для совместимости с useReservationData
+    const editStateForData = useMemo(() => ({
+        startDate: state.startDate,
+        endDate: state.endDate,
+        originalEquipmentIds: state.originalEquipmentIds,
+        currentEquipmentDetails: state.currentEquipmentDetails,
+        newlyAddedEquipmentIds: state.newlyAddedEquipmentIds,
+        localSelectedAccessories: state.localSelectedAccessories,
+        hasChanges: state.hasChanges,
+    }), [state]);
+    // Получение данных (доступность, цены, промокоды)
+    const { availabilityMap, hasConflicts, isCheckingAvailability, isCalculatingPrice, financials, setPromoCode, applyPromoCode, removePromoCode, appliedPromoCode, priceDetails, promoCode, } = useReservationData(reservation, editStateForData);
+    // Валидация выходных дней
+    const { isHolidayValid } = useHolidayValidation(state.startDate, state.endDate);
+    // Мутация для сохранения изменений
+    const editApiMutation = useEditReservation({
+        onSuccessCallback: () => {
+            console.log("🔧 [ReservationEditProvider] onSuccessCallback вызван");
+            console.log("🔧 [ReservationEditProvider] Состояние перед сбросом:", {
+                hasProcessedEquipmentAddition: state.hasProcessedEquipmentAddition,
+                newlyAddedEquipmentIds: Array.from(state.newlyAddedEquipmentIds),
+                currentEquipmentDetails: state.currentEquipmentDetails.map(eq => ({ id: eq.id, label: eq.label }))
+            });
+            stateActions.resetProcessedEquipmentAddition();
+            console.log("🔧 [ReservationEditProvider] Вызываем onFinishEditing");
+            onFinishEditing();
+        },
+        onClearState: () => {
+            console.log("🔧 [ReservationEditProvider] onClearState вызван");
+            clearReserveStore();
+        },
+    });
+    // Создание карты оборудования
+    const equipmentMap = useMemo(() => new Map(allEquipment.map(e => [e.id, e])), [allEquipment]);
+    // Вычисление финального состояния изменений
+    const finalHasChanges = useMemo(() => {
+        const promoCodeChanged = appliedPromoCode !== (reservation.promo_code || "");
+        return state.hasChanges || promoCodeChanged;
+    }, [state.hasChanges, appliedPromoCode, reservation.promo_code]);
+    // Функция сохранения изменений
+    const saveChanges = async (confirmAdjustment = false) => {
+        if (!finalHasChanges && !confirmAdjustment) {
+            toast.info("Нет изменений для сохранения.");
+            return false;
+        }
+        if (hasConflicts) {
+            toast.error("Невозможно сохранить резерв с конфликтами.");
+            return false;
+        }
+        if (state.currentEquipmentDetails.length === 0) {
+            toast.error("Резерв должен содержать хотя бы одну позицию.");
+            return false;
+        }
+        if (!isHolidayValid && !confirmAdjustment) {
+            toast.error("Нельзя сохранить резерв с датами, выпадающими на выходные дни.");
+            return false;
+        }
+        try {
+            // Фильтруем аксессуары, оставляя только те, которые относятся к оставшемуся оборудованию
+            const currentEquipmentIds = new Set(state.currentEquipmentDetails.map(eq => eq.id));
+            const filteredAccessories = Object.fromEntries(Object.entries(state.localSelectedAccessories).filter(([equipmentId]) => currentEquipmentIds.has(Number(equipmentId))));
+            await editApiMutation.mutateAsync({
+                id: reservation.id,
+                start_date: formatDate(state.startDate),
+                end_date: formatDate(state.endDate),
+                equipment_ids: state.currentEquipmentDetails.map(eq => eq.id),
+                promo_code: appliedPromoCode || undefined,
+                selected_accessories: filteredAccessories,
+                isAdminContext,
+                confirm_date_adjustment: confirmAdjustment,
+            });
+            if (state.holidayConflict) {
+                stateActions.setHolidayConflict(null);
+            }
+            return true;
+        }
+        catch (error) {
+            if (isApiErrorLike(error) && error.response?.status === 409) {
+                const errorDetail = error.response?.data?.detail;
+                if (typeof errorDetail === "object" &&
+                    errorDetail !== null &&
+                    !Array.isArray(errorDetail) &&
+                    errorDetail.error_type === "DATE_IS_HOLIDAY" &&
+                    typeof errorDetail.message === "string" &&
+                    typeof errorDetail.suggested_end_date === "string") {
+                    stateActions.setHolidayConflict({
+                        message: errorDetail.message,
+                        suggested_end_date: errorDetail.suggested_end_date,
+                    });
+                }
+            }
+            return false;
+        }
+    };
+    // Обработчики событий
+    const handleConfirmHolidayAdjustment = () => { void saveChanges(true); };
+    const { setReservationId } = useReserveStore.getState();
+    const cancelEdit = () => { stateActions.clearReserveStoreAndReset(); onFinishEditing(); };
+    // Подготовка состояния для UI
+    const editStateForUI = useMemo(() => ({
+        ...state,
+        hasChanges: finalHasChanges,
+        newlyAddedEquipmentIdsAsArray: Array.from(state.newlyAddedEquipmentIds)
+    }), [state, finalHasChanges]);
+    // Создание значения контекста
+    const contextValue = {
+        reservationId: reservation.id,
+        reservationCreatedAt: reservation.created_at,
+        editState: editStateForUI,
+        availabilityMap,
+        hasConflicts,
+        isLoading: editApiMutation.isPending || isCheckingAvailability,
+        isCheckingAvailability,
+        isSaving: editApiMutation.isPending,
+        isCalculatingPrice,
+        isCancelling: false,
+        isCancelConfirmationVisible: false, // Управляется в EditableReservationCard
+        isAdminContext,
+        startEdit: () => setReservationId(reservation.id),
+        cancelEdit,
+        saveChanges: () => saveChanges(false),
+        equipmentMap,
+        allEquipment,
+        updateDates: stateActions.updateDates,
+        addEquipmentItems: stateActions.addEquipmentItems,
+        removeEquipmentItem: stateActions.removeEquipmentItem,
+        handleConfirmFullCancellation: async () => {
+            if (onFullCancellation)
+                await onFullCancellation();
+        },
+        handleCloseCancellationDialog: () => {
+            // Логика закрытия диалога отмены
+        },
+        financials,
+        priceDetails,
+        promoCode,
+        setPromoCode,
+        applyPromoCode,
+        removePromoCode,
+        localSelectedAccessories: state.localSelectedAccessories,
+        toggleAccessory: stateActions.toggleAccessory,
+        holidayConflict: state.holidayConflict,
+        confirmHolidayAdjustment: handleConfirmHolidayAdjustment,
+        cancelHolidayAdjustment: () => stateActions.setHolidayConflict(null),
+        isHolidayValid,
+    };
+    return (_jsx(ReservationEditContext.Provider, { value: contextValue, children: children }));
+};

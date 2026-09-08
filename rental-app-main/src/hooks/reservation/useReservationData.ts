@@ -7,6 +7,7 @@ import type { EditState } from "./useReservationState";
 import type { Reservation } from "@/types/reservation";
 import { usePromoCodeStore } from "@/store/promoCodeStore";
 import { toast } from "sonner";
+import { MAX_COMBINED_DISCOUNT_PERCENT } from "@/constants/discount";
 
 const emptyFinancials = {
     dayCount: 0,
@@ -61,8 +62,13 @@ export function useReservationData(reservation: Reservation, state: EditState) {
         if (!priceDetails) {
             return { ...emptyFinancials, promoCode: appliedPromoCode };
         }
-        const durationDiscountAmount = priceDetails.full_total * (priceDetails.duration_discount_percentage / 100);
-        const promoDiscountAmount = priceDetails.full_total * (priceDetails.promo_discount_percentage / 100);
+        // При срабатывании потолка 75% компоненты скидки пропорционально
+        // масштабируем, чтобы их сумма сходилась с фактическим discount_amount
+        const rawPct = priceDetails.duration_discount_percentage + priceDetails.promo_discount_percentage;
+        const cappedPct = Math.min(rawPct, MAX_COMBINED_DISCOUNT_PERCENT);
+        const scale = rawPct > 0 ? cappedPct / rawPct : 0;
+        const durationDiscountAmount = priceDetails.full_total * (priceDetails.duration_discount_percentage * scale / 100);
+        const promoDiscountAmount = priceDetails.full_total * (priceDetails.promo_discount_percentage * scale / 100);
         return {
             dayCount: priceDetails.day_count,
             fullTotal: priceDetails.full_total,

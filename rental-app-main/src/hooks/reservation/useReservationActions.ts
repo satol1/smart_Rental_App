@@ -4,11 +4,11 @@ import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useReserveStore } from "@/store/reserveStore";
 import { useEditReservation } from "../useEditReservation";
-import { ReservationService } from "@/core/services";
+
 import { useCurrentUser } from "@/hooks/useProfile";
-import { canUserEditReservation, USER_STATUS, mapLegacyUserStatus, type UserStatus } from "@/constants/userStatusConstants";
+import { canUserEditReservation, mapLegacyUserStatus } from "@/constants/userStatusConstants";
 import type { Reservation } from "@/types/reservation";
-import { type EditState } from "./useReservationState";
+import type { EditState } from "./useReservationState";
 
 export function useReservationActions({
                                           reservation,

@@ -11,6 +11,7 @@ import { Shield, Package, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Equipment } from "@/types/equipment";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
+import { SkeletonList } from "@/components/ui/skeleton-list";
 
 export default function EquipmentManagementPage() {
     const { data: currentUser } = useCurrentUser();
@@ -60,13 +61,8 @@ export default function EquipmentManagementPage() {
 
     if (isLoading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="flex justify-center items-center h-64">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Загрузка оборудования...</p>
-                    </div>
-                </div>
+            <div className="max-w-7xl mx-auto px-4 py-6 space-y-4" role="status" aria-label="Загрузка оборудования">
+                <SkeletonList count={8} compact />
             </div>
         );
     }

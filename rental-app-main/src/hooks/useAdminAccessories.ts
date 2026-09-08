@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 import type { Accessory, AccessoryListResponse } from "@/types/accessory";
 import { AccessoryService } from "@/core/services";
 
@@ -52,8 +53,8 @@ export function useCreateAccessory() {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
             toast.success("Аксессуар успешно создан");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при создании аксессуара");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании аксессуара"));
         },
     });
 }
@@ -68,8 +69,8 @@ export function useUpdateAccessory() {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
             toast.success("Аксессуар успешно обновлен");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при обновлении аксессуара");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при обновлении аксессуара"));
         },
     });
 }
@@ -97,8 +98,8 @@ export function useDeleteAccessory() {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
             toast.success("Аксессуар удален");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении аксессуара");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении аксессуара"));
         },
     });
 }

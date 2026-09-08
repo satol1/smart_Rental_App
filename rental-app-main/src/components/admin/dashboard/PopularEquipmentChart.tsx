@@ -1,11 +1,27 @@
 // src/components/admin/dashboard/PopularEquipmentChart.tsx
 
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonList } from "@/components/ui/skeleton-list";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, Package } from "lucide-react";
 import type { PopularEquipmentItem } from "@/hooks/admin/useDashboardData";
 import { formatNumber } from "@/lib/utils";
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  useChartAxisProps,
+  useChartColors,
+  useChartGridColor,
+} from "@/components/ui/chart";
 
 interface PopularEquipmentChartProps {
     data: PopularEquipmentItem[];
@@ -13,6 +29,10 @@ interface PopularEquipmentChartProps {
 }
 
 export default function PopularEquipmentChart({ data, isLoading }: PopularEquipmentChartProps) {
+    const colors = useChartColors(5);
+    const gridColor = useChartGridColor();
+    const axisProps = useChartAxisProps();
+
     if (isLoading) {
         return (
             <Card>
@@ -22,16 +42,8 @@ export default function PopularEquipmentChart({ data, isLoading }: PopularEquipm
                         Популярное оборудование
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    {Array.from({ length: 12 }).map((_, index) => (
-                        <div key={index} className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <Skeleton className="h-4 w-32" />
-                                <Skeleton className="h-4 w-16" />
-                            </div>
-                            <Skeleton className="h-6 w-full" />
-                        </div>
-                    ))}
+                <CardContent>
+                    <SkeletonList count={6} compact columns="single" />
                 </CardContent>
             </Card>
         );
@@ -47,8 +59,8 @@ export default function PopularEquipmentChart({ data, isLoading }: PopularEquipm
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-center py-8 text-sm text-gray-500">
-                        <BarChart3 className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <div className="text-center py-8 text-sm text-muted-foreground">
+                        <BarChart3 className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                         <p>Нет данных для построения графика</p>
                         <p className="text-xs">Данные появятся после первых аренд</p>
                     </div>
@@ -57,22 +69,20 @@ export default function PopularEquipmentChart({ data, isLoading }: PopularEquipm
         );
     }
 
-    // Сортируем данные по количеству аренд (по убыванию)
+    // Сортируем по количеству аренд (по убыванию), топ-12
     const sortedData = [...data].sort((a, b) => (b.rental_count || 0) - (a.rental_count || 0));
-    
-    // Берем топ-12 для отображения
     const topData = sortedData.slice(0, 12);
-    
-    // Добавляем fallback ID для элементов без equipment_id
-    const dataWithIds = topData.map((item, index) => ({
-        ...item,
-        equipment_id: item.equipment_id || `fallback-${index}`
-    }));
-    
-    
-    // Находим максимальное значение для нормализации
-    const maxRentals = topData.length > 0 ? Math.max(...topData.map(item => item.rental_count || 0)) : 0;
 
+    // Для горизонтального бара: топ-1 сверху → reverse для XAxis
+    const chartData = [...topData]
+        .reverse()
+        .map((item, index) => ({
+            name: item.equipment_name,
+            rental_count: item.rental_count || 0,
+            revenue: item.revenue || 0,
+            // Цвета идут от самого популярного (после reverse — с конца)
+            fill: colors[(topData.length - 1 - index) % colors.length],
+        }));
 
     const totalRentals = data.reduce((sum, item) => sum + (item.rental_count || 0), 0);
     const totalRevenue = data.reduce((sum, item) => sum + (item.revenue || 0), 0);
@@ -87,82 +97,64 @@ export default function PopularEquipmentChart({ data, isLoading }: PopularEquipm
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* Сводная статистика */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/60 rounded-lg">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <Package className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-gray-600">Всего аренд</span>
+                            <Package className="w-4 h-4 text-chart-1" />
+                            <span className="text-sm font-medium text-muted-foreground">Всего аренд</span>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-2xl font-bold text-foreground">
                             {formatNumber(totalRentals, "0")}
                         </div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <TrendingUp className="w-4 h-4 text-green-600" />
-                            <span className="text-sm font-medium text-gray-600">Выручка</span>
+                            <TrendingUp className="w-4 h-4 text-chart-2" />
+                            <span className="text-sm font-medium text-muted-foreground">Выручка</span>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-2xl font-bold text-foreground">
                             {formatNumber(totalRevenue, "0")} ₽
                         </div>
                     </div>
                 </div>
 
-                {/* График */}
-                <div className="space-y-4">
-                    {dataWithIds.map((item, index) => (
-                        <div key={item.equipment_id} className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
-                                        {item.equipment_name}
-                                    </span>
-                                    {index < 3 && (
-                                        <Badge 
-                                            variant={index === 0 ? "default" : "secondary"}
-                                            className="text-xs"
-                                        >
-                                            #{index + 1}
-                                        </Badge>
-                                    )}
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-sm font-semibold text-gray-900">
-                                        {formatNumber(item.rental_count, "0")}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        {formatNumber(item.revenue, "0")} ₽
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
-                                    <div 
-                                        className={`h-full transition-all duration-500 ease-out ${
-                                            index === 0 
-                                                ? 'bg-gradient-to-r from-blue-500 to-blue-600' 
-                                                : index === 1 
-                                                ? 'bg-gradient-to-r from-green-500 to-green-600'
-                                                : index === 2
-                                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                                                : 'bg-gradient-to-r from-gray-400 to-gray-500'
-                                        }`}
-                                        style={{ width: `${maxRentals > 0 ? ((item.rental_count || 0) / maxRentals) * 100 : 0}%` }}
-                                    />
-                                </div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-medium text-white mix-blend-difference">
-                                        {maxRentals > 0 ? (((item.rental_count || 0) / maxRentals) * 100).toFixed(1) : 0}%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                {/* График (recharts): горизонтальные бары, цвета из --chart-N */}
+                <ChartContainer height={Math.max(220, chartData.length * 28)}>
+                    <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
+                        <CartesianGrid horizontal={false} stroke={gridColor} strokeDasharray="3 3" />
+                        <XAxis type="number" allowDecimals={false} {...axisProps} />
+                        <YAxis
+                            type="category"
+                            dataKey="name"
+                            width={150}
+                            tickLine={false}
+                            tick={{ fill: axisProps.tick.fill, fontSize: 11 }}
+                            stroke="transparent"
+                        />
+                        <Tooltip
+                            cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
+                            content={<ChartTooltipContent formatter={(v) => `${formatNumber(Number(v), "0")} аренд`} />}
+                        />
+                        <Bar dataKey="rental_count" name="Аренды" radius={[0, 4, 4, 0]} maxBarSize={20}>
+                            {chartData.map((entry) => (
+                                <Cell key={entry.name} fill={entry.fill} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ChartContainer>
+
+                {/* Топ-3 позиции бейджами */}
+                <div className="flex flex-wrap items-center gap-2">
+                    {topData.slice(0, 3).map((item, index) => (
+                        <Badge key={item.equipment_id ?? index} variant={index === 0 ? "default" : "secondary"} className="text-xs">
+                            #{index + 1} {item.equipment_name}
+                        </Badge>
                     ))}
                 </div>
 
                 {/* Дополнительная информация */}
                 {data.length > 12 && (
-                    <div className="text-center text-sm text-gray-500 pt-2 border-t">
+                    <div className="text-center text-sm text-muted-foreground pt-2 border-t">
                         Показаны топ-12 из {data.length} позиций
                     </div>
                 )}

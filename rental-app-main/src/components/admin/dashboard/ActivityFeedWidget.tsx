@@ -3,16 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { 
-    Activity,
-    Plus,
-    X,
-    Play,
-    CheckCircle,
-    UserPlus,
-    Package,
-    Calendar
-} from "lucide-react";
+import { Activity, X, Play, CheckCircle, UserPlus, Package, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import type { ActivityFeedItem } from "@/hooks/admin/useDashboardData";

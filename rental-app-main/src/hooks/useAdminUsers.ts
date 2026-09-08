@@ -3,7 +3,8 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserService } from "@/core/services";
 import { toast } from "sonner";
-import type { UserListResponse, UserRole, UserPaymentRequest, AdminBalanceAdjustmentRequest } from "@/types/user";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
+import type { UserListResponse, UserPaymentRequest, AdminBalanceAdjustmentRequest } from "@/types/user";
 import type { AdminUserCreateFormSchema, AdminUserUpdateSchema } from "@/lib/validationSchemas";
 
 // Тип для данных, отправляемых при обновлении
@@ -23,17 +24,8 @@ export function useAdminCreateUser() {
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success("Пользователь успешно создан");
         },
-        onError: (error: any) => {
-            const detail = error.response?.data?.detail;
-            let errorMessage = "Ошибка при создании пользователя";
-
-            if (typeof detail === 'string') {
-                errorMessage = detail;
-            } else if (Array.isArray(detail)) {
-                errorMessage = detail.map((err: any) => err.msg).join(", ");
-            }
-
-            toast.error(errorMessage);
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании пользователя"));
         },
     });
 }
@@ -49,18 +41,9 @@ export function useAdminUpdateUser() {
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success(`Профиль пользователя ${updatedUser.full_name} успешно обновлен.`);
         },
-        onError: (error: any) => {
-            const detail = error.response?.data?.detail;
-            let errorMessage = "Ошибка при обновлении профиля.";
-
-            if (typeof detail === 'string') {
-                errorMessage = detail;
-            } else if (Array.isArray(detail)) {
-                errorMessage = detail.map((err: any) => err.msg).join(", ");
-            }
-
-            toast.error(errorMessage);
-        }
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при обновлении профиля."));
+        },
     });
 }
 
@@ -103,9 +86,8 @@ export function useBlockUser() {
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success("Пользователь заблокирован");
         },
-        onError: (error: unknown) => {
-            const apiError = error as { response?: { data?: { detail?: string } } }
-            toast.error(apiError?.response?.data?.detail || "Ошибка при блокировке");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при блокировке"));
         },
     });
 }
@@ -121,9 +103,8 @@ export function useUnblockUser() {
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success("Пользователь разблокирован");
         },
-        onError: (error: unknown) => {
-            const apiError = error as { response?: { data?: { detail?: string } } }
-            toast.error(apiError?.response?.data?.detail || "Ошибка при разблокировке");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при разблокировке"));
         },
     });
 }
@@ -139,9 +120,8 @@ export function useDeleteUser() {
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success("Пользователь и связанный клиент удалены");
         },
-        onError: (error: unknown) => {
-            const apiError = error as { response?: { data?: { detail?: string } } }
-            toast.error(apiError?.response?.data?.detail || "Ошибка при удалении");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении"));
         },
     });
 }
@@ -155,7 +135,7 @@ export function useAddUserPayment() {
         mutationFn: async ({ userId, data }: { userId: number; data: UserPaymentRequest }) => {
             return await UserService.addUserPayment(userId, data);
         },
-        onSuccess: (updatedUser, { userId }) => {
+        onSuccess: (_updatedUser, { userId }) => {
             // Инвалидируем кэш списка пользователей
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
 
@@ -171,17 +151,8 @@ export function useAddUserPayment() {
 
             // Уведомление теперь показывается в компоненте с более детальной информацией
         },
-        onError: (error: any) => {
-            const detail = error.response?.data?.detail;
-            let errorMessage = "Ошибка при пополнении баланса.";
-
-            if (typeof detail === 'string') {
-                errorMessage = detail;
-            } else if (Array.isArray(detail)) {
-                errorMessage = detail.map((err: any) => err.msg).join(", ");
-            }
-
-            toast.error(errorMessage);
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при пополнении баланса."));
         },
     });
 }
@@ -195,7 +166,7 @@ export function useAdjustUserBalance() {
         mutationFn: async ({ userId, data }: { userId: number; data: AdminBalanceAdjustmentRequest }) => {
             return await UserService.adjustUserBalance(userId, data);
         },
-        onSuccess: (updatedUser, { userId }) => {
+        onSuccess: (_updatedUser, { userId }) => {
             // Инвалидируем кэш списка пользователей
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
 
@@ -211,17 +182,8 @@ export function useAdjustUserBalance() {
 
             // Уведомление теперь показывается в компоненте с более детальной информацией
         },
-        onError: (error: any) => {
-            const detail = error.response?.data?.detail;
-            let errorMessage = "Ошибка при корректировке баланса.";
-
-            if (typeof detail === 'string') {
-                errorMessage = detail;
-            } else if (Array.isArray(detail)) {
-                errorMessage = detail.map((err: any) => err.msg).join(", ");
-            }
-
-            toast.error(errorMessage);
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при корректировке баланса."));
         },
     });
 }

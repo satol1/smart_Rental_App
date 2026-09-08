@@ -6,6 +6,7 @@ import type { UserOut } from '@/types/user';
 import type { Equipment } from '@/types/equipment';
 import type { AvailabilityInfo } from '@/types/availability';
 import type { CreateReservationFormData } from '@/hooks/admin/create-reservation/useCreateReservationForm';
+import type { PriceDetails } from "@/core/services/ReservationService";
 
 export interface CreateReservationContextValue {
     // Состояние UI
@@ -37,7 +38,7 @@ export interface CreateReservationContextValue {
     
     // Финансовые данные
     financialData: {
-        priceDetails: any;
+        priceDetails: PriceDetails | null | undefined;
         promoCode: string;
         setPromoCode: (code: string) => void;
         applyPromoCode: () => void;
@@ -45,7 +46,7 @@ export interface CreateReservationContextValue {
         promoCodeMessage: string;
         isCalculatingPrice: boolean;
         isApplyingPromoCode: boolean;
-        appliedPromoCode: any;
+        appliedPromoCode: string;
     };
     
     // Действия

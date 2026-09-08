@@ -13,6 +13,7 @@ import OrderToolbar from "@/components/shared/OrderToolbar";
 import { useOrderFilterStore } from "@/store/orderFilterStore";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useAutoLoaderForItem } from "@/hooks/useAutoLoaderForItem";
+import { SkeletonList } from "@/components/ui/skeleton-list";
 
 interface MyReservationsLocationState {
     from?: string;
@@ -85,7 +86,11 @@ export default function MyReservationsPage() {
     });
 
     if (isLoading) {
-        return <p className="text-center mt-12 text-sm text-gray-500">Загрузка профиля...</p>;
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-6" role="status" aria-label="Загрузка профиля">
+                <SkeletonList count={3} columns="single" />
+            </div>
+        );
     }
 
     if (!user) {
@@ -107,7 +112,7 @@ export default function MyReservationsPage() {
             <ToggleGroup
                 type="single"
                 value={activeTab}
-                onValueChange={(value) => { if (value) setActiveTab(value as any); }}
+                onValueChange={(value) => { if (value === 'reservations' || value === 'rentals') setActiveTab(value); }}
                 className="w-full"
             >
                 <ToggleGroupItem value="reservations" className="w-1/2 data-[state=on]:bg-sky-100 data-[state=on]:text-sky-800">

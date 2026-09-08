@@ -1,8 +1,8 @@
 // src/components/admin/AccessoryDialogs.tsx
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { accessorySchema, AccessorySchema } from "@/lib/validationSchemas";
+import { accessorySchema, type AccessorySchema } from "@/lib/validationSchemas";
 import { useCreateAccessory, useUpdateAccessory, useAccessory } from "@/hooks/useAdminAccessories";
 import type { Accessory } from "@/types/accessory";
 
@@ -10,14 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 // --- Диалог создания ---
 interface CreateProps {
@@ -27,7 +20,7 @@ interface CreateProps {
 export function AccessoryCreateDialog({ open, onClose }: CreateProps) {
     const createMutation = useCreateAccessory();
     const { register, handleSubmit, formState: { errors, isValid }, reset } = useForm<AccessorySchema>({
-        resolver: zodResolver(accessorySchema) as any,
+        resolver: zodResolver(accessorySchema) as Resolver<AccessorySchema>,
         mode: "onChange",
     });
 
@@ -92,7 +85,7 @@ export function AccessoryEditDialog({ accessory, open, onClose }: EditProps) {
     const { data: accessoryData, isLoading } = useAccessory(accessory?.id || null);
     
     const { register, handleSubmit, formState: { errors, isValid }, reset } = useForm<AccessorySchema>({
-        resolver: zodResolver(accessorySchema) as any,
+        resolver: zodResolver(accessorySchema) as Resolver<AccessorySchema>,
         mode: "onChange",
         defaultValues: {
             name: "",

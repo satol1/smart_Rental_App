@@ -2,7 +2,7 @@
 
 import { useFilterStore } from '@/store/filterStore';
 import { useSearchStore } from '@/store/searchStore';
-import { useCoreFilteringLogic, type FilterState } from './useCoreFilteringLogic';
+import { useCoreFilteringLogic } from './useCoreFilteringLogic';
 import type { Equipment } from '@/types/equipment';
 import type { Association } from '@/types/association';
 

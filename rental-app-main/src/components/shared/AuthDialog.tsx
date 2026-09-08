@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 import AuthForm from "@/components/AuthForm";
 
 interface AuthDialogProps {
@@ -20,6 +21,7 @@ interface AuthDialogProps {
  * которое использует существующий компонент AuthForm.
  */
 export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialogProps) {
+  const { t } = useTranslation();
   // <<< ИЗМЕНЕНИЕ: Добавлена функция для закрытия диалога при успешной авторизации
   const handleAuthSuccess = () => {
     onOpenChange(false);
@@ -31,10 +33,10 @@ export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialog
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">
-            Добро пожаловать!
+            {t("auth.welcomeTitle")}
           </DialogTitle>
           <DialogDescription className="text-center">
-            Войдите в аккаунт или зарегистрируйтесь, чтобы продолжить.
+            {t("auth.welcomeDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">

@@ -4,7 +4,6 @@
 
 import type {
   PeriodType,
-  PeriodFilter,
   PeriodOption,
   PeriodServiceResult,
   PeriodNavigation

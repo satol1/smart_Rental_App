@@ -16,6 +16,14 @@ import {queryClient} from "./lib/queryClient";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NetworkStatus from "./components/NetworkStatus";
+import { initThemeSystemListener } from "./store/themeStore";
+// i18n: инициализация словаря (fallback 'ru') до рендера приложения
+import "./i18n";
+
+// Тема: применяем сохранённое значение и слушаем системную тему ('system' режим).
+// Класс dark на <html> уже мог поставить inline-скрипт в index.html —
+// здесь только синхронизируем store и подписку на matchMedia.
+initThemeSystemListener();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

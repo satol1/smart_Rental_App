@@ -1,4 +1,5 @@
 // src/components/admin/dashboard/KpiCardsWidget.tsx
+import { formatMoney } from "@/components/ui/money-text";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,7 +39,7 @@ interface KpiCardProps {
 const formatValue = (value: number, format?: string) => {
     switch (format) {
         case 'currency':
-            return `${value.toLocaleString()} ₽`;
+            return formatMoney(value);
         case 'percentage':
             return `${value.toFixed(1)}%`;
         case 'days':

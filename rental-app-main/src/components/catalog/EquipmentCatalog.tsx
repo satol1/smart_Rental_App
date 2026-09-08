@@ -8,12 +8,12 @@ import { useServerFilters } from "@/hooks/features/useServerFilters";
 import { useAvailabilityForEquipment } from "@/hooks/useAvailabilityForEquipment";
 import { useReservationManagement } from "@/hooks/useReservationManagement";
 import { useViewModeStore } from "@/store/viewModeStore";
-import type { CatalogItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/pack";
 
 interface EquipmentCatalogProps {
     editingReservationId?: number;
     intent?: string;
-    onOpenPackDetails?: (pack: any) => void;
+    onOpenPackDetails?: (pack: CatalogPackItem) => void;
 }
 
 /**
@@ -33,7 +33,6 @@ export default function EquipmentCatalog({ editingReservationId: _editingReserva
         availableBrands,
         availableAssociations,
         hasActiveFilters,
-        totalCount,
         isLoading,
         isFetchingNextPage,
         hasNextPage,

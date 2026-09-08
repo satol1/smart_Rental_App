@@ -1,31 +1,35 @@
 // src/components/shared/OrderFinalizationSummary.tsx
 
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, FieldValues } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ReceiptText } from "lucide-react";
 
-interface OrderFinalizationSummaryProps {
-    form: UseFormReturn<{
-        deposit_amount?: number;
-        prepayment_amount?: number;
-        notes_on_issue?: string;
-    }>;
+/** Поля финализации заказа, которые регистрирует сводка */
+export interface FinalizationFormFields {
+    deposit_amount?: number;
+    prepayment_amount?: number;
+    notes_on_issue?: string;
+}
+
+interface OrderFinalizationSummaryProps<TFieldValues extends FieldValues & FinalizationFormFields> {
+    form: UseFormReturn<TFieldValues>;
     finalCost: number;
     discountAmount?: number;
     discountPercentage?: number;
     className?: string;
 }
 
-export default function OrderFinalizationSummary({
+export default function OrderFinalizationSummary<TFieldValues extends FieldValues & FinalizationFormFields>({
     form,
     finalCost,
     discountAmount = 0,
     discountPercentage = 0,
     className = ""
-}: OrderFinalizationSummaryProps) {
-    const { register, formState: { errors } } = form;
+}: OrderFinalizationSummaryProps<TFieldValues>) {
+    // Внутри работаем с конкретной формой финализации (поля известны)
+    const { register, formState: { errors } } = form as unknown as UseFormReturn<FinalizationFormFields>;
 
     return (
         <div className={`space-y-4 ${className}`}>

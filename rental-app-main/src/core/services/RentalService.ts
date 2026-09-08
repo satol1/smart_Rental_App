@@ -28,9 +28,20 @@ export interface ReturnRentalPayload {
     data: RentalReturnRequest;
 }
 
+/** Данные обновления аренды админом (частичное) */
+export interface AdminRentalUpdateData {
+    end_date?: string;
+    prepayment_amount?: number;
+    promo_code?: string | null;
+    final_cost?: number;
+    notes_on_return?: string;
+    deposit_amount?: number;
+    notes_on_issue?: string;
+}
+
 export interface UpdateRentalPayload {
     rentalId: number;
-    data: any;
+    data: AdminRentalUpdateData;
 }
 
 /**

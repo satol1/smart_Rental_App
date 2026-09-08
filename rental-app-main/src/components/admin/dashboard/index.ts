@@ -7,3 +7,4 @@ export { default as EquipmentList } from './EquipmentList';
 export { default as KpiCardsWidget } from './KpiCardsWidget';
 export { default as ActivityFeedWidget } from './ActivityFeedWidget';
 export { default as PopularEquipmentChart } from './PopularEquipmentChart';
+export { default as OrdersStructurePie } from './OrdersStructurePie';

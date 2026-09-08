@@ -38,7 +38,7 @@ export function getOperationTypeLabel(operationType: string): string {
 /**
  * Определить цвет для типа операции
  */
-export function getOperationTypeColor(operationType: string, amount: number): string {
+export function getOperationTypeColor(_operationType: string, amount: number): string {
   // Операции пополнения (положительные)
   if (amount > 0) {
     return "text-green-600";

@@ -1,7 +1,7 @@
 // src/components/admin/EquipmentListForFinalization.tsx
 
-import { Equipment } from "@/types/equipment";
-import { AvailabilityInfo } from "@/types/availability";
+import type { Equipment } from "@/types/equipment";
+import type { AvailabilityInfo } from "@/types/availability";
 import EditableEquipmentItem from "@/components/reservation/EditableEquipmentItem";
 
 interface Props {

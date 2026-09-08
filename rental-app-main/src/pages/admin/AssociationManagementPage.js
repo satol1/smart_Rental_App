@@ -1,0 +1,11 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import AdminNavigation from "@/components/admin/AdminNavigation";
+import AssociationTable from "@/components/admin/AssociationTable";
+import BrandSystemTable from "@/components/admin/BrandSystemTable";
+import { Button } from "@/components/ui/button";
+import { Tags, ShieldCheck } from "lucide-react";
+export default function AssociationManagementPage() {
+    const [activeTab, setActiveTab] = useState("associations");
+    return (_jsxs("div", { className: "max-w-7xl mx-auto px-4 py-6 space-y-6", children: [_jsx(AdminNavigation, {}), _jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Tags, { className: "w-8 h-8 text-green-600" }), _jsxs("div", { children: [_jsx("h1", { className: "text-3xl font-bold text-gray-900", children: "\u0413\u0440\u0443\u043F\u043F\u0438\u0440\u043E\u0432\u043A\u0430" }), _jsx("p", { className: "text-gray-600 mt-1", children: "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u043F\u043E\u0434\u0431\u043E\u0440\u043A\u0430\u043C\u0438 (\u0410\u0441\u0441\u043E\u0446\u0438\u0430\u0446\u0438\u0438) \u0438 \u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u043E\u0441\u0442\u044C\u044E (\u0421\u0438\u0441\u0442\u0435\u043C\u044B \u0411\u0440\u0435\u043D\u0434\u0430)." })] })] }), _jsxs("div", { className: "flex gap-2 border-b", children: [_jsxs(Button, { variant: activeTab === "associations" ? "default" : "ghost", onClick: () => setActiveTab("associations"), className: "rounded-b-none", children: [_jsx(Tags, { className: "mr-2 h-4 w-4" }), "\u0410\u0441\u0441\u043E\u0446\u0438\u0430\u0446\u0438\u0438 (\u041F\u043E\u0434\u0431\u043E\u0440\u043A\u0438)"] }), _jsxs(Button, { variant: activeTab === "brand-systems" ? "default" : "ghost", onClick: () => setActiveTab("brand-systems"), className: "rounded-b-none", children: [_jsx(ShieldCheck, { className: "mr-2 h-4 w-4" }), "\u0421\u0438\u0441\u0442\u0435\u043C\u044B \u0411\u0440\u0435\u043D\u0434\u043E\u0432"] })] }), _jsxs("div", { className: "bg-white rounded-lg border shadow-sm p-6", children: [activeTab === "associations" && _jsx(AssociationTable, {}), activeTab === "brand-systems" && _jsx(BrandSystemTable, {})] })] }));
+}

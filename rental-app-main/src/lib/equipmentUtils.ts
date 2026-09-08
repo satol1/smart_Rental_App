@@ -34,8 +34,8 @@ export function isEquipmentAvailableForReservation(equipment: Equipment): boolea
  * @returns объект с CSS классами
  */
 export function getEquipmentCardStyles(
-    equipment: Equipment, 
-    status: string = "available", 
+    equipment: Equipment,
+    _status: string = "available",
     isSelected: boolean = false
 ) {
     const isUnderRepair = isEquipmentUnderRepair(equipment);

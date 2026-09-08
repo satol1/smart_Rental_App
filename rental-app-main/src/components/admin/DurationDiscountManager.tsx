@@ -65,7 +65,7 @@ export default function DurationDiscountManager() {
                                 <TableCell>{d.min_days}</TableCell>
                                 <TableCell>{d.discount_percentage}%</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(d.id)} disabled={deleteMutation.isPending}>
+                                    <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(d.id)} disabled={deleteMutation.isPending} aria-label="Удалить правило скидки">
                                         <Trash2 className="h-4 w-4 text-red-500" />
                                     </Button>
                                 </TableCell>

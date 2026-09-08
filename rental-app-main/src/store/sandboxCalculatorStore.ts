@@ -43,7 +43,6 @@ export const useSandboxCalculatorStore = create<SandboxCalculatorStore>((set, ge
 
     syncWithDateStore: () => {
         const { dayCount } = useDateStore.getState();
-        const { holidays } = useHolidayStore.getState();
         const { _calculateDurationDiscount, isCalculatorVisible, fetchDiscountTiers } = get();
 
         if (dayCount >= 4 && !isCalculatorVisible) {

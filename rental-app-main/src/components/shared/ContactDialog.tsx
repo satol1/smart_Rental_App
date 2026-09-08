@@ -5,12 +5,14 @@ import { Mail, Phone, Send } from "lucide-react";
 interface ContactDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Предзаполненный текст обращения (например, с номером резерва и сутью вопроса) */
+  contextMessage?: string;
 }
 
-export function ContactDialog({ open, onOpenChange }: ContactDialogProps) {
+export function ContactDialog({ open, onOpenChange, contextMessage }: ContactDialogProps) {
   const telegramBot = "d30manager";
   const message = encodeURIComponent(
-    "Здравствуйте, у меня вопрос по аренде."
+    contextMessage || "Здравствуйте, у меня вопрос по аренде."
   );
   const telegramLink = `https://t.me/${telegramBot}?start=${message}`;
 

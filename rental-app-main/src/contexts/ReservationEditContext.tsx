@@ -8,6 +8,8 @@ import type { PriceDetails } from '@/hooks/reservation/usePriceCalculator';
 
 export type ReservationEditContextValue = {
     reservationId: number;
+    /** Момент создания резерва (ISO) — для grace-периода отмены/редактирования */
+    reservationCreatedAt?: string | null;
     editState: ReservationEditState & { newlyAddedEquipmentIdsAsArray: number[] };
     availabilityMap: Record<number, AvailabilityInfo>;
     hasConflicts: boolean;
@@ -25,7 +27,7 @@ export type ReservationEditContextValue = {
     equipmentMap: Map<number, Equipment>;
     allEquipment: Equipment[];
     updateDates: (newStartDate: Date, newEndDate: Date) => void;
-    addEquipmentItems: (itemsToAdd: any[]) => void;
+    addEquipmentItems: (itemsToAdd: Equipment[]) => void;
     removeEquipmentItem: (idToRemove: number) => void;
     handleConfirmFullCancellation: () => Promise<void>;
     handleCloseCancellationDialog: () => void;

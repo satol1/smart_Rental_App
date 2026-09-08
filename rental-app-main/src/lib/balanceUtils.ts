@@ -1,17 +1,19 @@
 // src/lib/balanceUtils.ts
 
+import { formatMoney } from "@/components/ui/money-text";
+
 /**
  * Централизованные утилиты для работы с балансом пользователя
  */
 
 /**
- * Форматирует баланс для отображения в интерфейсе
+ * Форматирует баланс для отображения в интерфейсе.
+ * Делегирует единый формат MoneyText (Intl.NumberFormat ru-RU, RUB).
  * @param balance - значение баланса
  * @returns отформатированная строка с валютой
  */
 export function formatBalance(balance: number | null | undefined): string {
-    const balanceValue = Number(balance ?? 0);
-    return `${balanceValue.toLocaleString('ru-RU')} ₽`;
+    return formatMoney(balance);
 }
 
 /**

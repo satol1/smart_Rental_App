@@ -74,8 +74,9 @@ export default function ReservationItemsList({
                                                     className="h-5 w-5 text-gray-400 hover:text-red-500 hover:bg-red-50"
                                                     onClick={() => onRemoveAccessory(item.id, acc.id)}
                                                     title="Удалить аксессуар"
+                                                    aria-label={`Удалить аксессуар ${acc.name}`}
                                                 >
-                                                    <X className="h-3 w-3" />
+                                                    <X className="h-3 w-3" aria-hidden="true" />
                                                 </Button>
                                             </div>
                                         </li>

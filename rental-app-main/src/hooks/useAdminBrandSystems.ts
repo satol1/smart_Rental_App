@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BrandSystemService } from "@/core/services/BrandSystemService";
 import type { BrandSystemCreate, BrandSystemUpdate, BrandSystemListResponse } from "@/types/brandSystem";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 
 const QUERY_KEY = ["admin", "brandSystems"];
 
@@ -23,7 +24,7 @@ export function useCreateBrandSystem() {
             toast.success("Система бренда успешно создана");
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка создания"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка создания")),
     });
 }
 
@@ -35,7 +36,7 @@ export function useUpdateBrandSystem() {
             toast.success("Система бренда успешно обновлена");
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка обновления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка обновления")),
     });
 }
 
@@ -47,6 +48,6 @@ export function useDeleteBrandSystem() {
             toast.success("Система бренда удалена");
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка удаления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка удаления")),
     });
 }

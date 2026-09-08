@@ -2,7 +2,7 @@
 
 import { api } from "@/lib/api";
 import type { Equipment } from "@/types/equipment";
-import type { Reservation, ReservationWithNames, ReservationListResponse } from "@/types/reservation";
+import type { Reservation, ReservationWithNames, ReservationListResponse, AdminReservationOut } from "@/types/reservation";
 
 // Тип для ответа API расчета стоимости
 export interface PriceDetails {
@@ -30,9 +30,25 @@ export interface ReservationUpdateInput {
     start_date: string;
     end_date: string;
     equipment_ids: number[];
-    selected_accessories: Record<number, number[]>;
-    promo_code?: string;
+    /** Отсутствие аксессуаров валидно — сервис подставит {} */
+    selected_accessories?: Record<number, number[]>;
+    /** API хранит null, когда промокод не применён */
+    promo_code?: string | null;
     isAdminContext?: boolean;
+    confirm_date_adjustment?: boolean;
+}
+
+/** Payload создания резерва через админку (см. CreateReservationFormData) */
+export interface AdminReservationCreatePayload {
+    user_id: number;
+    start_date: string;
+    end_date: string;
+    equipment_ids: number[];
+    selected_accessories?: Record<string, number[]>;
+    deposit_amount?: number;
+    prepayment_amount?: number;
+    notes_on_issue?: string;
+    promo_code?: string;
 }
 
 export class ReservationService {
@@ -133,8 +149,8 @@ export class ReservationService {
     /**
      * Создает резервацию через админку
      */
-    static async createAdminReservation(data: any) {
-        const response = await api.post("/admin/reservations/", data);
+    static async createAdminReservation(data: AdminReservationCreatePayload) {
+        const response = await api.post<AdminReservationOut>("/admin/reservations/", data);
         return response.data;
     }
 

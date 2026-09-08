@@ -2,9 +2,11 @@
 
 import { useInfiniteQuery, useMutation, useQueryClient, type QueryFunctionContext } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { RentalService, type AdminRentalsParams, type ConvertReservationPayload, type ReturnRentalPayload, type UpdateRentalPayload } from "@/core/services";
-import type { AdminRentalListResponse, RentalReturnRequest, AdminRentalOut, RentalCreateFromScratchData } from "@/types/rental";
+import { RentalService, type AdminRentalsParams, type ConvertReservationPayload, type ReturnRentalPayload } from "@/core/services";
+import type { AdminRentalListResponse, RentalCreateFromScratchData } from "@/types/rental";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
+import type { AdminRentalUpdateData } from "@/core/services";
 
 const ADMIN_RENTALS_QUERY_KEY = ["adminRentals"];
 const ADMIN_RESERVATIONS_QUERY_KEY = ["adminReservations"];
@@ -63,7 +65,7 @@ export function useConvertReservationToRental() {
             queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
+        onError: (error) => {
             console.error("Conversion error:", error);
             // Сбрасываем состояние загрузки в случае ошибки
             const { setLoading } = useRentalReceiptStore.getState();
@@ -81,8 +83,8 @@ export function useDeleteAdminRental() {
             toast.success("Аренда успешно удалена");
             queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении аренды");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении аренды"));
         },
     });
 }
@@ -99,8 +101,8 @@ export function useReturnRental() {
             queryClient.invalidateQueries({ queryKey: ["availability"] });
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при оформлении возврата");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при оформлении возврата"));
         },
     });
 }
@@ -117,8 +119,8 @@ export function useRevertRentalToReservation() {
             // Добавим инвалидацию истории баланса, так как она изменится
             queryClient.invalidateQueries({ queryKey: ["balanceHistory"] });
         },
-        onError: (error: any) => {
-            const errorMessage = error?.response?.data?.detail || "Ошибка при отмене выдачи аренды";
+        onError: (error) => {
+            const errorMessage = getApiErrorMessage(error, "Ошибка при отмене выдачи аренды");
             toast.error(errorMessage);
         },
     });
@@ -158,13 +160,13 @@ export function useCreateAdminRentalFromScratch() {
             queryClient.invalidateQueries({ queryKey: ["availability"] });
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
-        onError: (error: any) => {
+        onError: (error) => {
             console.error("Create rental from scratch error:", error);
             // Сбрасываем состояние загрузки в случае ошибки
             const { setLoading } = useRentalReceiptStore.getState();
             setLoading(false);
             
-            const errorMessage = error?.response?.data?.detail || "Ошибка при создании аренды";
+            const errorMessage = getApiErrorMessage(error, "Ошибка при создании аренды");
             toast.error(errorMessage);
         },
     });
@@ -174,14 +176,14 @@ export function useUpdateAdminRental() {
     const queryClient = useQueryClient();
     
     return useMutation({
-        mutationFn: (payload: { rentalId: number; data: any }) =>
+        mutationFn: (payload: { rentalId: number; data: AdminRentalUpdateData }) =>
             RentalService.updateAdminRental(payload),
         onSuccess: () => {
             toast.success("Аренда успешно обновлена");
             queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при обновлении аренды");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при обновлении аренды"));
         },
     });
 }

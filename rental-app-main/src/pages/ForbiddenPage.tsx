@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function ForbiddenPage() {
+    const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 space-y-6">
             <h1 className="text-8xl font-extrabold text-red-500">403</h1>
@@ -13,8 +14,8 @@ export default function ForbiddenPage() {
                 Если вы считаете, что это ошибка, обратитесь к администратору.
             </p>
             <div className="pt-4 flex gap-4">
-                <Button variant="outline" asChild size="lg" className="rounded-full shadow-sm">
-                    <Link to={-1 as any}>Назад</Link>
+                <Button variant="outline" size="lg" className="rounded-full shadow-sm" onClick={() => navigate(-1)}>
+                    Назад
                 </Button>
                 <Button asChild size="lg" className="rounded-full shadow-lg">
                     <Link to="/">На главную</Link>

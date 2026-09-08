@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { ReservationService, type ReservationCreateInput } from "@/core/services/ReservationService";
+import { ReservationService, type ReservationCreateInput, type ReservationUpdateInput } from "@/core/services/ReservationService";
 import type { Reservation } from "@/types/reservation";
 import { handleQueryError } from "@/lib/queryHelpers";
 import { useCurrentUser } from "./useProfile";
@@ -18,10 +18,27 @@ const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryCli
     void queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
 };
 
+/** Ошибка API с деталями о недоступных позициях */
+interface ReservationApiErrorDetail {
+    message?: string;
+    unavailable_ids?: number[];
+}
+
+interface ReservationApiError {
+    response?: { data?: { detail?: string | ReservationApiErrorDetail } };
+}
+
+/** Ошибка с дополнительным полем unavailable_ids (передаётся в UI) */
+interface ReservationMutationError extends Error {
+    unavailable_ids?: number[];
+}
+
 const handleMutationError = (error: unknown, contextMessage: string) => {
     console.error(`[useReservations] Error on ${contextMessage}:`, error);
-    const apiError = error as { response?: { data?: { detail?: any } } };
-    const detail = apiError.response?.data?.detail;
+    const apiError = (error instanceof Object && "response" in error)
+        ? (error as ReservationApiError)
+        : undefined;
+    const detail = apiError?.response?.data?.detail;
     let message = `Ошибка: ${contextMessage}`;
 
     if (typeof detail === 'string') {
@@ -32,9 +49,9 @@ const handleMutationError = (error: unknown, contextMessage: string) => {
 
     toast.error(message);
 
-    if (detail?.unavailable_ids) {
-        const errorToThrow = new Error(message);
-        (errorToThrow as any).unavailable_ids = detail.unavailable_ids;
+    if (detail && typeof detail === 'object' && detail.unavailable_ids) {
+        const errorToThrow: ReservationMutationError = new Error(message);
+        errorToThrow.unavailable_ids = detail.unavailable_ids;
         throw errorToThrow;
     }
 };
@@ -99,7 +116,7 @@ export function useReservations(params?: UseReservationsParams) {
     });
 
     const updateReservation = useMutation({
-        mutationFn: (data: any) => ReservationService.updateReservation(data),
+        mutationFn: (data: ReservationUpdateInput) => ReservationService.updateReservation(data),
         onSuccess: () => {
             invalidateReservationQueries(queryClient);
             toast.success("Резерв успешно обновлен!");

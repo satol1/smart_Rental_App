@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, X, Loader2, Calendar, DollarSign, FileText } from "lucide-react";
 import { useAdminRentalEdit } from "@/hooks/admin/useAdminRentalEdit";
-import FinancialSummaryBlock from "@/components/shared/FinancialSummaryBlock";
+
 import ActiveRentalFinancialBlock from "@/components/admin/ActiveRentalFinancialBlock";
 import type { AdminRentalOut } from "@/types/rental";
 
@@ -25,7 +25,6 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
         isDirty, 
         isSaving,
         holidayError,
-        isHolidayValid,
         priceDetails,
         isCalculatingPrice,
         promoCode,

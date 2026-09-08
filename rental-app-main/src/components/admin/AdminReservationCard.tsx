@@ -1,10 +1,9 @@
 // src/components/admin/AdminReservationCard.tsx
 
-import React, { useState, useMemo, useRef, useEffect, forwardRef, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect, forwardRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Edit, Package, Trash2, User, Truck, CheckCircle, AlertTriangle, XCircle, List } from "lucide-react";
+import { Calendar, Edit, Package, Trash2, User, Truck, List } from "lucide-react";
 import { formatDateEuropean, cn } from "@/lib/utils";
 import type { AdminReservationOut } from "@/types/reservation";
 import { useDeleteAdminReservation } from "@/hooks/useAdminReservations";
@@ -16,6 +15,7 @@ import { useAdminReservationSelectionStore } from "@/store/adminReservationSelec
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useNavigate, useLocation } from "react-router-dom";
 import { STATUS_CONFIG } from "@/constants/statusConstants";
 
 interface Props {
@@ -33,16 +33,13 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
     highlightClasses = '' 
 }, ref) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
-    const deleteReservationMutation = useDeleteAdminReservation();
     const navigate = useNavigate();
     const location = useLocation();
+    const deleteReservationMutation = useDeleteAdminReservation();
 
     const selectedIds = useAdminReservationSelectionStore(state => state.selectedIds);
     const toggleId = useAdminReservationSelectionStore(state => state.toggleId);
     const isSelected = selectedIds.includes(reservation.id);
-
-    const statusConfig = STATUS_CONFIG[reservation.status];
 
     // Автоматическая прокрутка теперь обрабатывается в useHighlightLogic
 

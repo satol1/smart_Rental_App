@@ -5,9 +5,9 @@ import { useFilterStore } from '@/store/filterStore';
 import { useSearchStore } from '@/store/searchStore';
 import { useEquipment } from '@/hooks/useEquipment';
 import { useDateStore } from '@/store/dateStore';
-import type { Equipment } from '@/types/equipment';
+
 import type { Association } from '@/types/association';
-import type { CatalogItem, CatalogEquipmentItem, CatalogPackItem } from '@/types/pack';
+import type { CatalogItem } from '@/types/pack';
 
 interface UseServerFiltersReturn {
   // Объединенный список элементов каталога для отображения (оборудование + пачки)
@@ -93,11 +93,11 @@ export function useServerFilters(): UseServerFiltersReturn {
     let combinedItems: CatalogItem[] = allItems as CatalogItem[];
 
     // ✅ ДОБАВЛЯЕМ entity_type для элементов, которые его не имеют (для обратной совместимости)
-    combinedItems = combinedItems.map((item: any) => {
+    combinedItems = combinedItems.map((item) => {
         if (!item.entity_type) {
             // Определяем тип по наличию equipment_ids (у пачек есть это поле)
             const entityType = 'equipment_ids' in item ? 'pack' : 'equipment';
-            return { ...item, entity_type: entityType };
+            return { ...(item as object), entity_type: entityType } as CatalogItem;
         }
         return item;
     });

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { USER_ROLE_VALUES, type UserRole as UserRoleType } from "@/constants/userConstants";
-import { USER_STATUS, type UserStatus } from "@/constants/userStatusConstants";
+import { USER_STATUS } from "@/constants/userStatusConstants";
 
 export type UserRole = UserRoleType;
 

@@ -31,6 +31,9 @@ export interface EquipmentConflictInfo {
   conflicts: ConflictDetail[];
 }
 
+/** Посуточные статусы оборудования: { equipmentId: { "DD.MM.YYYY": DayStatus } } */
+export type DailyAvailabilityData = Record<number, Record<string, DayStatus>>;
+
 export interface DayStatus {
   status: EquipmentStatus;
   group_id: string | null;

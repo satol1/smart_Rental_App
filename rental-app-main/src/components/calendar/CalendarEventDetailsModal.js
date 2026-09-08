@@ -1,0 +1,22 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+// path: rental-app-main/src/components/calendar/CalendarEventDetailsModal.tsx
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar, User, Package, ArrowRight } from "lucide-react";
+import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
+import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
+export default function CalendarEventDetailsModal({ isOpen, onClose, eventData, onNavigateToOrder }) {
+    if (!eventData)
+        return null;
+    const { order, orderType, isOwner, hasExtendedAccess } = eventData;
+    const handleNavigate = () => {
+        // Для публичных данных у нас может не быть userId
+        if (hasExtendedAccess && ('user' in order ? order.user?.id : order.user_info?.id)) {
+            const userId = 'user' in order ? order.user.id : order.user_info.id;
+            onNavigateToOrder(orderType, order.id, userId);
+        }
+        onClose();
+    };
+    const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('ru-RU');
+    return (_jsx(Dialog, { open: isOpen, onOpenChange: onClose, children: _jsxs(DialogContent, { className: "max-w-2xl max-h-[90vh] overflow-y-auto", children: [_jsx(DialogHeader, { children: _jsxs(DialogTitle, { className: "flex items-center gap-2", children: [_jsx(Calendar, { className: "w-5 h-5" }), orderType === 'reservation' ? 'Резерв' : 'Аренда', " #", order.id] }) }), _jsxs("div", { className: "space-y-6 py-4", children: [_jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [hasExtendedAccess && ('user' in order ? order.user?.full_name : order.user_info?.full_name) ? (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(User, { className: "w-4 h-4 text-gray-500" }), _jsx("span", { children: 'user' in order ? order.user.full_name : order.user_info.full_name })] })) : isOwner ? (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(User, { className: "w-4 h-4 text-gray-500" }), _jsx("span", { className: "text-blue-600 font-medium", children: orderType === 'reservation' ? 'Мой резерв' : 'Моя аренда' })] })) : (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(User, { className: "w-4 h-4 text-gray-500" }), _jsx("span", { className: "text-gray-500", children: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430" })] })), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Calendar, { className: "w-4 h-4 text-gray-500" }), _jsxs("span", { children: [formatDate(order.start_date), " - ", formatDate(order.end_date)] })] })] }), _jsxs("div", { className: "space-y-2", children: [_jsxs("h4", { className: "font-medium flex items-center gap-2", children: [_jsx(Package, { className: "w-4 h-4" }), "\u041E\u0431\u043E\u0440\u0443\u0434\u043E\u0432\u0430\u043D\u0438\u0435"] }), order.equipment_name ? (_jsxs("div", { className: "pl-6 space-y-1", children: [_jsxs("div", { children: [_jsx("strong", { children: "\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435:" }), " ", order.equipment_name] }), order.equipment_type && _jsxs("div", { children: [_jsx("strong", { children: "\u0422\u0438\u043F:" }), " ", order.equipment_type] }), order.equipment_brand && _jsxs("div", { children: [_jsx("strong", { children: "\u0411\u0440\u0435\u043D\u0434:" }), " ", order.equipment_brand] })] })) : hasExtendedAccess && 'equipment' in order ? (_jsx(EquipmentWithAccessoriesList, { equipment: order.equipment, accessoryLinks: order.accessory_links, title: "", showTitle: false })) : (_jsx("div", { className: "pl-6 text-gray-500", children: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430" }))] }), hasExtendedAccess && order.total_cost !== undefined && (_jsx(FinancialInfoBlock, { totalCost: order.total_cost, discountAmount: order.discount_amount, promoCode: order.promo_code, variant: "admin" })), hasExtendedAccess && ('user' in order ? order.user?.id : order.user_info?.id) && (_jsx("div", { className: "flex justify-end pt-4 border-t", children: _jsxs(Button, { onClick: handleNavigate, className: "flex items-center gap-2", children: ["\u041F\u0435\u0440\u0435\u0439\u0442\u0438 \u043A \u0437\u0430\u043A\u0430\u0437\u0443", _jsx(ArrowRight, { className: "w-4 h-4" })] }) }))] })] }) }));
+}

@@ -9,8 +9,8 @@ import { isEquipmentUnderRepair, getEquipmentCardStyles, getEquipmentStatusText 
 import { useEquipmentCardViewModel } from "@/hooks/features/useEquipmentCardViewModel";
 
 // Типы
-import type { Equipment } from "@/types/equipment";
-import type { DayStatus, EquipmentStatus } from "@/types/availability";
+
+import type { EquipmentStatus } from "@/types/availability";
 import type { EquipmentCardSimpleProps, EquipmentCardBaseProps } from "@/types/equipmentCard";
 
 // Упрощенный интерфейс для нового компонента
@@ -64,33 +64,13 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
     endDate,
     isSelected,
     onToggleSelection,
-    isAccessorySelected,
-    onToggleAccessory,
-    isCalculatorVisible,
     accessoriesDailyRate,
     totalDiscountPercentage,
-    discountData,
-        handleSetStartDate
+    discountData
     } = cardConfig;
-    // Защитный код: проверяем, что все необходимые данные переданы
-    if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
-        console.warn('CompactEquipmentCard: Missing or invalid data', { equipment, discountData });
-        return null;
-    }
-
-    const isUnderRepair = isEquipmentUnderRepair(equipment);
-
-    // Используем данные из пропсов вместо внутренних вычислений
-    const priceData = {
-        dailyRate: equipment.daily_rate + accessoriesDailyRate,
-        totalPrice: discountData.priceAfter,
-        discountPercentage: totalDiscountPercentage,
-        days: discountData.days,
-    };
-
-    // --- НАЧАЛО ИЗМЕНЕНИЙ: Удаляем useMemo для finalStatus ---
-    // const finalStatus: DisplayStatus = useMemo(() => { ... }); // ЭТОТ БЛОК ПОЛНОСТЬЮ УДАЛЕН
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+    // Правила хуков: все хуки вызываются до возможного раннего return,
+    // иначе смена исхода guard между рендерами роняет React
+    const isUnderRepair = equipment ? isEquipmentUnderRepair(equipment) : false;
 
     const handleCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if ((e.target as HTMLElement).closest("button, a, label, input[type='checkbox']")) return;
@@ -111,6 +91,24 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
             onToggleSelection();
         }
     }, [status, onToggleSelection, isUnderRepair]);
+
+    // Защитный код: проверяем, что все необходимые данные переданы
+    if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
+        console.warn('CompactEquipmentCard: Missing or invalid data', { equipment, discountData });
+        return null;
+    }
+
+    // Используем данные из пропсов вместо внутренних вычислений
+    const priceData = {
+        dailyRate: equipment.daily_rate + accessoriesDailyRate,
+        totalPrice: discountData.priceAfter,
+        discountPercentage: totalDiscountPercentage,
+        days: discountData.days,
+    };
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ: Удаляем useMemo для finalStatus ---
+    // const finalStatus: DisplayStatus = useMemo(() => { ... }); // ЭТОТ БЛОК ПОЛНОСТЬЮ УДАЛЕН
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
     // Используем централизованную логику для определения стиля
     const cardStyles = getEquipmentCardStyles(equipment, status, isSelected);
@@ -213,16 +211,21 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
     status,
     startDate,
     endDate,
-    dailyStatus,
     isSelected,
-    onToggleSelection,
     isAccessorySelected,
     onToggleAccessory,
     isCalculatorVisible,
-    accessoriesDailyRate,
-    totalDiscountPercentage,
     discountData,
 }) => {
+    // Правила хуков: хуки до guard; equipment.id вычисляем безопасно
+    const equipmentId = equipment?.id ?? -1;
+
+    const handleToggleAccessory = useCallback((e: React.MouseEvent, accessoryId: number) => {
+        e.stopPropagation();
+        if (equipmentId === -1) return;
+        onToggleAccessory(equipmentId, accessoryId);
+    }, [onToggleAccessory, equipmentId]);
+
     // Защитный код: проверяем, что все необходимые данные переданы
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
         console.warn('CompactEquipmentCardLegacy: Missing or invalid data', { equipment, discountData });
@@ -230,16 +233,6 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
     }
 
     const isUnderRepair = isEquipmentUnderRepair(equipment);
-
-    const handleToggleSelection = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        onToggleSelection();
-    }, [onToggleSelection]);
-
-    const handleToggleAccessory = useCallback((e: React.MouseEvent, accessoryId: number) => {
-        e.stopPropagation();
-        onToggleAccessory(equipment.id, accessoryId);
-    }, [onToggleAccessory, equipment.id]);
 
     const backgroundClass = COMPACT_STATUS_STYLES[status] || COMPACT_STATUS_STYLES.available;
     const selectionClass = isSelected ? COMPACT_SELECTED_STYLES : "";

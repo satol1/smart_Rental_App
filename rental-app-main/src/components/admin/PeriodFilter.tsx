@@ -2,7 +2,7 @@
  * Компонент фильтра по временным периодам
  */
 
-import React, { useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";

@@ -7,6 +7,7 @@ import { usePriceCalculator } from "../reservation/usePriceCalculator";
 import { useRentalEditDataPreparation } from "./useRentalEditDataPreparation";
 import { formatDate } from "@/lib/utils";
 import type { AdminRentalOut } from "@/types/rental";
+import type { RentalEditFormData } from "./useRentalEditForm";
 
 interface UseAdminRentalEditProps {
     rental: AdminRentalOut;
@@ -61,7 +62,7 @@ export function useAdminRentalEdit({ rental, onSuccess }: UseAdminRentalEditProp
     // Подготовка данных
     const { prepareUpdateData } = useRentalEditDataPreparation({ rental });
 
-    const onSubmit = (data: any) => {
+    const onSubmit = (data: RentalEditFormData) => {
         const updateData = prepareUpdateData(data);
         
         updateMutation.mutate({

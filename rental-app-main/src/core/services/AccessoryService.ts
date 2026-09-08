@@ -141,8 +141,8 @@ export class AccessoryService {
         sortOrder: 'asc' | 'desc' = 'asc'
     ): Accessory[] {
         return [...accessories].sort((a, b) => {
-            let aValue: any = a[sortBy];
-            let bValue: any = b[sortBy];
+            let aValue: string | number = a[sortBy];
+            let bValue: string | number = b[sortBy];
 
             // Для чисел (price)
             if (sortBy === 'price') {
@@ -199,7 +199,7 @@ export class AccessoryService {
     ): number {
         let total = 0;
 
-        Object.entries(selectedAccessories).forEach(([equipmentId, accessoryIds]) => {
+        Object.entries(selectedAccessories).forEach(([, accessoryIds]) => {
             accessoryIds.forEach(accessoryId => {
                 const accessory = allAccessories.find(acc => acc.id === accessoryId);
                 if (accessory) {

@@ -1,7 +1,8 @@
 // src/components/AuthForm.tsx
 
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Controller } from "react-hook-form";
-import { LoginSchema, RegisterSchema } from "@/lib/validationSchemas";
 import { useAuthFormViewModel } from "@/hooks/features/useAuthFormViewModel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ interface AuthFormProps {
 }
 
 export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
     const { state, actions, form } = useAuthFormViewModel({ onSuccess });
     
     const {
@@ -24,7 +27,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
         handleSubmit,
         control,
         trigger,
-        formState: { errors, isValid },
+        formState: { errors },
     } = form;
 
     const {
@@ -51,7 +54,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <Label htmlFor="fullName">ФИО *</Label>
+                    <Label htmlFor="fullName">{t("auth.fields.fullName")} *</Label>
                     <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input id="fullName" {...formRegister("fullName")} placeholder="Иван Иванов" className="pl-9" />
@@ -59,7 +62,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                     {isRegister && 'fullName' in errors && errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName.message}</p>}
                 </div>
                 <div>
-                    <Label htmlFor="phone">Телефон</Label>
+                    <Label htmlFor="phone">{t("auth.fields.phone")}</Label>
                     <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Controller
@@ -82,7 +85,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
             </div>
 
             <div>
-                <Label htmlFor="telegram">Telegram</Label>
+                <Label htmlFor="telegram">{t("auth.fields.telegram")}</Label>
                 <div className="relative">
                     <Send className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input id="telegram" {...formRegister("telegram_username")} placeholder="@username" className="pl-9" />
@@ -92,7 +95,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <Label htmlFor="emailReg">Email *</Label>
+                    <Label htmlFor="emailReg">{t("auth.fields.email")} *</Label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
@@ -104,12 +107,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                     {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
                 </div>
                 <div>
-                    <Label htmlFor="passwordReg">Пароль *</Label>
+                    <Label htmlFor="passwordReg">{t("auth.fields.password")} *</Label>
                     <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input id="passwordReg" type={showPassword ? "text" : "password"} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-10" />
-                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={togglePasswordVisibility}>
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={togglePasswordVisibility} aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}>
+                            {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                         </Button>
                     </div>
                     {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
@@ -125,7 +128,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                             <Checkbox id="privacy" checked={field.value} onCheckedChange={field.onChange} />
                             <div className="grid gap-1.5 leading-none">
                                 <Label htmlFor="privacy" className="text-sm font-normal cursor-pointer">
-                                    Я согласен с <button type="button" onClick={openPrivacyModal} className="text-sky-600 hover:underline">политикой обработки персональных данных</button> *
+                                    {t("auth.consent.privacyText")} <button type="button" onClick={openPrivacyModal} className="text-sky-600 hover:underline">{t("auth.consent.privacyLink")}</button> *
                                 </Label>
                                 {isRegister && 'privacyPolicyAccepted' in errors && errors.privacyPolicyAccepted && <p className="text-xs text-red-600">{errors.privacyPolicyAccepted.message}</p>}
                             </div>
@@ -140,7 +143,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                             <Checkbox id="terms" checked={field.value} onCheckedChange={field.onChange} />
                             <div className="grid gap-1.5 leading-none">
                                 <Label htmlFor="terms" className="text-sm font-normal cursor-pointer">
-                                    Я принимаю <button type="button" onClick={openTermsModal} className="text-sky-600 hover:underline">условия использования сервиса</button> *
+                                    {t("auth.consent.termsText")} <button type="button" onClick={openTermsModal} className="text-sky-600 hover:underline">{t("auth.consent.termsLink")}</button> *
                                 </Label>
                                 {isRegister && 'termsAccepted' in errors && errors.termsAccepted && <p className="text-xs text-red-600">{errors.termsAccepted.message}</p>}
                             </div>
@@ -154,7 +157,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
     const loginFields = (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <Label htmlFor="emailLogin">Email</Label>
+                <Label htmlFor="emailLogin">{t("auth.fields.email")}</Label>
                 <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -166,12 +169,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                 {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
             </div>
             <div>
-                <Label htmlFor="passwordLogin">Пароль</Label>
+                <Label htmlFor="passwordLogin">{t("auth.fields.password")}</Label>
                 <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input id="passwordLogin" type={showPassword ? "text" : "password"} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-10" />
-                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={togglePasswordVisibility}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={togglePasswordVisibility} aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}>
+                        {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                     </Button>
                 </div>
                 {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
@@ -182,7 +185,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
     return (
         <div className="w-full">
             <form onSubmit={handleSubmit(handleFormSubmit)} className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
-                <h2 className="text-xl font-semibold text-center">{isRegister ? "Регистрация" : "Вход в аккаунт"}</h2>
+                <h2 className="text-xl font-semibold text-center">{isRegister ? t("auth.registerTitle") : t("auth.loginTitle")}</h2>
 
                 {/* Только при регистрации рендерятся чекбоксы и registrationFields */}
                 {isRegister ? registrationFields : loginFields}
@@ -200,20 +203,20 @@ export default function AuthForm({ onSuccess }: AuthFormProps = {}) {
                         disabled={!isFormReady() || loading} 
                         className="w-full"
                     >
-                        {loading ? "Загрузка..." : (isRegister ? <><UserPlus className="mr-2 h-4 w-4" />Зарегистрироваться</> : <><LogIn className="mr-2 h-4 w-4" />Войти</>)}
+                        {loading ? t("common.loading") : (isRegister ? <><UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />{t("auth.submitRegister")}</> : <><LogIn className="mr-2 h-4 w-4" aria-hidden="true" />{t("auth.submitLogin")}</>)}
                     </Button>
                     <div className="flex justify-center items-center gap-4 text-sm">
                         <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => window.location.href = "/calendar"}
+                            onClick={() => navigate("/calendar")}
                         >
-                            <Calendar className="mr-2 h-4 w-4" />
-                            Календарь
+                            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+                            {t("nav.calendar")}
                         </Button>
                         <Button type="button" variant="link" onClick={toggleMode} className="text-gray-600">
-                            {isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта?"}
+                            {isRegister ? t("auth.hasAccount") : t("auth.noAccount")}
                         </Button>
                     </div>
                 </div>

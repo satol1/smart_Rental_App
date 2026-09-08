@@ -1,5 +1,6 @@
 // src/hooks/useErrorHandler.ts
 import { useCallback } from "react"
+import i18n from "@/i18n"
 
 type UseErrorHandler = () => (error: unknown) => void
 
@@ -12,7 +13,7 @@ export const useErrorHandler: UseErrorHandler = () => {
         if (error instanceof Error) {
             throw error
         } else {
-            throw new Error("Произошла неизвестная ошибка")
+            throw new Error(i18n.t("errors.unknown"))
         }
     }, [])
 }

@@ -1,14 +1,14 @@
 // src/components/shared/SimpleDatePickerField.tsx
 
-import { Controller } from "react-hook-form";
+import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
-interface SimpleDatePickerFieldProps {
+interface SimpleDatePickerFieldProps<TFieldValues extends FieldValues = FieldValues> {
   // Основные пропсы
-  name: string;
-  control: any; // UseFormReturn<any>['control']
+  name: FieldPath<TFieldValues>;
+  control: Control<TFieldValues>;
   label: string;
   
   // Валидация и ошибки
@@ -33,7 +33,7 @@ interface SimpleDatePickerFieldProps {
  * Основан на дизайне страницы /reserve/create для единообразия интерфейса.
  * Заменяет сложный DayPicker на простые input поля с сохранением всей функциональности.
  */
-export default function SimpleDatePickerField({
+export default function SimpleDatePickerField<TFieldValues extends FieldValues = FieldValues>({
   name,
   control,
   label,
@@ -45,7 +45,7 @@ export default function SimpleDatePickerField({
   onChange,
   className,
   inputClassName
-}: SimpleDatePickerFieldProps) {
+}: SimpleDatePickerFieldProps<TFieldValues>) {
 
   const formatDateForInput = (date: Date) => {
     return formatDate(date);

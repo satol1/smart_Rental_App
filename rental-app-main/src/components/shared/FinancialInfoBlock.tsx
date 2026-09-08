@@ -3,6 +3,7 @@
 import React from "react";
 import { Tag, Receipt, ReceiptText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MoneyText, formatMoney } from "@/components/ui/money-text";
 
 interface FinancialInfoBlockProps {
     totalCost?: number | null;
@@ -28,19 +29,19 @@ const FinancialInfoBlockComponent = ({
                 </h4>
                 <div className="text-xs space-y-1.5 text-slate-700">
                     <div className="flex justify-between">
-                        <span>Общая стоимость:</span> 
-                        <span className="font-medium">{totalCost?.toLocaleString('ru-RU') ?? 'Н/Д'} ₽</span>
+                        <span>Общая стоимость:</span>
+                        <span className="font-medium">{totalCost != null ? <MoneyText value={totalCost} /> : 'Н/Д'}</span>
                     </div>
                     {promoCode && (
                         <div className="flex justify-between">
-                            <span>Промокод:</span> 
+                            <span>Промокод:</span>
                             <span className="font-medium text-purple-600">{promoCode}</span>
                         </div>
                     )}
                     {(discountAmount ?? 0) > 0 && (
                         <div className="flex justify-between">
-                            <span>Скидка:</span> 
-                            <span className="font-medium text-green-600">-{discountAmount?.toLocaleString('ru-RU')} ₽</span>
+                            <span>Скидка:</span>
+                            <span className="font-medium text-green-600">-<MoneyText value={discountAmount} /></span>
                         </div>
                     )}
                 </div>
@@ -67,12 +68,12 @@ const FinancialInfoBlockComponent = ({
                     <Receipt className="w-4 h-4 text-gray-500" />
                     Итог:
                     <span className="text-gray-800">
-                        {totalCost?.toLocaleString('ru-RU') ?? 'Н/Д'} ₽
+                        {totalCost != null ? <MoneyText value={totalCost} /> : 'Н/Д'}
                     </span>
                 </div>
                 {(discountAmount ?? 0) > 0 && (
                     <div className="text-xs text-green-600 mt-0.5">
-                        со скидкой в {discountAmount?.toLocaleString('ru-RU')} ₽
+                        со скидкой в {formatMoney(discountAmount)}
                     </div>
                 )}
             </div>

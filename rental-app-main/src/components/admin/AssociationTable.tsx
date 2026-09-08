@@ -165,8 +165,8 @@ export default function AssociationTable() {
                                 <TableCell className="font-medium">{assoc.name}</TableCell>
                                 <TableCell>{assoc.equipment_ids.length}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(assoc)}><Edit className="h-4 w-4" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(assoc)} aria-label="Редактировать ассоциацию"><Edit className="h-4 w-4" aria-hidden="true" /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc.id)} aria-label="Удалить ассоциацию"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
                                 </TableCell>
                             </TableRow>
                         ))}

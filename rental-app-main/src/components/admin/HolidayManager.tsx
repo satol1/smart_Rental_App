@@ -173,7 +173,7 @@ export default function HolidayManager() {
             date: format(day, "yyyy-MM-dd"),
             description: description || undefined,
         }, {
-            onError: (error: any) => {
+            onError: (error) => {
                 if (error.response?.status === 409) {
                     setConflict({
                         date: day,
@@ -182,11 +182,11 @@ export default function HolidayManager() {
                     });
                 }
             },
-            onSuccess: (response: any) => {
+            onSuccess: (response) => {
                 setDescription("");
                 // Проверяем, есть ли информация об автоматическом продлении
                 if (response?.data?.auto_extension) {
-                    setAutoExtension(response.data.auto_extension);
+                    setAutoExtension(response.data.auto_extension ?? null);
                 }
             }
         });
@@ -197,11 +197,11 @@ export default function HolidayManager() {
         createMutation.mutate(
             { date: format(conflict.date, "yyyy-MM-dd"), description: conflict.description, force: true },
             { 
-                onSuccess: (response: any) => {
+                onSuccess: (response) => {
                     setConflict(null);
                     // Проверяем, есть ли информация об автоматическом продлении
                     if (response?.data?.auto_extension) {
-                        setAutoExtension(response.data.auto_extension);
+                        setAutoExtension(response.data.auto_extension ?? null);
                     }
                 }
             }
@@ -260,7 +260,7 @@ export default function HolidayManager() {
                                             <span className="font-medium">{format(holiday.date, 'PPP', { locale: ru })}</span>
                                             {holiday.description && <span className="text-gray-600 text-sm ml-2">- {holiday.description}</span>}
                                         </div>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteHoliday(holiday.date)} disabled={deleteMutation.isPending}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteHoliday(holiday.date)} disabled={deleteMutation.isPending} aria-label="Удалить выходной день"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
                                     </div>
                                 ))}
                             </div>
@@ -292,7 +292,7 @@ export default function HolidayManager() {
                                             <TableCell><span className="text-xs font-mono bg-slate-100 px-2 py-1 rounded">{rule.rule_type}</span></TableCell>
                                             <TableCell>{format(new Date(rule.created_at), 'dd.MM.yyyy HH:mm')}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)} disabled={deleteRuleMutation.isPending}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)} disabled={deleteRuleMutation.isPending} aria-label="Удалить правило"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}

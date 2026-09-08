@@ -1,6 +1,6 @@
 // src/components/profile/BalanceHistoryTable.tsx
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useBalanceHistory, useAdminBalanceHistory, useBalanceHistoryInfinite, useAdminBalanceHistoryInfinite } from "@/hooks/useBalanceHistory";
 import { useCurrentUser } from "@/hooks/useProfile";
 import {
@@ -13,6 +13,7 @@ import {
     TableCaption,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { MoneyText } from "@/components/ui/money-text";
 import { formatDateEuropean } from "@/lib/utils";
 import { Loader2, AlertTriangle, ChevronLeft, ChevronRight, Inbox, Trash2, Plus } from "lucide-react";
 import { getOperationTypeLabel, getOperationTypeColor, getOperationTypeIcon } from "@/constants/balanceOperationTypes";
@@ -191,7 +192,7 @@ export default function BalanceHistoryTable({ userId, isAdminView = false, useLo
                                     </TableCell>
                                     <TableCell className="text-xs">{entry.description}</TableCell>
                                     <TableCell className={`text-right font-semibold ${amountColor}`}>
-                                        {amountSign} {entry.amount.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}
+                                        {amountSign} <MoneyText value={entry.amount} />
                                     </TableCell>
                                     {isAdmin && isAdminView && (
                                         <TableCell className="text-center">

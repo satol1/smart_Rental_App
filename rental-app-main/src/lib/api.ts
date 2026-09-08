@@ -1,7 +1,10 @@
 import axios from "axios"
 import { getAccessToken, setAccessToken, clearAccessToken } from "@/core/services/tokenManager"
 
-// Базовый инстанс axios для системных запросов (не использует интерцепторы, чтобы не было зацикливаний)
+// Базовый инстанс axios для системных запросов.
+// Interceptor'ы здесь сознательно НЕ работают с авторизацией/refresh (чтобы не
+// было зацикливаний), но CSRF-заголовок нужен и этим запросам: refresh/logout —
+// мутирующие эндпоинты с CSRF-проверкой на бэкенде.
 export const baseApi = axios.create({
   baseURL: "/api",
   withCredentials: true,
@@ -22,6 +25,70 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+// Получение актуального CSRF-токена: из cookie, а если её нет — с сервера.
+// GET /auth/csrf-token сам не требует CSRF, поэтому рекурсии здесь нет.
+async function ensureCsrfToken(): Promise<string | null> {
+  let csrfToken = getCookie("fastapi-csrf-token")
+  if (!csrfToken) {
+    try {
+      const csrfResponse = await baseApi.get("/auth/csrf-token")
+      csrfToken = csrfResponse.data.csrf_token ?? null
+    } catch {
+      // Игнорируем ошибку получения CSRF токена
+    }
+  }
+  return csrfToken
+}
+
+function isMutatingMethod(method?: string): boolean {
+  return ['post', 'put', 'delete', 'patch'].includes(method?.toLowerCase() || '')
+}
+
+// По ответу понимаем, что это отказ CSRF (токен истёк через час/ротация):
+// бэкенд отвечает 403 с detail "CSRF validation failed: ..."
+function isCsrfFailure(error: unknown): boolean {
+  const resp = (error as { response?: { status?: number; data?: { detail?: unknown } } })?.response
+  const detail = typeof resp?.data?.detail === 'string' ? resp.data.detail : ''
+  return resp?.status === 403 && detail.includes('CSRF')
+}
+
+// ─── baseApi: CSRF на мутирующие запросы (refresh, logout и др.) ───
+baseApi.interceptors.request.use(
+  async (config) => {
+    if (isMutatingMethod(config.method)) {
+      const csrfToken = await ensureCsrfToken()
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// ─── baseApi: перевыпуск CSRF и повтор запроса при 403 CSRF ───
+baseApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+    if (isCsrfFailure(error) && originalRequest && !originalRequest._csrfRetry) {
+      originalRequest._csrfRetry = true
+      try {
+        const csrfResponse = await baseApi.get("/auth/csrf-token")
+        const freshToken: string | undefined = csrfResponse.data.csrf_token
+        if (freshToken) {
+          originalRequest.headers = originalRequest.headers || {}
+          originalRequest.headers["X-CSRF-Token"] = freshToken
+          return baseApi(originalRequest)
+        }
+      } catch {
+        // падаем в исходную ошибку
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 // Interceptor для обработки ответов с попыткой автообновления access-токена
 let isRefreshing = false
 let pendingRequests: Array<(token: string | null) => void> = []
@@ -32,6 +99,22 @@ api.interceptors.response.use(
     const originalRequest = error.config
     const requestUrl = originalRequest?.url || ''
 
+    // Истёкший CSRF-токен (живёт 1 час): перевыпускаем и повторяем один раз
+    if (isCsrfFailure(error) && originalRequest && !originalRequest._csrfRetry) {
+      originalRequest._csrfRetry = true
+      try {
+        const csrfResponse = await baseApi.get("/auth/csrf-token")
+        const freshToken: string | undefined = csrfResponse.data.csrf_token
+        if (freshToken) {
+          originalRequest.headers = originalRequest.headers || {}
+          originalRequest.headers["X-CSRF-Token"] = freshToken
+          return api(originalRequest)
+        }
+      } catch {
+        // падаем в исходную ошибку
+      }
+    }
+
     // Не пытаемся refresh для auth эндпоинтов - это приведет к бесконечным циклам
     const isAuthEndpoint = requestUrl.includes('/auth/logout') || requestUrl.includes('/auth/refresh')
 
@@ -40,7 +123,7 @@ api.interceptors.response.use(
 
       // Если уже идёт refresh — ждём
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           pendingRequests.push((token) => {
             if (token) {
               originalRequest.headers = originalRequest.headers || {}
@@ -92,19 +175,8 @@ api.interceptors.request.use(
     }
 
     // 2. Добавляем CSRF-токен для методов, изменяющих состояние
-    if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '')) {
-      let csrfToken = getCookie("fastapi-csrf-token")
-
-      // Если токена нет в cookie, получаем его с сервера через чистый базовый инстанс
-      if (!csrfToken) {
-        try {
-          const csrfResponse = await baseApi.get("/auth/csrf-token")
-          csrfToken = csrfResponse.data.csrf_token
-        } catch {
-          // Игнорируем ошибку получения CSRF токена
-        }
-      }
-
+    if (isMutatingMethod(config.method)) {
+      const csrfToken = await ensureCsrfToken()
       if (csrfToken) {
         config.headers["X-CSRF-Token"] = csrfToken
       }

@@ -96,8 +96,9 @@ export default function BrandSystemTable() {
                                             size="icon" 
                                             onClick={() => handleEdit(system)}
                                             title="Редактировать"
+                                            aria-label="Редактировать бренд"
                                         >
-                                            <Edit className="h-4 w-4" />
+                                            <Edit className="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                         <Button 
                                             variant="ghost" 
@@ -105,8 +106,9 @@ export default function BrandSystemTable() {
                                             className="text-red-500 hover:text-red-700" 
                                             onClick={() => handleDelete(system.id)}
                                             title="Удалить"
+                                            aria-label="Удалить бренд"
                                         >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </div>
                                 </TableCell>

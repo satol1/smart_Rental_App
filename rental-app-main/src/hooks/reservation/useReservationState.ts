@@ -1,6 +1,6 @@
 // src/hooks/reservation/useReservationState.ts
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import type { Reservation } from "@/types/reservation";
 import type { Equipment } from "@/types/equipment";
 

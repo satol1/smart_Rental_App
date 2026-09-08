@@ -3,14 +3,16 @@
 import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { ReservationService } from "@/core/services";
 import { toast } from "sonner";
-import type { Reservation, AdminReservationListResponse } from "@/types/reservation";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
+import type { AdminReservationListResponse } from "@/types/reservation";
 
 interface EditReservationInput {
     id: number;
     start_date: string;
     end_date: string;
     equipment_ids: number[];
-    promo_code?: string;
+    /** undefined — не менять; null — явно сбросить; строка — применить код */
+    promo_code?: string | null;
     selected_accessories?: Record<number, number[]>;
     isAdminContext?: boolean;
     confirm_date_adjustment?: boolean;
@@ -87,31 +89,34 @@ export function useEditReservation({
                 console.log("🔧 [useEditReservation] Обновляем кэш для пользовательских резервов");
                 console.log("🔧 [useEditReservation] updatedReservation:", updatedReservation);
                 
-                queryClient.setQueriesData(
+                queryClient.setQueriesData<unknown>(
                     { queryKey, exact: false },
-                    (oldData: any) => {
+                    (oldData: unknown) => {
                         console.log("🔧 [useEditReservation] oldData:", oldData);
                         
                         if (!oldData) return oldData;
                         
                         // Если это InfiniteData (пагинированные данные)
-                        if (oldData.pages) {
+                        const asRecord = oldData as { pages?: Array<{ items?: Array<{ id: number }> }> };
+
+                        if (Array.isArray(asRecord.pages)) {
                             console.log("🔧 [useEditReservation] Обновляем InfiniteData");
                             return {
                                 ...oldData,
-                                pages: oldData.pages.map((page: any) => ({
+                                pages: asRecord.pages.map(page => ({
                                     ...page,
-                                    items: page.items.map((item: any) => 
+                                    items: (page.items ?? []).map(item =>
                                         item.id === updatedReservation.id ? updatedReservation : item
                                     ),
                                 })),
                             };
                         }
-                        
+
                         // Если это обычный массив (пользовательские резервы)
                         if (Array.isArray(oldData)) {
                             console.log("🔧 [useEditReservation] Обновляем массив пользовательских резервов");
-                            const updatedArray = oldData.map((item: any) => 
+                            const items = oldData as Array<{ id: number }>;
+                            const updatedArray = items.map(item =>
                                 item.id === updatedReservation.id ? updatedReservation : item
                             );
                             console.log("🔧 [useEditReservation] Обновленный массив:", updatedArray);
@@ -151,8 +156,7 @@ export function useEditReservation({
         },
         onError: (error: unknown, variables) => {
             console.error(`Ошибка при обновлении резерва #${variables.id}:`, error);
-            const errorDetail = (error as any)?.response?.data?.detail;
-            const message = typeof errorDetail === 'string' ? errorDetail : "Ошибка при сохранении изменений.";
+            const message = getApiErrorMessage(error, "Ошибка при сохранении изменений.");
             toast.error(message);
             // Пробрасываем ошибку дальше, если это необходимо для UI
             throw error;

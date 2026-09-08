@@ -55,7 +55,7 @@ export const useDateStore = create<DateState>((set, get) => ({
     },
     // +++ КОНЕЦ: НОВАЯ ФУНКЦИЯ +++
 
-    setRange: (from, to, source, holidays = []) => {
+    setRange: (from, to, _source, holidays = []) => {
         const currentState = get();
         const normalizedFrom = normalizeDate(from);
         let normalizedTo = normalizeDate(to);

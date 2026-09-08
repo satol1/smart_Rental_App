@@ -11,7 +11,7 @@ import type { AdminRentalOut, RentalAccessoryDetail } from "@/types/rental";
 import { formatDate } from "@/lib/utils";
 import { useState, useMemo, useEffect } from "react";
 import type { Accessory } from "@/types/accessory";
-import type { Equipment } from "@/types/equipment";
+
 
 interface Props {
     rental: AdminRentalOut | null;

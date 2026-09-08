@@ -1,18 +1,15 @@
 // src/components/admin/CompactFinancialBlock.tsx
 
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, FieldValues } from "react-hook-form";
+import type { FinalizationFormFields } from "@/components/shared/OrderFinalizationSummary";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ReceiptText } from "lucide-react";
 import PromoCodeInput from "@/components/PromoCodeInput";
 
-interface CompactFinancialBlockProps {
-    form: UseFormReturn<{
-        deposit_amount?: number;
-        prepayment_amount?: number;
-        notes_on_issue?: string;
-    }>;
+interface CompactFinancialBlockProps<TFieldValues extends FieldValues & FinalizationFormFields> {
+    form: UseFormReturn<TFieldValues>;
     finalCost: number;
     discountAmount?: number;
     discountPercentage?: number;
@@ -26,7 +23,7 @@ interface CompactFinancialBlockProps {
     className?: string;
 }
 
-export default function CompactFinancialBlock({
+export default function CompactFinancialBlock<TFieldValues extends FieldValues & FinalizationFormFields>({
     form,
     finalCost,
     discountAmount = 0,
@@ -38,8 +35,9 @@ export default function CompactFinancialBlock({
     promoCodeMessage,
     isApplyingPromoCode = false,
     className = ""
-}: CompactFinancialBlockProps) {
-    const { register, formState: { errors } } = form;
+}: CompactFinancialBlockProps<TFieldValues>) {
+    // Внутри работаем с конкретной формой финализации (поля известны)
+    const { register, formState: { errors } } = form as unknown as UseFormReturn<FinalizationFormFields>;
 
     return (
         <div className={`space-y-4 ${className}`}>

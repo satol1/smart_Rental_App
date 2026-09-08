@@ -31,7 +31,6 @@ const statusOptions = USER_STATUS_OPTIONS;
 export function UserEditDialog({ user, open, onClose }: Props) {
     const { data: currentUser } = useCurrentUser();
     const isAdmin = currentUser?.role === 'admin';
-    const isManager = currentUser?.role === 'manager';
     const updateMutation = useAdminUpdateUser();
 
     // Проверка прав на изменение статуса "Персона НонГрата" (только админ)

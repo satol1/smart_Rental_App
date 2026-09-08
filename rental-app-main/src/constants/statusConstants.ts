@@ -1,6 +1,6 @@
 // path: rental-app-main/src/constants/statusConstants.ts
 
-import { CheckCircle, AlertTriangle, XCircle, Calendar, Truck, Clock } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Calendar, Truck } from "lucide-react";
 import React from "react";
 
 export type OrderStatus = 'active' | 'completed' | 'overdue' | 'fulfilled' | 'cancelled';

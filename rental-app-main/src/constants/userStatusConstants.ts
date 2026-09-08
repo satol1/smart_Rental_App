@@ -38,6 +38,35 @@ export const EDIT_RESTRICTION_DAYS: Record<UserStatus, number> = {
 };
 
 /**
+ * Grace-период после создания резерва (часы): в течение него резерв
+ * можно отменить/отредактировать независимо от близости даты начала.
+ * Синхронизировано с RESERVATION_GRACE_PERIOD_HOURS бэкенда.
+ */
+export const RESERVATION_GRACE_PERIOD_HOURS = 24;
+
+/**
+ * Находится ли момент создания резерва в grace-периоде.
+ * createdAt приходит с бэкенда (ISO-строка); null/невалидная дата → false.
+ */
+export function isInReservationGracePeriod(createdAt?: string | null): boolean {
+    if (!createdAt) return false;
+    const created = new Date(createdAt);
+    if (isNaN(created.getTime())) return false;
+    return Date.now() - created.getTime() < RESERVATION_GRACE_PERIOD_HOURS * 60 * 60 * 1000;
+}
+
+/**
+ * Сколько часов grace-периода осталось (для подсказок в UI); 0 — если истёк.
+ */
+export function remainingGraceHours(createdAt?: string | null): number {
+    if (!createdAt) return 0;
+    const created = new Date(createdAt);
+    if (isNaN(created.getTime())) return 0;
+    const elapsedHours = (Date.now() - created.getTime()) / (60 * 60 * 1000);
+    return Math.max(0, Math.ceil(RESERVATION_GRACE_PERIOD_HOURS - elapsedHours));
+}
+
+/**
  * Опции статусов для выпадающих списков
  */
 export const USER_STATUS_OPTIONS = [
@@ -71,49 +100,43 @@ export const USER_STATUS_COLORS: Record<UserStatus, string> = {
 };
 
 /**
- * Проверяет, может ли пользователь редактировать резерв за N дней до начала
+ * Проверяет, может ли пользователь редактировать резерв.
+ * daysUntilStart — нормализованные дни до начала (см. utils/dates), createdAt —
+ * момент создания резерва (для grace-периода).
+ *
+ * Правила (зеркало бэкенда user_status_service.py):
+ * - Персона НонГрата — нельзя;
+ * - прошедшая дата начала — нельзя;
+ * - grace-период (24 ч после создания) — можно;
+ * - VIP — можно; остальным нужен запас больше restrictionDays.
  */
-export function canUserEditReservation(userStatus: UserStatus | null | undefined, daysUntilStart: number): boolean {
-    if (!userStatus) {
-        console.warn('[canUserEditReservation] userStatus is null or undefined');
-        return false;
-    }
-    
-    const restrictionDays = EDIT_RESTRICTION_DAYS[userStatus as UserStatus];
-    
-    // Отладочная информация (всегда выводим для диагностики)
-    console.log('[canUserEditReservation]', {
-        userStatus,
-        daysUntilStart,
-        restrictionDays,
-        restrictionDaysUndefined: restrictionDays === undefined,
-    });
-    
-    if (restrictionDays === undefined) {
-        console.error(`[canUserEditReservation] Не найдено ограничение для статуса: ${userStatus}`);
-        return false;
-    }
-    
+export function canUserEditReservation(
+    userStatus: UserStatus | null | undefined,
+    daysUntilStart: number,
+    createdAt?: string | null
+): boolean {
+    if (!userStatus) return false;
+
+    const restrictionDays = EDIT_RESTRICTION_DAYS[userStatus];
+    if (restrictionDays === undefined) return false;
+
     if (restrictionDays === 999) return false; // Персона НонГрата
-    if (restrictionDays === 0) return true; // VIP - нет ограничений
-    
-    const result = daysUntilStart > restrictionDays;
-    
-    console.log('[canUserEditReservation] result:', {
-        daysUntilStart,
-        restrictionDays,
-        comparison: `${daysUntilStart} > ${restrictionDays}`,
-        result
-    });
-    
-    return result;
+    if (daysUntilStart < 0 || Number.isNaN(daysUntilStart)) return false; // прошло
+    if (isInReservationGracePeriod(createdAt)) return true; // grace-период
+    if (restrictionDays === 0) return true; // VIP
+
+    return daysUntilStart > restrictionDays;
 }
 
 /**
- * Проверяет, может ли пользователь отменить резерв за N дней до начала
+ * Проверяет, может ли пользователь отменить резерв (те же правила, что и редактирование).
  */
-export function canUserCancelReservation(userStatus: UserStatus | null | undefined, daysUntilStart: number): boolean {
-    return canUserEditReservation(userStatus, daysUntilStart);
+export function canUserCancelReservation(
+    userStatus: UserStatus | null | undefined,
+    daysUntilStart: number,
+    createdAt?: string | null
+): boolean {
+    return canUserEditReservation(userStatus, daysUntilStart, createdAt);
 }
 
 /**
@@ -121,7 +144,7 @@ export function canUserCancelReservation(userStatus: UserStatus | null | undefin
  */
 export function getMaxReservationsForStatus(userStatus: UserStatus | null | undefined): number {
     if (!userStatus) return 0;
-    return MAX_RESERVATIONS_BY_STATUS[userStatus as UserStatus] || 0;
+    return MAX_RESERVATIONS_BY_STATUS[userStatus] || 0;
 }
 
 /**
@@ -130,18 +153,17 @@ export function getMaxReservationsForStatus(userStatus: UserStatus | null | unde
  */
 export function mapLegacyUserStatus(status: string | null | undefined): UserStatus | null {
     if (!status) return null;
-    
+
     // Если статус уже является валидным UserStatus, возвращаем его
     if (Object.values(USER_STATUS).includes(status as UserStatus)) {
         return status as UserStatus;
     }
-    
+
     // Маппинг старых статусов на новые
     const legacyStatusMap: Record<string, UserStatus> = {
         "Активный": USER_STATUS.NEW,
         "Требует подтверждения": USER_STATUS.NEW,
     };
-    
+
     return legacyStatusMap[status] || null;
 }
-

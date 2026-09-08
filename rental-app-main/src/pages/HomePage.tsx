@@ -55,7 +55,6 @@ export default function HomePage() {
     const {
         equipment,
         availabilityData,
-        dailyAvailabilityData,
     } = useEquipmentData({
         query,
         type: type ?? undefined,
@@ -112,7 +111,6 @@ export default function HomePage() {
     const {
         editingReservationId,
         intent,
-        getEquipmentStatus,
     } = useReservationManagement(equipment, availabilityMap, availableOnly);
 
     // Получаем логику управления резервами для модального окна пачки
@@ -133,8 +131,9 @@ export default function HomePage() {
 
     // Синхронизация дат из состояния навигации
     useEffect(() => {
-        const start = (location.state as any)?.startDate;
-        const end = (location.state as any)?.endDate;
+        const navState = location.state as { startDate?: string; endDate?: string } | null;
+        const start = navState?.startDate;
+        const end = navState?.endDate;
         if (start && end) {
             const startDate = new Date(start);
             const endDate = new Date(end);

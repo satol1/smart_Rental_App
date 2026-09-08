@@ -9,6 +9,15 @@ interface HighlightState {
     type: HighlightType | null;
 }
 
+/** Поля location.state, используемые для подсветки резерва/аренды */
+interface HighlightLocationState {
+    highlightReservationId?: number;
+    highlightId?: number;
+    highlightRentalId?: number;
+    from?: string;
+    statusFilterOverride?: string;
+}
+
 interface UseHighlightLogicProps {
     autoResetDelay?: number; // в миллисекундах, по умолчанию 3500
     enableScrollToHighlight?: boolean; // включить автоматическую прокрутку к подсвеченному элементу
@@ -25,7 +34,7 @@ export function useHighlightLogic({
 
     // Обработка location.state для определения типа подсветки
     useEffect(() => {
-        const state = location.state as any;
+        const state = location.state as HighlightLocationState | null;
         
         // Поддержка разных форматов параметров для совместимости
         const highlightId = state?.highlightReservationId || state?.highlightId || state?.highlightRentalId;

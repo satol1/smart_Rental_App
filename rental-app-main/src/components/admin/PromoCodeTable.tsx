@@ -92,11 +92,11 @@ export default function PromoCodeTable() {
                                         {pc.expires_at ? formatDateEuropean(pc.expires_at) : 'Бессрочно'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(pc)}>
-                                            <Edit className="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(pc)} aria-label="Редактировать промокод">
+                                            <Edit className="h-4 w-4" aria-hidden="true" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(pc.id)} disabled={deleteMutation.isPending}>
-                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(pc.id)} disabled={deleteMutation.isPending} aria-label="Удалить промокод">
+                                            <Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" />
                                         </Button>
                                     </TableCell>
                                 </TableRow>

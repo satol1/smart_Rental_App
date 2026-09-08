@@ -1,7 +1,6 @@
 // src/pages/admin/RentalManagementPage.tsx
 
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import AdminNavigation from "@/components/admin/AdminNavigation";
 import { Button } from "@/components/ui/button";
 import { Truck, Plus } from "lucide-react";
@@ -17,16 +16,16 @@ import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
 import { PeriodFilter } from "@/components/admin/PeriodFilter";
+import { SkeletonTable } from "@/components/ui/skeleton-list";
 
 
 
 export default function RentalManagementPage() {
-    const navigate = useNavigate();
     const [returnTarget, setReturnTarget] = useState<AdminRentalOut | null>(null);
     const [isCreateRentalOpen, setCreateRentalOpen] = useState(false);
 
     // Получаем параметры фильтрации из стора
-    const { searchQuery, statusFilter, periodType, periodOffset, setSearchQuery, setStatusFilter } = useOrderFilterStore();
+    const { searchQuery, statusFilter, periodType, periodOffset } = useOrderFilterStore();
     
     // Получаем состояние диалога бланка аренды
     const { isOpen, rentalData, closeReceipt } = useRentalReceiptStore();
@@ -88,7 +87,7 @@ export default function RentalManagementPage() {
             </div>
 
             <div className="bg-white rounded-lg border shadow-sm p-4 md:p-6">
-                {isLoading && <p className="text-center text-gray-500 py-4">Загрузка аренд...</p>}
+                {isLoading && <SkeletonTable rows={6} columns={6} />}
                 {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}
                 {!isLoading && !error && allRentals.length > 0 && (
                     <AllRentalsList 

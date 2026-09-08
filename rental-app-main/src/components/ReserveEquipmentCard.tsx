@@ -38,7 +38,7 @@ const bgColorMap: Record<EquipmentStatus | string, string> = {
     my_reservation: "bg-sky-50 border-sky-200",
 };
 
-function formatDateRange(start?: string, end?: string) {
+function formatDateRange(start?: string | null, end?: string | null) {
     if (!start || !end) return "";
     return `(${formatDateRangeEuropean(start, end)})`;
 }

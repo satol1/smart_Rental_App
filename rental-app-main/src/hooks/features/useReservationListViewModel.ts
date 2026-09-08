@@ -8,7 +8,7 @@ import { useReserveStore } from "@/store/reserveStore";
 import { useDateStore } from "@/store/dateStore";
 import { ReservationService } from "@/core/services";
 import type { Equipment } from "@/types/equipment";
-import type { Reservation, ReservationWithNames } from "@/types/reservation";
+import type { ReservationWithNames } from "@/types/reservation";
 import { useOrderFilterStore } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
 
@@ -20,11 +20,18 @@ export interface ReservationListViewModelResult {
     isError: boolean;
     deletingId: number | null;
     itemToRemove: { reservationId: number; equipmentId: number } | null;
+    /** Резерв, для которого открыт диалог подтверждения полной отмены */
+    reservationToCancel: number | null;
     cancelReservation: (id: number) => Promise<void>;
     removeItemFromReservation: (reservationId: number, equipmentId: number) => Promise<void>;
     repeatReservation: (reservation: ReservationWithNames) => void;
     handleConfirmRemoval: () => Promise<void>;
     handleCancelRemoval: () => void;
+    requestCancelReservation: (id: number) => void;
+    handleConfirmCancellation: () => Promise<void>;
+    handleCancelCancellation: () => void;
+    isConfirmingCancellation: boolean;
+    isRemovingItem: boolean;
 }
 
 /**
@@ -50,6 +57,7 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
 
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [itemToRemove, setItemToRemove] = useState<{ reservationId: number; equipmentId: number } | null>(null);
+    const [reservationToCancel, setReservationToCancel] = useState<number | null>(null);
 
     const navigate = useNavigate();
     const reserveStoreClear = useReserveStore(state => state.clear);
@@ -84,6 +92,22 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
         }
     }, [deleteReservation]);
 
+    // Полная отмена резерва — только через явное подтверждение в диалоге
+    // (Booking-паттерн: разрушительное действие с деталями, а не мгновенный DELETE)
+    const requestCancelReservation = useCallback((id: number) => {
+        setReservationToCancel(id);
+    }, []);
+
+    const handleConfirmCancellation = useCallback(async () => {
+        if (reservationToCancel == null || deletingId !== null) return;
+        await cancelReservation(reservationToCancel);
+        setReservationToCancel(null);
+    }, [reservationToCancel, cancelReservation, deletingId]);
+
+    const handleCancelCancellation = useCallback(() => {
+        setReservationToCancel(null);
+    }, []);
+
     const removeItemFromReservation = useCallback(async (reservationId: number, equipmentId: number) => {
         setItemToRemove({ reservationId, equipmentId });
     }, []);
@@ -99,23 +123,39 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
     }, [reserveStoreClear, dateStoreSetRange, reserveStoreBulkAdd, equipmentMap, navigate]);
 
     const handleConfirmRemoval = useCallback(async () => {
-        if (!itemToRemove) return;
+        if (!itemToRemove || updateReservation.isPending) return;
         const { reservationId, equipmentId } = itemToRemove;
-        
+
         const reservationToUpdate = reservationsData.find(r => r.id === reservationId);
         if (!reservationToUpdate) return;
-        
+
         const updatedEquipmentIds = reservationToUpdate.equipment_ids.filter(id => id !== equipmentId);
+
+        // Удаление последней позиции = полная отмена резерва: PUT с пустым
+        // списком создавал бы «пустой» резерв без оборудования
+        if (updatedEquipmentIds.length === 0) {
+            setItemToRemove(null);
+            await cancelReservation(reservationId);
+            return;
+        }
+
+        // Аксессуары удалённой позиции убираем из selected_accessories: бэкенд
+        // отклоняет аксессуары для оборудования, которого нет в резерве (400)
+        const updatedAccessories = Object.fromEntries(
+            Object.entries(reservationToUpdate.selected_accessories || {})
+                .filter(([eqId]) => updatedEquipmentIds.includes(Number(eqId)))
+        );
 
         try {
             await updateReservation.mutateAsync({
                 ...reservationToUpdate, // Передаем все данные резерва
-                equipment_ids: updatedEquipmentIds // Но с новым списком оборудования
+                equipment_ids: updatedEquipmentIds, // Но с новым списком оборудования
+                selected_accessories: updatedAccessories // И без аксессуаров удалённой позиции
             });
         } finally {
             setItemToRemove(null);
         }
-    }, [itemToRemove, updateReservation, reservationsData]);
+    }, [itemToRemove, updateReservation, reservationsData, cancelReservation]);
     
     const handleCancelRemoval = useCallback(() => {
         setItemToRemove(null);
@@ -128,10 +168,16 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
         isError: isReservationsError || isEquipmentError,
         deletingId,
         itemToRemove,
+        reservationToCancel,
         cancelReservation,
         removeItemFromReservation,
         repeatReservation,
         handleConfirmRemoval,
         handleCancelRemoval,
+        requestCancelReservation,
+        handleConfirmCancellation,
+        handleCancelCancellation,
+        isConfirmingCancellation: deletingId !== null && deletingId === reservationToCancel,
+        isRemovingItem: updateReservation.isPending,
     };
 };

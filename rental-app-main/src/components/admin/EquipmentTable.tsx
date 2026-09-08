@@ -1,6 +1,6 @@
 // src/components/admin/EquipmentTable.tsx
 
-import { useState } from "react";
+
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package, PackageSearch } from "lucide-react";
 import { useEquipmentTableLogic } from "@/hooks/admin/useEquipmentTableLogic";

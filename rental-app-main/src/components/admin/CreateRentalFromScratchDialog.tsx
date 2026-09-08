@@ -62,7 +62,7 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
                 return (
                     <div className="space-y-4">
                         <CompactFinancialBlock
-                            form={form as any}
+                            form={form}
                             finalCost={financialData.finalTotal}
                             discountAmount={financialData.discountAmount}
                             discountPercentage={financialData.totalDiscountPercentage}

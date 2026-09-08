@@ -10,6 +10,7 @@ import { DateService } from "@/core/services/DateService";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import type { EquipmentCardOptions, EquipmentCardConfig } from "@/types/equipmentCard";
+import { combinedDiscountPercentage, MAX_COMBINED_DISCOUNT_PERCENT } from "@/constants/discount";
 
 /**
  * Единый, контекстно-независимый хук для карточки оборудования.
@@ -45,8 +46,9 @@ export const useEquipmentCardViewModel = (options: EquipmentCardOptions): Equipm
     const { holidays } = useHolidayStore();
 
     // Используем переданные даты или даты из стора
-    const startDate = externalStartDate || storeStartDate;
-    const endDate = externalEndDate || storeEndDate;
+    // (finalStatus рассчитан ниже; даты потребуются при расширении ViewModel)
+    void externalStartDate; void storeStartDate;
+    void externalEndDate; void storeEndDate;
 
     // Определяем финальный статус (используем переданный или 'available' по умолчанию)
     const finalStatus = externalStatus || 'available';
@@ -65,7 +67,7 @@ export const useEquipmentCardViewModel = (options: EquipmentCardOptions): Equipm
 
     // Расчет общей скидки
     const totalDiscountPercentage = useMemo(() => 
-        durationDiscountPercentage + promoCodePercentage, 
+        combinedDiscountPercentage(durationDiscountPercentage, promoCodePercentage), 
         [durationDiscountPercentage, promoCodePercentage]
     );
 
@@ -73,7 +75,7 @@ export const useEquipmentCardViewModel = (options: EquipmentCardOptions): Equipm
     const discountData = useMemo(() => {
         // Защита от некорректных значений
         const safeDayCount = Math.max(1, dayCount || 1);
-        const safeTotalDiscountPercentage = Math.max(0, Math.min(100, totalDiscountPercentage || 0));
+        const safeTotalDiscountPercentage = Math.max(0, Math.min(MAX_COMBINED_DISCOUNT_PERCENT, totalDiscountPercentage || 0));
         
         const totalDailyRate = equipment.daily_rate + accessoriesDailyRate;
         const priceBefore = totalDailyRate * safeDayCount;

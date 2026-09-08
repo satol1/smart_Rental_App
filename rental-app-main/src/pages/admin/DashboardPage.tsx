@@ -1,12 +1,13 @@
 // src/pages/admin/DashboardPage.tsx
 
 import { useCurrentUser } from "@/hooks/useProfile";
-import { useDashboardData, type KpiData } from "@/hooks/admin/useDashboardData";
+import { useDashboardData } from "@/hooks/admin/useDashboardData";
 import AdminNavigation from "@/components/admin/AdminNavigation";
 import TodayFocusWidget from "@/components/admin/dashboard/TodayFocusWidget";
 import KpiCardsWidget from "@/components/admin/dashboard/KpiCardsWidget";
 import ActivityFeedWidget from "@/components/admin/dashboard/ActivityFeedWidget";
 import PopularEquipmentChart from "@/components/admin/dashboard/PopularEquipmentChart";
+import OrdersStructurePie from "@/components/admin/dashboard/OrdersStructurePie";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -169,15 +170,21 @@ export default function DashboardPage() {
             
             {/* Новый грид для оставшихся блоков */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ActivityFeedWidget 
-                    data={dashboardData?.recent_activity || []} 
-                    isLoading={isLoading} 
+                <ActivityFeedWidget
+                    data={dashboardData?.recent_activity || []}
+                    isLoading={isLoading}
                 />
-                <PopularEquipmentChart 
-                    data={dashboardData?.popular_equipment || []} 
-                    isLoading={isLoading} 
+                {/* График на реальных агрегатах API (поле kpi) */}
+                <OrdersStructurePie
+                    kpi={dashboardData?.kpi}
+                    isLoading={isLoading}
                 />
             </div>
+
+            <PopularEquipmentChart
+                data={dashboardData?.popular_equipment || []}
+                isLoading={isLoading}
+            />
 
             {/* Дополнительная информация */}
             {!isLoading && dashboardData && (

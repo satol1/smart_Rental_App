@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { usePriceCalculator } from "@/hooks/reservation/usePriceCalculator";
 import { AlertCircle, Loader2, ReceiptText } from "lucide-react";
 import type { AdminReservationOut } from "@/types/reservation";
+import { MoneyText } from "@/components/ui/money-text";
 import type { Equipment } from "@/types/equipment"; // Импортируем тип Equipment
 
 interface ReservationFinancialSummaryProps {
@@ -92,7 +93,7 @@ export default function ReservationFinancialSummary({
                     </div>
                     <div className="flex justify-between">
                         <span>Стоимость резерва:</span>
-                        <span className="font-medium">{reservation.total_cost?.toLocaleString('ru-RU')} ₽</span>
+                        <span className="font-medium"><MoneyText value={reservation.total_cost} /></span>
                     </div>
                     <hr className="border-dashed my-1"/>
                     <div className="flex justify-between">
@@ -104,13 +105,13 @@ export default function ReservationFinancialSummary({
                         return (
                             <div className="flex justify-between text-green-600">
                                 <span>Скидка ({totalDiscountPercentage.toFixed(0)}%):</span>
-                                <span className="font-medium">- {priceDetails.discount_amount.toLocaleString('ru-RU')} ₽</span>
+                                <span className="font-medium">- <MoneyText value={priceDetails.discount_amount} /></span>
                             </div>
                         );
                     })()}
                     <div className="flex justify-between text-base font-bold pt-1 border-t mt-1">
                         <span>Итого к списанию с баланса:</span>
-                        <span className="text-sky-700">{finalCost.toLocaleString('ru-RU')} ₽</span>
+                        <span className="text-sky-700"><MoneyText value={finalCost} /></span>
                     </div>
                 </div>
             )}

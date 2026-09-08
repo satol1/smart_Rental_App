@@ -37,7 +37,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         const { ref: imaskRef, value: maskedValue, setValue } = useIMask(
             maskConfig,
             {
-                onAccept: (value: any, mask: any) => {
+                onAccept: (value: string) => {
                     if (onChange) {
                         // Создаем простое событие с необходимыми свойствами
                         const event = {

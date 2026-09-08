@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 import type { Pack, PackCreateData, PackUpdateData } from "@/types/pack";
 
 // Получение списка всех пачек
@@ -30,8 +31,8 @@ export function useCreatePack() {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
             toast.success("Пачка успешно создана");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при создании пачки");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании пачки"));
         },
     });
 }
@@ -49,8 +50,8 @@ export function useUpdatePack() {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
             toast.success("Пачка успешно обновлена");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при обновлении пачки");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при обновлении пачки"));
         },
     });
 }
@@ -68,8 +69,8 @@ export function useDeletePack() {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
             toast.success("Пачка успешно удалена");
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении пачки");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении пачки"));
         },
     });
 }
@@ -81,8 +82,8 @@ export function useSuggestPackItems() {
             const response = await api.get<number[]>(`/admin/packs/suggestions/equipment?equipment_id=${equipmentId}`);
             return response.data;
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при получении предложений");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при получении предложений"));
         },
     });
 }

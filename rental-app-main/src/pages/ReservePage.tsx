@@ -1,5 +1,5 @@
 // src/pages/ReservePage.tsx
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import AuthForm from "@/components/AuthForm";
 import CancelReservationDialog from "@/components/CancelReservationDialog";
@@ -11,10 +11,11 @@ import { ShoppingCart } from "lucide-react";
 import ReservationItemsList from "@/components/reservation/ReservationItemsList";
 import FinancialSummaryBlock from "@/components/shared/FinancialSummaryBlock";
 import { useHolidayValidation } from "@/hooks/useHolidayValidation";
+import { mapLegacyUserStatus, EDIT_RESTRICTION_DAYS } from "@/constants/userStatusConstants";
+import { daysUntilDate } from "@/utils/dates";
 
 export default function ReservePage() {
     const navigate = useNavigate();
-    const location = useLocation();
 
     const {
         items,
@@ -26,7 +27,6 @@ export default function ReservePage() {
         availabilityMap,
         unavailableIdsFromAPI,
         invalidItems,
-        submitMessage,
         reservationSuccess,
         clearReserveStore,
         removeItemFromStore,
@@ -48,6 +48,13 @@ export default function ReservePage() {
 
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [showAuthForm, setShowAuthForm] = useState(true); // Показываем форму авторизации по умолчанию
+
+    // Prefetch страницы «Мои заказы»: после успешного оформления происходит
+    // редирект на неё, а lazy-чанк грузится первым разом именно в этот момент —
+    // из-за этого переход казался «медленным». Прогреваем чанк заранее.
+    useEffect(() => {
+        void import("@/pages/MyReservationsPage");
+    }, []);
 
     // Валидация выходных вынесена в переиспользуемый хук
     const { startDateError, endDateError, isHolidayValid } = useHolidayValidation(startDate, endDate);
@@ -79,6 +86,30 @@ export default function ReservePage() {
     const isFormValid = useMemo(() => {
         return !!(user && invalidItems.length === 0 && unavailableIdsFromAPI.length === 0 && isHolidayValid);
     }, [user, invalidItems.length, unavailableIdsFromAPI.length, isHolidayValid]);
+
+    // Понятная причина, почему кнопка подтверждения недоступна (Booking-паттерн:
+    // не молча гасить кнопку, а объяснять, что нужно сделать)
+    const formInvalidReason = useMemo(() => {
+        if (!user) return null; // неавторизованным показываем форму входа выше
+        if (invalidItems.length > 0) return "Устраните конфликты выбранных позиций.";
+        if (unavailableIdsFromAPI.length > 0) return "Часть оборудования недоступна в выбранные даты — измените даты или состав.";
+        if (!isHolidayValid) return "Даты резерва выпадают на выходной день — выберите рабочие даты.";
+        return null;
+    }, [user, invalidItems.length, unavailableIdsFromAPI.length, isHolidayValid]);
+
+    // Правила отмены показываются ДО подтверждения (Booking/Airbnb-паттерн):
+    // пользователь знает условия заранее, а не после оформления
+    const cancellationPolicyNote = useMemo(() => {
+        const userStatus = mapLegacyUserStatus(user?.status);
+        if (!userStatus) return undefined;
+        const needDays = EDIT_RESTRICTION_DAYS[userStatus] + 1;
+        const startIn = daysUntilDate(startDate);
+        const base = `Отмена/изменение самостоятельно — не позднее чем за ${needDays} дн. до начала (ваш статус: «${userStatus}»), позже — через менеджера. В течение 24 ч после создания резерв можно отменить бесплатно.`;
+        if (startIn >= 0 && startIn < needDays) {
+            return `${base} Внимание: до начала выбранного периода ${Math.max(startIn, 0)} дн. — самостоятельная отмена будет доступна только в первые 24 ч после оформления.`;
+        }
+        return base;
+    }, [user?.status, startDate]);
 
     // ✅ ДОБАВЛЕНО: Расчет минимальной даты для поля "Конец"
     const minEndDate = useMemo(() => {
@@ -202,6 +233,8 @@ export default function ReservePage() {
                     isApplyingPromoCode={isApplyingPromoCode}
                     isSubmitting={isSubmitting}
                     isFormValid={isFormValid}
+                    formInvalidReason={formInvalidReason}
+                    cancellationPolicyNote={cancellationPolicyNote}
                     onCancel={() => setShowCancelDialog(true)}
                     onAddMore={() => navigate("/", { 
                         state: { 

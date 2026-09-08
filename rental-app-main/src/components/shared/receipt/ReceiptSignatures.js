@@ -1,0 +1,4 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+export default function ReceiptSignatures({ isCompact = false }) {
+    return (_jsx("div", { className: isCompact ? "mt-3" : "mt-8", children: _jsxs("div", { className: "flex justify-between items-end", children: [_jsxs("div", { children: [_jsx("p", { className: isCompact ? "text-xs" : "text-sm", children: "\u041A\u043B\u0438\u0435\u043D\u0442: _________________________" }), _jsx("p", { className: `${isCompact ? 'text-xs' : 'text-xs'} text-gray-500`, children: "(\u043F\u043E\u0434\u043F\u0438\u0441\u044C)" })] }), _jsxs("div", { children: [_jsx("p", { className: isCompact ? "text-xs" : "text-sm", children: "\u041C\u0435\u043D\u0435\u0434\u0436\u0435\u0440: _________________________" }), _jsx("p", { className: `${isCompact ? 'text-xs' : 'text-xs'} text-gray-500`, children: "(\u043F\u043E\u0434\u043F\u0438\u0441\u044C)" })] })] }) }));
+}

@@ -117,8 +117,8 @@ export class UserService {
     /**
      * Преобразует поля для админского обновления пользователя (включая status, balance, notes)
      */
-    private static toAdminUpdateFormat(input: Partial<UserUpdateInput>): Record<string, any> {
-        const apiPayload: Record<string, any> = {};
+    private static toAdminUpdateFormat(input: Partial<UserUpdateInput>): Record<string, unknown> {
+        const apiPayload: Record<string, unknown> = {};
 
         // Базовые поля из toApiFormat
         if (input.full_name !== undefined) apiPayload.full_name = input.full_name;
@@ -254,8 +254,8 @@ export class UserService {
      */
     static async deleteBalanceHistoryEntry(historyId: number): Promise<void> {
         try {
-            const response = await api.delete(`/admin/users/balance-history/${historyId}`);
-        } catch (error: any) {
+            await api.delete(`/admin/users/balance-history/${historyId}`);
+        } catch (error: unknown) {
             throw error;
         }
     }

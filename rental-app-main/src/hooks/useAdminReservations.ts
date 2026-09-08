@@ -2,10 +2,11 @@
 
 import { useInfiniteQuery, useMutation, useQueryClient, type QueryFunctionContext } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ReservationService } from "@/core/services/ReservationService";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { ReservationService, type AdminReservationCreatePayload } from "@/core/services/ReservationService";
 import type { AdminReservationListResponse } from "@/types/reservation";
 import type { PeriodType } from "@/types/period";
-import { transformAccessoryLinks } from "@/lib/utils";
+
 
 export interface AdminReservationsParams {
     status?: "active" | "completed" | "fulfilled" | "cancelled" | "overdue" | null;
@@ -43,13 +44,13 @@ export function useAdminReservations(params: AdminReservationsParams = {}) {
 export function useCreateAdminReservation() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: any) => ReservationService.createAdminReservation(data),
+        mutationFn: (data: AdminReservationCreatePayload) => ReservationService.createAdminReservation(data),
         onSuccess: () => {
             toast.success("Резерв успешно создан");
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при создании резерва");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании резерва"));
         },
     });
 }
@@ -62,8 +63,8 @@ export function useDeleteAdminReservation() {
             toast.success("Резерв успешно удален");
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при удалении резерва");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении резерва"));
         },
     });
 }
@@ -76,8 +77,8 @@ export function useBulkDeleteAdminReservations() {
             toast.success("Выбранные резервы успешно удалены");
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
-        onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Ошибка при массовом удалении резервов");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при массовом удалении резервов"));
         },
     });
 }

@@ -104,7 +104,7 @@ export default function AdminNavigation() {
                     size="sm"
                     onClick={() => navigate("/")}
                 >
-                    <Home className="w-4 h-4 mr-2" />
+                    <Home className="w-4 h-4 mr-2" aria-hidden="true" />
                     На главную
                 </Button>
             </div>
@@ -129,7 +129,7 @@ export default function AdminNavigation() {
                             onClick={() => navigate(item.path)}
                             className="flex items-center gap-2"
                         >
-                            {item.icon}
+                            <span aria-hidden="true">{item.icon}</span>
                             <span>{item.label}</span>
                         </Button>
                     ))

@@ -1,7 +1,7 @@
 // src/components/shared/DatePickerField.tsx
 
 import { useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,10 +12,10 @@ import { CalendarIcon, AlertTriangle } from "lucide-react";
 import { DateService } from "@/core/services/DateService";
 import { cn } from "@/lib/utils";
 
-interface DatePickerFieldProps {
+interface DatePickerFieldProps<TFieldValues extends FieldValues = FieldValues> {
   // Основные пропсы
-  name: string;
-  control: any; // UseFormReturn<any>['control']
+  name: FieldPath<TFieldValues>;
+  control: Control<TFieldValues>;
   label: string;
   placeholder?: string;
   
@@ -42,7 +42,7 @@ interface DatePickerFieldProps {
  * и валидации. Заменяет дублированную логику в CreateReservationStep1Details,
  * DateRangeSelector и HolidayManager.
  */
-export default function DatePickerField({
+export default function DatePickerField<TFieldValues extends FieldValues = FieldValues>({
   name,
   control,
   label,
@@ -54,9 +54,8 @@ export default function DatePickerField({
   disabled = false,
   holidays = [],
   onHolidaySelect,
-  className,
-  variant = 'default'
-}: DatePickerFieldProps) {
+  className
+}: DatePickerFieldProps<TFieldValues>) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDateSelect = (date: Date | undefined, onChange: (value: string) => void) => {

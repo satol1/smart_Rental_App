@@ -1,4 +1,5 @@
 // path: rental-app-main/src/components/admin/UserPaymentDialog.tsx
+import { formatMoney } from "@/components/ui/money-text";
 
 import { useState, useEffect } from "react"; // ✅ ИЗМЕНЕНИЕ: Добавлен импорт useState и useEffect
 import { toast } from "sonner";
@@ -75,7 +76,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                     onUserUpdated(updatedUser);
                 }
                 // Показываем уведомление о успешном пополнении
-                toast.success(`Баланс пополнен на ${data.amount.toLocaleString('ru-RU')} ₽. Новый баланс: ${updatedUser.balance?.toLocaleString('ru-RU')} ₽`);
+                toast.success(`Баланс пополнен на ${formatMoney(data.amount)}. Новый баланс: ${formatMoney(updatedUser.balance)}`);
                 // НЕ закрываем диалог автоматически - пользователь сам решит когда закончить
             },
         });
@@ -96,7 +97,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                 // Показываем уведомление о успешной корректировке
                 const operation = data.amount > 0 ? 'начислено' : 'списано';
                 const amount = Math.abs(data.amount);
-                toast.success(`С баланса ${operation} ${amount.toLocaleString('ru-RU')} ₽. Новый баланс: ${updatedUser.balance?.toLocaleString('ru-RU')} ₽`);
+                toast.success(`С баланса ${operation} ${formatMoney(amount)}. Новый баланс: ${formatMoney(updatedUser.balance)}`);
                 // НЕ закрываем диалог автоматически - пользователь сам решит когда закончить
             },
         });

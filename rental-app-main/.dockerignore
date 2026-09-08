@@ -1,0 +1,33 @@
+# Docker build context: rental-app-main (Dockerfile.frontend)
+# node_modules ставится внутри образа (npm ci) — хостовский не нужен и вреден
+
+# Зависимости и артефакты сборки
+node_modules
+dist
+dist-ssr
+
+# Локальные окружения
+.venv
+.env
+.env.*
+*.local
+
+# Тесты и артефакты
+test-results*
+test_output.txt
+.pytest_cache
+.benchmarks
+run_tests.*
+docker-compose.test.yml
+Dockerfile.test
+
+# IDE и git
+.idea
+.git
+.gitignore
+.gitattributes
+
+# Документация не нужна для сборки vite
+*.md
+
+# ВАЖНО: nginx/*.conf НЕ исключать — prod-конфиг копируется в образ

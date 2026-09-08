@@ -1,7 +1,7 @@
 // src/hooks/admin/useAdminReservationCalculator.ts
 
 import { useMemo } from "react";
-import { UseFormWatch } from "react-hook-form";
+import type { UseFormWatch } from "react-hook-form";
 import { usePromoCodeStore } from "@/store/promoCodeStore";
 import { usePriceCalculator } from "../reservation/usePriceCalculator";
 import type { CreateReservationFormData } from "./create-reservation/useCreateReservationForm";

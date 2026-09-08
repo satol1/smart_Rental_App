@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 // +++ НАЧАЛО ИЗМЕНЕНИЙ: Импортируем тип для ответа с пагинацией +++
 import type { Association, AssociationCreate, AssociationUpdate, AssociationListResponse } from "@/types/association";
 // +++ КОНЕЦ ИЗМЕНЕНИЙ +++
@@ -33,7 +34,7 @@ export function useCreateAssociation() {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
             toast.success("Ассоциация успешно создана");
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка создания"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка создания")),
     });
 }
 
@@ -46,7 +47,7 @@ export function useUpdateAssociation() {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
             toast.success("Ассоциация успешно обновлена");
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка обновления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка обновления")),
     });
 }
 
@@ -58,6 +59,6 @@ export function useDeleteAssociation() {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
             toast.success("Ассоциация удалена");
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка удаления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка удаления")),
     });
 }

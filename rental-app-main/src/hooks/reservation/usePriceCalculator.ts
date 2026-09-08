@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ReservationService, type PriceDetails } from "@/core/services";
 import { formatDate } from "@/lib/utils";
+import { combinedDiscountPercentage } from "@/constants/discount";
 
 interface UsePriceCalculatorInput {
     equipmentIds: number[];
@@ -65,7 +66,7 @@ export const usePriceCalculator = ({
         discountAmount: query.data?.discount_amount ?? 0,
         durationDiscountPercentage: query.data?.duration_discount_percentage ?? 0,
         promoDiscountPercentage: query.data?.promo_discount_percentage ?? 0,
-        totalDiscountPercentage: (query.data?.duration_discount_percentage ?? 0) + (query.data?.promo_discount_percentage ?? 0),
+        totalDiscountPercentage: combinedDiscountPercentage(query.data?.duration_discount_percentage ?? 0, query.data?.promo_discount_percentage ?? 0),
         promoCodeMessage: query.data?.promo_code_message ?? "",
         
         // Состояния загрузки

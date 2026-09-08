@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые стили html/body */
+/* Базовые стили html/body (токены, чтобы работала тёмная тема) */
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #f9fafb; /* Tailwind gray-50 */
-  color: #111827; /* Tailwind gray-900 */
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
   Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -56,31 +56,71 @@ button {
     --radius: 0.5rem;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Тёмная тема — производная от светлой: глубокий нейтральный фон
+       с лёгким тёплым подтоном, тёплые акценты сохраняют читаемость. */
+    --background: 24 10% 6%;
+    --foreground: 30 20% 95%;
+    --card: 24 8% 9%;
+    --card-foreground: 30 20% 95%;
+    --popover: 24 9% 8%;
+    --popover-foreground: 30 20% 95%;
+    --primary: 35 28% 90%;
+    --primary-foreground: 24 12% 10%;
+    --secondary: 24 8% 14%;
+    --secondary-foreground: 30 18% 95%;
+    --muted: 24 8% 13%;
+    --muted-foreground: 28 8% 66%;
+    --accent: 26 10% 17%;
+    --accent-foreground: 30 20% 96%;
+    --destructive: 0 68% 52%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 24 8% 17%;
+    --input: 24 8% 18%;
+    --ring: 35 30% 60%;
+    --chart-1: 12 78% 62%;
+    --chart-2: 173 52% 46%;
+    --chart-3: 197 42% 56%;
+    --chart-4: 43 76% 60%;
+    --chart-5: 27 85% 64%;
+    --radius: 0.5rem;
   }
+}
+
+/* === Тёмная тема: маппинг часто используемых «серых» утилит ===
+   Ретрофит без переписывания сотен компонентов: жёстко заданные
+   gray-класси перенаправляются на токены темы. Правила НЕ в @layer,
+   поэтому выигрывают каскад у утилит Tailwind. */
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: hsl(var(--foreground));
+}
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: hsl(var(--muted-foreground));
+}
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: hsl(var(--muted-foreground) / 0.85);
+}
+.dark .bg-white {
+  background-color: hsl(var(--card));
+}
+.dark .bg-gray-50,
+.dark .bg-gray-50\/50 {
+  background-color: hsl(var(--muted) / 0.4);
+}
+.dark .bg-gray-100 {
+  background-color: hsl(var(--muted));
+}
+.dark .bg-gray-200 {
+  background-color: hsl(var(--accent));
+}
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: hsl(var(--border));
+}
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: hsl(var(--border));
 }
 
 @layer base {

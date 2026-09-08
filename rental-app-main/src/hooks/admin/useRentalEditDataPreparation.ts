@@ -3,6 +3,7 @@
 import { formatDate } from "@/lib/utils";
 import type { AdminRentalOut } from "@/types/rental";
 import type { RentalEditFormData } from "./useRentalEditForm";
+import type { AdminRentalUpdateData } from "@/core/services/RentalService";
 
 interface UseRentalEditDataPreparationProps {
     rental: AdminRentalOut;
@@ -14,7 +15,7 @@ interface UseRentalEditDataPreparationProps {
  */
 export function useRentalEditDataPreparation({ rental }: UseRentalEditDataPreparationProps) {
     const prepareUpdateData = (data: RentalEditFormData) => {
-        const updateData: any = {};
+        const updateData: AdminRentalUpdateData = {};
         
         if (['active', 'overdue'].includes(rental.status)) {
             // Для активных аренд

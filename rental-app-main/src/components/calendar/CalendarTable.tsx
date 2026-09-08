@@ -1,6 +1,6 @@
 // path: rental-app-main/src/components/calendar/CalendarTable.tsx
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { format } from "date-fns";
 import { useCalendarGrid } from "@/hooks/useCalendarGrid";
 import { useDateStore } from "@/store/dateStore";

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Paperclip, ChevronDown, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Accessory } from '@/types/accessory';
+import type { Accessory } from '@/types/accessory';
 
 interface Props {
     accessories: Accessory[];

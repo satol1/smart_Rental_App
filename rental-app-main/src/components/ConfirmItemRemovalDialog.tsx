@@ -14,7 +14,9 @@ type Props = {
     onClose: () => void;
     onConfirm: () => void;
     isConfirming: boolean;
-    variant?: 'removeItem' | 'cancelReservation'; // ✨ НОВЫЙ ПРОПС
+    variant?: 'removeItem' | 'cancelReservation' | 'fullCancel';
+    /** Переопределение текста описания (например, детали отменяемого резерва) */
+    description?: string;
 };
 
 export default function ConfirmItemRemovalDialog({
@@ -22,10 +24,10 @@ export default function ConfirmItemRemovalDialog({
                                                      onClose,
                                                      onConfirm,
                                                      isConfirming,
-                                                     variant = 'removeItem' // ✨ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ
+                                                     variant = 'removeItem',
+                                                     description,
                                                  }: Props) {
 
-    // ✨ КОНТЕНТ ДЛЯ РАЗНЫХ ВАРИАНТОВ ДИАЛОГА
     const content = {
         removeItem: {
             title: "Подтвердите действие",
@@ -40,6 +42,13 @@ export default function ConfirmItemRemovalDialog({
             cancelText: "Вернуться к редактированию",
             confirmText: "Отменить резерв",
             confirmLoadingText: "Отмена..."
+        },
+        fullCancel: {
+            title: "Отмена резерва",
+            description: "Резерв будет отменён полностью, оборудование станет доступно другим клиентам. Действие нельзя отменить.",
+            cancelText: "Оставить резерв",
+            confirmText: "Отменить резерв",
+            confirmLoadingText: "Отмена..."
         }
     }[variant];
 
@@ -49,7 +58,7 @@ export default function ConfirmItemRemovalDialog({
                 <DialogHeader>
                     <DialogTitle>{content.title}</DialogTitle>
                 </DialogHeader>
-                <DialogDescription>{content.description}</DialogDescription>
+                <DialogDescription>{description || content.description}</DialogDescription>
                 <DialogFooter className="pt-4">
                     <Button variant="ghost" onClick={onClose} disabled={isConfirming}>
                         {content.cancelText}

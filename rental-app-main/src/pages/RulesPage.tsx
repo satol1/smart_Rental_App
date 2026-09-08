@@ -1,6 +1,6 @@
 import { Shield, Clock, CreditCard, AlertTriangle, CheckCircle, FileText, User, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 
 export default function RulesPage() {
   return (
@@ -164,17 +164,21 @@ export default function RulesPage() {
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-600 text-sm">
-                    Отмена заказа возможна за 24 часа до начала аренды без штрафных санкций. При отмене менее чем за 24 часа взимается 50% от стоимости аренды.
+                    Резерв можно отменить или изменить самостоятельно не позднее чем за 3 дня до начала (статус «Новый»), за 2 дня (статус «Постоянный») и в любой момент (статус VIP).
                   </p>
                   <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                    <h4 className="font-semibold text-yellow-800 mb-2 text-sm">Условия отмены:</h4>
+                    <h4 className="font-semibold text-yellow-800 mb-2 text-sm">Условия отмены резерва:</h4>
                     <ul className="text-yellow-700 text-xs space-y-1">
-                      <li>• За 24+ часов: полный возврат</li>
-                      <li>• За 12-24 часа: возврат 50%</li>
-                      <li>• Менее 12 часов: возврат 25%</li>
-                      <li>• В день получения: возврат невозможен</li>
+                      <li>• В течение 24 часов после создания: бесплатная отмена любого резерва</li>
+                      <li>• «Новый»: самостоятельно — не позднее чем за 3 дня до начала</li>
+                      <li>• «Постоянный»: самостоятельно — не позднее чем за 2 дня до начала</li>
+                      <li>• «VIP»: без ограничений по срокам</li>
+                      <li>• Позже указанных сроков: только через менеджера</li>
                     </ul>
                   </div>
+                  <p className="text-gray-500 text-xs">
+                    Средства списываются при выдаче оборудования в аренду, поэтому отмена резерва не требует возврата средств.
+                  </p>
                 </div>
               </CardContent>
             </Card>

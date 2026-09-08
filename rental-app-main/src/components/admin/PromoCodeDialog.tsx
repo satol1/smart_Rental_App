@@ -1,7 +1,7 @@
 // src/components/admin/PromoCodeDialog.tsx
 
 import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ import { useAllEquipment } from "@/hooks/useAllEquipment";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useCurrentUser } from "@/hooks/useProfile";
 import type { PromoCodeOut, PromoCodeCreate } from "@/types/promo_code";
-import { promoCodeFormSchema, PromoCodeFormData } from "@/lib/validationSchemas";
+import { promoCodeFormSchema, type PromoCodeFormData } from "@/lib/validationSchemas";
 import { MultiSelect } from "@/components/ui/multi-select";
 
 interface Props {
@@ -50,7 +50,7 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
         setValue,
         formState: { errors, isValid },
     } = useForm<PromoCodeFormData>({
-        resolver: zodResolver(promoCodeFormSchema) as any,
+        resolver: zodResolver(promoCodeFormSchema) as Resolver<PromoCodeFormData>,
         mode: "onChange",
     });
 
@@ -117,7 +117,7 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
     // ✅ ИЗМЕНЕНИЕ: Используем `allEquipment` для создания опций
     const equipmentOptions = useMemo(() => allEquipment.map(e => ({ value: e.id.toString(), label: e.name })), [allEquipment]);
     const equipmentTypeOptions = useMemo(() => [...new Set(allEquipment.map(e => e.equipment_type))].map(type => ({ value: type, label: type })), [allEquipment]);
-    const userOptions = useMemo(() => users.map((u: any) => ({ value: u.id.toString(), label: `${u.full_name} (${u.email})` })), [users]);
+    const userOptions = useMemo(() => users.map((u) => ({ value: u.id.toString(), label: `${u.full_name} (${u.email})` })), [users]);
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -131,7 +131,7 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
                         <Label htmlFor="code" className="text-right">Код *</Label>
                         <div className="col-span-3 flex items-center gap-2">
                             <Input id="code" {...register("code")} className="flex-grow" placeholder="SUMMER25"/>
-                            <Button type="button" variant="outline" size="icon" onClick={handleGenerateCode} title="Сгенерировать код"><RefreshCw className="h-4 w-4" /></Button>
+                            <Button type="button" variant="outline" size="icon" onClick={handleGenerateCode} title="Сгенерировать код" aria-label="Сгенерировать код"><RefreshCw className="h-4 w-4" aria-hidden="true" /></Button>
                         </div>
                         {errors.code && <p className="col-start-2 col-span-3 text-xs text-red-500 mt-1">{errors.code.message}</p>}
                     </div>
@@ -192,7 +192,7 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
                                                 <SelectTrigger><SelectValue placeholder="Для всех пользователей" /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="all">Для всех пользователей</SelectItem>
-                                                    {userOptions.map((opt: any) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                                    {userOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                         )}

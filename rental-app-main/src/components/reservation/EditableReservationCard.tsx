@@ -1,6 +1,6 @@
 // src/components/reservation/EditableReservationCard.tsx
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,8 @@ import { useReservationNavigation } from "@/hooks/useReservationNavigation";
 import HolidayConfirmationDialog from "./HolidayConfirmationDialog";
 import { formatDateEuropean } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useProfile";
-import { canUserEditReservation, USER_STATUS, mapLegacyUserStatus, type UserStatus } from "@/constants/userStatusConstants";
+import { canUserEditReservation, mapLegacyUserStatus, EDIT_RESTRICTION_DAYS } from "@/constants/userStatusConstants";
+import { daysUntilDate } from "@/utils/dates";
 
 export default function EditableReservationCard() {
     const {
@@ -43,6 +44,7 @@ export default function EditableReservationCard() {
         applyPromoCode,
         removePromoCode,
         isAdminContext,
+        reservationCreatedAt,
     } = useReservationEditContext();
 
     const { data: currentUser } = useCurrentUser();
@@ -55,34 +57,37 @@ export default function EditableReservationCard() {
     // Проверка прав на редактирование (только для обычных пользователей, не админов)
     const canEditByStatus = useMemo(() => {
         if (isAdminContext) return true; // Менеджеры всегда могут редактировать
-        
+
         if (!currentUser?.status) return false;
-        
+
         // Используем маппинг старых статусов для обратной совместимости
         const userStatus = mapLegacyUserStatus(currentUser.status);
-        
+
         if (!userStatus) return false;
-        
-        const now = new Date();
-        const reservationStartDate = editState.startDate;
-        const daysUntilStart = Math.ceil((reservationStartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        
-        return canUserEditReservation(userStatus, daysUntilStart);
-    }, [isAdminContext, currentUser?.status, editState.startDate]);
+
+        const daysUntilStart = daysUntilDate(editState.startDate);
+
+        return canUserEditReservation(userStatus, daysUntilStart, reservationCreatedAt);
+    }, [isAdminContext, currentUser?.status, editState.startDate, reservationCreatedAt]);
 
     const editRestrictionMessage = useMemo(() => {
         if (isAdminContext || canEditByStatus) return null;
-        
-        const now = new Date();
-        const reservationStartDate = editState.startDate;
-        const daysUntilStart = Math.ceil((reservationStartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        
+
+        const daysUntilStart = daysUntilDate(editState.startDate);
+        const userStatus = mapLegacyUserStatus(currentUser?.status);
+
         if (daysUntilStart <= 0) {
             return "Резерв уже начался. Для редактирования обратитесь к менеджеру.";
         }
-        
-        return `Редактирование резерва возможно только за ${daysUntilStart <= 2 ? "более чем 2 дня" : "более чем 1 день"} до начала. Осталось ${daysUntilStart} дн. Для редактирования обратитесь к менеджеру.`;
-    }, [isAdminContext, canEditByStatus, editState.startDate]);
+
+        // Порог берём по статусу пользователя, а не по числу дней
+        const restrictionDays = userStatus ? EDIT_RESTRICTION_DAYS[userStatus] : 2;
+        return (
+            `Редактирование доступно не позднее чем за ${restrictionDays + 1} дн. до начала ` +
+            `(ваш статус: «${userStatus ?? "Новый"}»). До начала ${daysUntilStart} дн. ` +
+            "Для изменения резерва обратитесь к менеджеру."
+        );
+    }, [isAdminContext, canEditByStatus, editState.startDate, currentUser?.status]);
 
     const onAddEquipment = () => {
         // Централизованный переход на страницу выбора оборудования

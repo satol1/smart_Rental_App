@@ -2,25 +2,23 @@
 
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.webp";
 import { useCurrentUser } from "@/hooks/useProfile";
 import { useHomePageReset } from "@/hooks/useHomePageReset";
 import UserNav from "./UserNav";
+import ThemeSwitcher from "./ThemeSwitcher";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Shield, Calendar, FileText, HelpCircle, AlertTriangle, Send, LogIn } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { RoleBadge } from "@/components/ui/role-badge";
+import { Shield, Calendar, FileText, HelpCircle, AlertTriangle, Send, LogIn, Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ContactDialog } from "@/components/shared/ContactDialog";
 import AuthDialog from "@/components/shared/AuthDialog"; // Импортируем новый диалог
-import { USER_STATUS, USER_STATUS_BADGE_VARIANTS, USER_STATUS_COLORS, mapLegacyUserStatus, type UserStatus } from "@/constants/userStatusConstants";
+import { mapLegacyUserStatus } from "@/constants/userStatusConstants";
 
 const UserStatus = () => {
     const { data: user } = useCurrentUser();
     if (!user) return null;
-
-    const isAdmin = user.role === "admin";
-    const isManager = isAdmin || user.role === "manager";
-    const roleLabel = isAdmin ? "Админ" : isManager ? "Менеджер" : "Пользователь";
-    const roleColor = isAdmin ? "text-red-600" : isManager ? "text-blue-600" : "text-gray-600";
 
     // Получаем статус пользователя с маппингом старых статусов
     const userStatus = mapLegacyUserStatus(user.status);
@@ -28,18 +26,13 @@ const UserStatus = () => {
     return (
         <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 text-xs font-medium">
-                <Shield className={`w-3.5 h-3.5 ${roleColor}`} />
-                <span className={roleColor}>{roleLabel}</span>
+                <Shield className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                <RoleBadge role={user.role} />
             </div>
             {userStatus && (
                 <>
                     <div className="h-4 w-px bg-gray-200" />
-                    <Badge 
-                        variant={USER_STATUS_BADGE_VARIANTS[userStatus] || "secondary"}
-                        className={`text-xs ${USER_STATUS_COLORS[userStatus] || ""}`}
-                    >
-                        {userStatus}
-                    </Badge>
+                    <StatusBadge status={userStatus} className="text-xs" />
                 </>
             )}
         </div>
@@ -47,12 +40,14 @@ const UserStatus = () => {
 };
 
 export default function Header() {
+    const { t } = useTranslation();
     const { data: user, isLoading } = useCurrentUser();
     const navigate = useNavigate();
     const location = useLocation();
     const { resetHomePage } = useHomePageReset();
     const [isContactOpen, setContactOpen] = useState(false);
     const [isAuthDialogOpen, setAuthDialogOpen] = useState(false); // Состояние для диалога входа
+    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // Мобильное меню (lg и ниже)
 
     // Проверяем, находимся ли мы на главной странице
     const isHomePage = location.pathname === "/";
@@ -72,18 +67,18 @@ export default function Header() {
 
     return (
         <>
-            <header className="bg-white shadow-sm sticky top-0 z-50">
+            <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex-shrink-0">
                             <button 
                                 onClick={handleLogoClick}
-                                aria-label={isHomePage ? "Сбросить фильтры" : "На главную"}
-                                className="transition-transform hover:scale-105 active:scale-95 focus:outline-none rounded-md"
+                                aria-label={isHomePage ? t("nav.resetFilters") : t("nav.goHome")}
+                                className="transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
                             >
                                 <img
                                     src={logo}
-                                    alt="Логотип PhotoRental"
+                                    alt={t("nav.logoAlt")}
                                     className="h-16 w-auto"
                                 />
                             </button>
@@ -98,18 +93,34 @@ export default function Header() {
                                 </>
                             )}
                             <Link to="/how-it-works" className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <HelpCircle className="w-4 h-4" /> Как это работает
+                                <HelpCircle className="w-4 h-4" aria-hidden="true" /> {t("nav.howItWorks")}
                             </Link>
                             <Link to="/rules" className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <AlertTriangle className="w-4 h-4" /> Наши правила
+                                <AlertTriangle className="w-4 h-4" aria-hidden="true" /> {t("nav.ourRules")}
                             </Link>
                             <button onClick={() => setContactOpen(true)} className="flex items-center gap-1.5 text-gray-600 hover:text-sky-700">
-                                <Send className="w-4 h-4" /> Связаться
+                                <Send className="w-4 h-4" aria-hidden="true" /> {t("nav.contact")}
                             </button>
+                        </div>
+
+                        {/* Мобильное меню: разделы были недостижимы на экранах < lg */}
+                        <div className="lg:hidden flex items-center">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setMobileMenuOpen(prev => !prev)}
+                                aria-expanded={isMobileMenuOpen}
+                                aria-label={isMobileMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+                                className="h-10 w-10"
+                            >
+                                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                            </Button>
                         </div>
 
                         <div className="flex items-center">
                             <nav className="flex items-center gap-2">
+                                {/* Переключатель темы (Светлое/Тёмное/Системное) */}
+                                <ThemeSwitcher />
                                 {isLoading ? (
                                     <div className="h-10 w-48 bg-gray-200 rounded-md animate-pulse" />
                                 ) : user ? (
@@ -120,15 +131,15 @@ export default function Header() {
                                             onClick={() => navigate("/reservations/my")}
                                             className="h-10 px-4 text-sm bg-black hover:bg-gray-800 text-white"
                                         >
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            Мои заказы
+                                            <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            {t("nav.myOrders")}
                                         </Button>
                                         <Button
                                             onClick={() => navigate("/calendar")}
                                             className="h-10 px-4 text-sm bg-amber-500 hover:bg-amber-600 text-white"
                                         >
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            Календарь
+                                            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            {t("nav.calendar")}
                                         </Button>
                                         <div className="h-8 w-px bg-gray-200 mx-2" />
                                         <UserNav />
@@ -141,15 +152,15 @@ export default function Header() {
                                             onClick={() => navigate("/calendar")}
                                             className="h-10 px-4 text-sm"
                                         >
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            Календарь
+                                            <Calendar className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            {t("nav.calendar")}
                                         </Button>
                                         <Button 
                                             onClick={() => setAuthDialogOpen(true)}
                                             className="h-10 px-4 text-sm"
                                         >
-                                            <LogIn className="mr-2 h-4 w-4" />
-                                            Войти / Регистрация
+                                            <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            {t("nav.loginRegister")}
                                         </Button>
                                     </>
                                 )}
@@ -157,6 +168,39 @@ export default function Header() {
                         </div>
                     </div>
                 </div>
+
+                {/* Разворачиваемая панель мобильного меню */}
+                {isMobileMenuOpen && (
+                    <nav className="lg:hidden border-t border-gray-200 bg-background px-4 py-3 text-sm" aria-label={t("nav.menu", "Меню")}>
+                        {user && (
+                            <div className="mb-3 pb-3 border-b border-gray-200">
+                                <UserStatus />
+                            </div>
+                        )}
+                        <div className="flex flex-col gap-1">
+                            <Link
+                                to="/how-it-works"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-gray-600 hover:bg-gray-100 hover:text-sky-700"
+                            >
+                                <HelpCircle className="w-4 h-4" aria-hidden="true" /> {t("nav.howItWorks")}
+                            </Link>
+                            <Link
+                                to="/rules"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-gray-600 hover:bg-gray-100 hover:text-sky-700"
+                            >
+                                <AlertTriangle className="w-4 h-4" aria-hidden="true" /> {t("nav.ourRules")}
+                            </Link>
+                            <button
+                                onClick={() => { setMobileMenuOpen(false); setContactOpen(true); }}
+                                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-left text-gray-600 hover:bg-gray-100 hover:text-sky-700"
+                            >
+                                <Send className="w-4 h-4" aria-hidden="true" /> {t("nav.contact")}
+                            </button>
+                        </div>
+                    </nav>
+                )}
             </header>
             
             {/* Диалоги (контактный и авторизации) */}

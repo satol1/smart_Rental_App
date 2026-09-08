@@ -34,7 +34,7 @@ export default function CalendarPage() {
     const [selectedEvent, setSelectedEvent] = useState<{ orderType: "reservation" | "rental"; orderId: number } | null>(null);
 
     // Хук для загрузки деталей события
-    const { data: eventDetails, isLoading: isLoadingEventDetails } = useCalendarEventDetails(
+    const { data: eventDetails } = useCalendarEventDetails(
         selectedEvent?.orderType,
         selectedEvent?.orderId
     );
@@ -56,7 +56,7 @@ export default function CalendarPage() {
     }, [currentUser]);
 
     // Обработчик для двойного клика - устанавливает параметры для загрузки данных
-    const handleShowDetails = useCallback(({ orderType, orderId }: any) => {
+    const handleShowDetails = useCallback(({ orderType, orderId }: { orderType: "reservation" | "rental"; orderId: number }) => {
         setSelectedEvent({ orderType, orderId });
     }, []);
 
@@ -72,7 +72,7 @@ export default function CalendarPage() {
         }
     }, [eventDetails, selectedEvent]);
 
-    const handleNavigate = useCallback(({ orderType, orderId, userId }: any) => {
+    const handleNavigate = useCallback(({ orderType, orderId, userId }: { orderType: "reservation" | "rental"; orderId: number; userId: number }) => {
         navigateToOrder(orderType, orderId, userId);
     }, [navigateToOrder]);
 

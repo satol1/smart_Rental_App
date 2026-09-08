@@ -1,11 +1,12 @@
 // src/components/admin/dashboard/UserInfo.tsx
 
-import { Badge } from "@/components/ui/badge";
 import { Phone, Wallet, Send } from "lucide-react";
 import { useGetSettings } from '@/hooks/admin/useSettings';
 import { toast } from 'sonner';
-import { formatBalance, getBalanceColor } from "@/lib/balanceUtils";
-import { USER_STATUS_BADGE_VARIANTS, USER_STATUS_COLORS, mapLegacyUserStatus } from "@/constants/userStatusConstants";
+import { getBalanceColor } from "@/lib/balanceUtils";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { MoneyText } from "@/components/ui/money-text";
+import { mapLegacyUserStatus } from "@/constants/userStatusConstants";
 
 interface UserInfoProps {
     userName: string;
@@ -32,17 +33,7 @@ export default function UserInfo({ userName, userPhone, user_telegram, userStatu
     const UserStatusBadge = () => {
         if (!mappedUserStatus) return null;
 
-        const badgeVariant = USER_STATUS_BADGE_VARIANTS[mappedUserStatus] || "secondary";
-        const badgeColors = USER_STATUS_COLORS[mappedUserStatus] || "";
-
-        return (
-            <Badge 
-                variant={badgeVariant}
-                className={`text-xs ${badgeColors}`}
-            >
-                {mappedUserStatus}
-            </Badge>
-        );
+        return <StatusBadge status={mappedUserStatus} className="text-xs" />;
     };
 
     const handleTelegramClick = (e: React.MouseEvent) => {
@@ -111,7 +102,7 @@ export default function UserInfo({ userName, userPhone, user_telegram, userStatu
             <div className="text-xs flex items-center gap-3">
                 <span className="flex items-center gap-1">
                     <Wallet className="w-3 h-3" />
-                    Баланс: <span className={balanceColor}>{formatBalance(userBalance)}</span>
+                    Баланс: <span className={balanceColor}><MoneyText value={userBalance} /></span>
                 </span>
             </div>
         </div>

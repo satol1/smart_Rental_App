@@ -1,6 +1,8 @@
 // src/components/rental/MyRentalsList.tsx
 
 import React, { useMemo } from "react";
+import type { InfiniteData } from "@tanstack/react-query";
+import type { AdminRentalOut, AdminRentalListResponse } from "@/types/rental";
 import { useMyRentals } from "@/hooks/useMyRentals";
 import MyRentalCard from "./MyRentalCard";
 import { Button } from "@/components/ui/button";
@@ -8,14 +10,14 @@ import { RefreshCw, Truck } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { useOrderFilterStore } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
-import { RefObject } from "react";
+import type { RefObject } from "react";
 import EmptyStateWithActions, { useEmptyStateActions } from "../shared/EmptyStateWithActions";
 
 interface MyRentalsListProps {
     getHighlightClasses: (id: number) => string;
     elementRef: RefObject<HTMLDivElement | null>;
     highlightId?: number | null;
-    rentalsData?: any;
+    rentalsData?: InfiniteData<AdminRentalListResponse> | undefined;
 }
 
 const LoadingState = () => (
@@ -73,14 +75,14 @@ const MyRentalsListComponent = ({
 
     // Используем данные из пропсов или загружаем их самостоятельно
     const allRentals = useMemo(() => {
-        let rentals: any[] = [];
-        
+        let rentals: AdminRentalOut[] = [];
+
         if (propRentalsData?.pages) {
-            const flatList = propRentalsData.pages.flatMap((page: any) => page?.items || []);
-            rentals = flatList.filter((item: any) => item && item.id);
+            const flatList = propRentalsData.pages.flatMap((page) => page?.items || []);
+            rentals = flatList.filter((item) => item && item.id);
         } else if (data?.pages) {
-            const flatList = data.pages.flatMap((page: any) => page?.items || []);
-            rentals = flatList.filter((item: any) => item && item.id);
+            const flatList = data.pages.flatMap((page) => page?.items || []);
+            rentals = flatList.filter((item) => item && item.id);
         }
 
         // Применяем централизованный фильтр "скрыть завершенные" для аренд
@@ -111,7 +113,7 @@ const MyRentalsListComponent = ({
         <div className="space-y-4">
             {/* Список аренд */}
             <div className="space-y-4">
-                {allRentals.map((rental: any) => (
+                {allRentals.map((rental) => (
                     <div
                         key={rental.id}
                         ref={highlightId === rental.id ? elementRef : null}

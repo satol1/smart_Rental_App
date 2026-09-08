@@ -1,23 +1,43 @@
 # rental-app-main/Dockerfile.frontend
 
 # --- ЭТАП 1: Сборка ---
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Пути теперь относительны папки rental-app-main
-COPY package*.json ./
-RUN npm install
+# Пути теперь относительны папке rental-app-main
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 RUN npm run build
 
 # --- ЭТАП 2: Подача ---
 FROM nginx:stable-alpine
+
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Копируем конфигурацию nginx для разработки
-COPY nginx/nginx.dev.conf /etc/nginx/conf.d/default.conf
+# Прод-конфигурация nginx (TLS, проксирование /api) как дефолт.
+# Раньше сюда запекался dev-конфиг; dev-конфиги подменяются монтированием
+# через docker-compose (override / limited-resources).
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Строка `COPY nginx.conf` удалена, так как этим теперь управляет docker-compose.yml
-EXPOSE 80
+# Права для запуска nginx от непривилегированного пользователя:
+# - /var/cache/nginx — temp-директории (client_body и т.п.)
+# - /var/run/nginx.pid — pid-файл создаётся заранее и принадлежит nginx
+RUN chown -R nginx:nginx /var/cache/nginx \
+    && touch /var/run/nginx.pid \
+    && chown nginx:nginx /var/run/nginx.pid
+
+EXPOSE 80 443
+
+# 127.0.0.1 (не localhost: в alpine localhost резолвится и в ::1, где nginx не слушает).
+# Прод-конфиг на :80 отдаёт 301 на https, поэтому fallback на https
+# (busybox wget не следует за редиректом; --no-check-certificate — self-signed/letsencrypt)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 \
+        || wget -qO- --no-check-certificate https://127.0.0.1/ >/dev/null 2>&1 \
+        || exit 1
+
+USER nginx
+
 CMD ["nginx", "-g", "daemon off;"]

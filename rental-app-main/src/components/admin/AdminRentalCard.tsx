@@ -1,7 +1,6 @@
 // src/components/admin/AdminRentalCard.tsx
 
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 // ✅ ИСПРАВЛЕНИЕ 1: Убираем неиспользуемые иконки Wallet, Landmark, Paperclip
 import { Calendar, Package, User, Truck, List, ChevronDown, Link as LinkIcon } from "lucide-react";
@@ -15,7 +14,7 @@ import { useRentalToReservationNavigation } from "@/hooks/useRentalToReservation
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { Equipment } from "@/types/equipment";
+
 import EditableRentalCard from "./EditableRentalCard";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
 import AdminRentalFinancialBlock from "./AdminRentalFinancialBlock";
@@ -46,8 +45,6 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
     const [isConfirmingPrepaymentRevert, setConfirmingPrepaymentRevert] = useState(false);
     const [isExpanded, setIsExpanded] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const navigate = useNavigate();
-    const location = useLocation();
     const cardRef = useRef<HTMLDivElement>(null);
     const { navigateToReservation } = useRentalToReservationNavigation({ context: 'admin' });
 

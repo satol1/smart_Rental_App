@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const LegendItem = ({ colorClass, label }: { colorClass: string, label: string }) => (
     <div className="flex items-center gap-2">

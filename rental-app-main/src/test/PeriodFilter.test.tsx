@@ -223,14 +223,19 @@ describe('Интеграционные тесты PeriodFilter', () => {
     const mockSetPeriodType = vi.fn();
     const mockSetPeriodOffset = vi.fn();
 
-    (useOrderFilterStore as any).mockReturnValue({
-      periodType: null,
+    // Статичный mockReturnValue не обновлял periodType — навигационные кнопки
+    // (рендерятся только при выбранном periodType) не появлялись и тест падал.
+    // Делаем мок "живым": store отражает применённый setPeriodType.
+    let mockPeriodType: string | null = null;
+    mockSetPeriodType.mockImplementation((value: string | null) => { mockPeriodType = value; });
+    (useOrderFilterStore as any).mockImplementation(() => ({
+      periodType: mockPeriodType,
       periodOffset: 0,
       setPeriodType: mockSetPeriodType,
       setPeriodOffset: mockSetPeriodOffset
-    });
+    }));
 
-    render(<PeriodFilter />);
+    const { rerender } = render(<PeriodFilter />);
 
     // Выбираем тип периода
     const select = screen.getByRole('combobox');
@@ -243,6 +248,10 @@ describe('Интеграционные тесты PeriodFilter', () => {
 
     expect(mockSetPeriodType).toHaveBeenCalledWith('week');
     expect(mockSetPeriodOffset).toHaveBeenCalledWith(0);
+
+    // Мок-стор не уведомляет React об изменении (это делает настоящий zustand),
+    // поэтому ре-рендерим компонент вручную — с уже применённым periodType
+    rerender(<PeriodFilter />);
 
     // Навигируемся по периодам
     const nextButton = screen.getByRole('button', { name: /следующий/i });

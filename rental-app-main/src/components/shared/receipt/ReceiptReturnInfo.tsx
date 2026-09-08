@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Clock, AlertTriangle, Receipt } from "lucide-react";
 import type { AdminRentalOut } from "@/types/rental";
 

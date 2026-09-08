@@ -4,8 +4,8 @@ import React, { useState, forwardRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { MoneyText } from "@/components/ui/money-text";
 import { CalendarRange, Truck, ExternalLink, ChevronDown, Paperclip, Tag, ReceiptText, Clock, AlertTriangle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { formatDateEuropean, calculateDaysOverdue } from "@/lib/utils";
 import { useRentalToReservationNavigation } from "@/hooks/useRentalToReservationNavigation";
 import type { AdminRentalOut } from "@/types/rental";
@@ -17,7 +17,6 @@ interface MyRentalCardProps {
 }
 
 const MyRentalCard = forwardRef<HTMLDivElement, MyRentalCardProps>(({ rental, highlightClasses = '' }, ref) => {
-    const navigate = useNavigate();
     const [expandedAccessories, setExpandedAccessories] = useState<Record<number, boolean>>({});
     const { navigateToReservation } = useRentalToReservationNavigation({ context: 'user' });
     
@@ -127,15 +126,15 @@ const MyRentalCard = forwardRef<HTMLDivElement, MyRentalCardProps>(({ rental, hi
                 {/* Финансовый блок */}
                 <div className="text-xs space-y-1.5 text-slate-700 flex-grow">
                     <h4 className="font-semibold text-sm text-slate-800 flex items-center gap-2 mb-2"><ReceiptText className="w-4 h-4"/>Финансы</h4>
-                    <div className="flex justify-between gap-4"><span>Стоимость аренды:</span> <span className="font-medium">{rental.total_cost.toLocaleString('ru-RU')} ₽</span></div>
+                    <div className="flex justify-between gap-4"><span>Стоимость аренды:</span> <span className="font-medium"><MoneyText value={rental.total_cost} /></span></div>
                     {rental.discount_amount > 0 && (
-                        <div className="flex justify-between gap-4 text-green-600"><span>Скидка:</span> <span className="font-medium">- {rental.discount_amount.toLocaleString('ru-RU')} ₽</span></div>
+                        <div className="flex justify-between gap-4 text-green-600"><span>Скидка:</span> <span className="font-medium">- <MoneyText value={rental.discount_amount} /></span></div>
                     )}
                     {rental.promo_code && (
                         <div className="flex justify-between items-center gap-4 text-purple-600"><span>Промокод:</span> <span className="font-medium flex items-center gap-1"><Tag className="w-3 h-3"/>{rental.promo_code}</span></div>
                     )}
                     {rental.overdue_surcharge && rental.overdue_surcharge > 0 && (
-                        <div className="flex justify-between gap-4 text-red-600 font-bold pt-1 border-t border-dashed mt-1"><span>Доплата за просрочку:</span> <span>{rental.overdue_surcharge.toLocaleString('ru-RU')} ₽</span></div>
+                        <div className="flex justify-between gap-4 text-red-600 font-bold pt-1 border-t border-dashed mt-1"><span>Доплата за просрочку:</span> <span><MoneyText value={rental.overdue_surcharge} /></span></div>
                     )}
                 </div>
                 

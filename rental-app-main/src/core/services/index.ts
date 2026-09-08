@@ -51,10 +51,7 @@ export type {
 } from './AccessoryService';
 
 
-export type {
-    CalendarGridData,
-    CalendarFilterOptions
-} from './CalendarService';
+export type { CalendarGridData } from './CalendarService';
 
 export type {
     DateRange,
@@ -69,6 +66,7 @@ export type {
 
 export type {
     AdminRentalsParams,
+    AdminRentalUpdateData,
     ConvertReservationPayload,
     ReturnRentalPayload,
     UpdateRentalPayload

@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/utils";
 import { useCreateReservationData } from "./create-reservation/useCreateReservationData";
 import { useCreateReservationForm, type CreateReservationFormData } from "./create-reservation/useCreateReservationForm";
 import { usePromoCodeStore } from "@/store/promoCodeStore";
-import { RentalCreateFromScratchData } from "@/types/rental";
+import type { RentalCreateFromScratchData } from "@/types/rental";
 
 const todayDate = new Date();
 const tomorrowDate = new Date();
@@ -58,7 +58,6 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
     // 5. Промокод стор для работы с промокодами
     const { 
         promoCodeInput,
-        appliedPromoCode,
         promoCodeMessage,
         setPromoCodeInput,
         applyPromoCode,

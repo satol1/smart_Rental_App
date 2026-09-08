@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, Package, ArrowRight } from "lucide-react";
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
-import type { Equipment } from "@/types/equipment";
+
 import type { AccessoryLink } from "@/types/reservation";
 import type { AdminReservationOut } from "@/types/reservation";
 import type { AdminRentalOut } from "@/types/rental";

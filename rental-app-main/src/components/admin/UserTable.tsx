@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { UserSearch } from "lucide-react";
 import { UserCreateDialog } from "./UserCreateDialog";
 import { useUserTableLogic } from "@/hooks/admin/useUserTableLogic";
@@ -11,6 +10,7 @@ import { UserTableRow } from "./UserTableRow";
 import { UserEditDialog } from "./UserEditDialog";
 import { UserPaymentDialog } from "./UserPaymentDialog";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
+import { SkeletonTable } from '@/components/ui/skeleton-list';
 import type { UserOut } from "@/types/user";
 
 interface UserTableProps {
@@ -58,7 +58,11 @@ export default function UserTable({
     };
 
     if (isLoading) {
-        return <div className="text-center py-8">Загрузка пользователей...</div>;
+        return (
+            <div role="status" aria-label="Загрузка пользователей">
+                <SkeletonTable rows={8} columns={6} />
+            </div>
+        );
     }
 
     if (error) {

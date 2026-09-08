@@ -1,7 +1,7 @@
 // src/components/shared/EquipmentSelector.tsx
 
 import { useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,10 +12,10 @@ import type { AvailabilityInfo } from "@/types/availability";
 import ConflictIndicator from "./ConflictIndicator";
 import { cn } from "@/lib/utils";
 
-interface EquipmentSelectorProps {
+interface EquipmentSelectorProps<TFieldValues extends FieldValues = FieldValues> {
   // Основные пропсы
-  name: string;
-  control: any; // UseFormReturn<any>['control']
+  name: FieldPath<TFieldValues>;
+  control: Control<TFieldValues>;
   label: string;
   
   // Данные
@@ -41,7 +41,7 @@ interface EquipmentSelectorProps {
  * Переиспользуемый компонент для выбора оборудования с группировкой по типам и брендам.
  * Показывает конфликты доступности и поддерживает поиск.
  */
-export default function EquipmentSelector({
+export default function EquipmentSelector<TFieldValues extends FieldValues = FieldValues>({
   name,
   control,
   label,
@@ -53,7 +53,7 @@ export default function EquipmentSelector({
   error,
   disabled = false,
   className
-}: EquipmentSelectorProps) {
+}: EquipmentSelectorProps<TFieldValues>) {
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (key: string) => {

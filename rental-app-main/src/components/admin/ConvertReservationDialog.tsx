@@ -136,7 +136,7 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
                         />
 
                         <OrderFinalizationSummary
-                            form={form as any}
+                            form={form}
                             finalCost={reservation.total_cost || 0}
                             discountAmount={0}
                             discountPercentage={0}

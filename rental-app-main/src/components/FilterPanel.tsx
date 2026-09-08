@@ -10,7 +10,7 @@ import ViewModeToggle from "@/components/ViewModeToggle";
 import { Button } from "@/components/ui/button";
 import { useFilterStore } from "@/store/filterStore";
 import { FilterX } from "lucide-react";
-import type { Equipment } from "@/types/equipment";
+
 import type { Association } from "@/types/association";
 
 interface FilterPanelProps {

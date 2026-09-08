@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import type { Reservation } from "@/types/reservation";
 import type { EquipmentDisplayDetail } from "@/hooks/reservation/useReservationState";
-import type { Equipment } from "@/types/equipment";
+
+import { isApiErrorLike } from "@/lib/queryHelpers";
 
 interface ReservationEditProviderProps {
     children: React.ReactNode;
@@ -88,10 +89,10 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
     const equipmentMap = useMemo(() => new Map(allEquipment.map(e => [e.id, e])), [allEquipment]);
 
     // Вычисление финального состояния изменений
+    const promoCodeChanged = appliedPromoCode !== (reservation.promo_code || "");
     const finalHasChanges = useMemo(() => {
-        const promoCodeChanged = appliedPromoCode !== (reservation.promo_code || "");
         return state.hasChanges || promoCodeChanged;
-    }, [state.hasChanges, appliedPromoCode, reservation.promo_code]);
+    }, [state.hasChanges, promoCodeChanged]);
 
     // Функция сохранения изменений
     const saveChanges = async (confirmAdjustment: boolean = false): Promise<boolean> => {
@@ -126,7 +127,9 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
                 start_date: formatDate(state.startDate),
                 end_date: formatDate(state.endDate),
                 equipment_ids: state.currentEquipmentDetails.map(eq => eq.id),
-                promo_code: appliedPromoCode || undefined,
+                // undefined (ключ уходит из JSON) — промокод не меняли, бэкенд
+                // сохраняет действующий; null — явный сброс промокода
+                promo_code: promoCodeChanged ? (appliedPromoCode || null) : undefined,
                 selected_accessories: filteredAccessories,
                 isAdminContext,
                 confirm_date_adjustment: confirmAdjustment,
@@ -136,9 +139,21 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
             }
             return true;
         } catch (error) {
-            const errorDetail = (error as any)?.response?.data?.detail;
-            if ((error as any).response?.status === 409 && errorDetail?.error_type === "DATE_IS_HOLIDAY") {
-                stateActions.setHolidayConflict(errorDetail);
+            if (isApiErrorLike(error) && error.response?.status === 409) {
+                const errorDetail = error.response?.data?.detail;
+                if (
+                    typeof errorDetail === "object" &&
+                    errorDetail !== null &&
+                    !Array.isArray(errorDetail) &&
+                    errorDetail.error_type === "DATE_IS_HOLIDAY" &&
+                    typeof errorDetail.message === "string" &&
+                    typeof errorDetail.suggested_end_date === "string"
+                ) {
+                    stateActions.setHolidayConflict({
+                        message: errorDetail.message,
+                        suggested_end_date: errorDetail.suggested_end_date,
+                    });
+                }
             }
             return false;
         }
@@ -159,6 +174,7 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
     // Создание значения контекста
     const contextValue: ReservationEditContextValue = {
         reservationId: reservation.id,
+        reservationCreatedAt: reservation.created_at,
         editState: editStateForUI,
         availabilityMap,
         hasConflicts,

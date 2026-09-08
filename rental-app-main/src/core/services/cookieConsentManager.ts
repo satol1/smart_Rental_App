@@ -40,6 +40,8 @@ export function hasCookieConsent(): boolean {
  * @param accepted - true для принятия (теперь всегда true, параметр оставлен для обратной совместимости)
  */
 export function setCookieConsent(accepted: boolean): void {
+  // Параметр сохранён для обратной совместимости публичного API
+  void accepted;
   if (typeof window === "undefined") {
     return;
   }

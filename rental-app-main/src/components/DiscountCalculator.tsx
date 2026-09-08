@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useSandboxCalculatorStore } from '@/store/sandboxCalculatorStore';
+import { combinedDiscountPercentage } from '@/constants/discount';
 import { useDateStore } from '@/store/dateStore';
 import { usePromoCodeStore } from '@/store/promoCodeStore';
 import { useReserveStore } from '@/store/reserveStore';
@@ -23,7 +24,6 @@ export default function DiscountCalculator() {
 
     const {
         promoCodeInput,
-        appliedPromoCode,
         setPromoCodeInput,
         applyPromoCode,
         removePromoCode,
@@ -50,8 +50,19 @@ export default function DiscountCalculator() {
         }
 
         const totalDailyRate = currentItems.reduce((sum, item) => sum + item.daily_rate, 0);
+        // Аксессуары входят в сумму заказа: бэкенд проверяет min_order_amount
+        // по полной стоимости (оборудование + аксессуары), без них промо с порогом
+        // ложно отклонялся на фронте
+        const selectedAccessoriesMap = useReserveStore.getState().selectedAccessories;
+        const accessoriesDailyRate = currentItems.reduce((sum, item) => {
+            const selectedIds = selectedAccessoriesMap[item.id] || [];
+            const itemAccessoriesRate = (item.accessories || [])
+                .filter(acc => selectedIds.includes(acc.id))
+                .reduce((s, acc) => s + acc.price, 0);
+            return sum + itemAccessoriesRate;
+        }, 0);
         // Если сумма заказа 0 (нет товаров), бэкенд вернет ошибку о мин. сумме, если она есть у промокода.
-        const orderAmount = totalDailyRate * currentDays;
+        const orderAmount = (totalDailyRate + accessoriesDailyRate) * currentDays;
 
         setIsApplyingPromoCode(true);
         try {
@@ -84,7 +95,7 @@ export default function DiscountCalculator() {
         }, 10);
     }, [setDaysFromSlider]);
 
-    const totalDiscountPercentage = useMemo(() => durationDiscountPercentage + promoCodePercentage, [durationDiscountPercentage, promoCodePercentage]);
+    const totalDiscountPercentage = useMemo(() => combinedDiscountPercentage(durationDiscountPercentage, promoCodePercentage), [durationDiscountPercentage, promoCodePercentage]);
 
     // Вычисляем максимальное значение для бегунка на основе максимального min_days + 3 (рабочие дни)
     const maxSliderDays = useMemo(() => {

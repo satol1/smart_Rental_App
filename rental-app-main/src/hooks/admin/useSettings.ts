@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 
 export interface Setting {
     key: string;
@@ -25,6 +26,6 @@ export function useUpdateSettings() {
             toast.success("Настройки успешно сохранены");
             void queryClient.invalidateQueries({ queryKey: SETTINGS_KEY });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка сохранения"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка сохранения")),
     });
 }

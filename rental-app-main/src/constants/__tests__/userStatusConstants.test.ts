@@ -5,6 +5,9 @@ import {
     USER_STATUS,
     MAX_RESERVATIONS_BY_STATUS,
     EDIT_RESTRICTION_DAYS,
+    RESERVATION_GRACE_PERIOD_HOURS,
+    isInReservationGracePeriod,
+    remainingGraceHours,
     canUserEditReservation,
     canUserCancelReservation,
     getMaxReservationsForStatus,
@@ -88,6 +91,47 @@ describe('userStatusConstants', () => {
             expect(canUserCancelReservation(USER_STATUS.NEW, 2)).toBe(false);
             expect(canUserCancelReservation(USER_STATUS.VIP, 0)).toBe(true);
             expect(canUserCancelReservation(USER_STATUS.PERSONA_NON_GRATA, 10)).toBe(false);
+        });
+    });
+
+    describe('grace-период (24 ч после создания)', () => {
+        it('константа синхронизирована с бэкендом', () => {
+            expect(RESERVATION_GRACE_PERIOD_HOURS).toBe(24);
+        });
+
+        it('isInReservationGracePeriod: свежий резерв — да, старый/без даты — нет', () => {
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+            const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+            expect(isInReservationGracePeriod(twoHoursAgo)).toBe(true);
+            expect(isInReservationGracePeriod(twoDaysAgo)).toBe(false);
+            expect(isInReservationGracePeriod(null)).toBe(false);
+            expect(isInReservationGracePeriod(undefined)).toBe(false);
+            expect(isInReservationGracePeriod('not-a-date')).toBe(false);
+        });
+
+        it('remainingGraceHours считает остаток', () => {
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+            expect(remainingGraceHours(oneHourAgo)).toBe(23);
+            expect(remainingGraceHours(null)).toBe(0);
+        });
+
+        it('свежесозданный резерв можно отменить даже с близкой датой начала', () => {
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+            // «Новый» со стартом завтра: без grace нельзя, с grace можно
+            expect(canUserCancelReservation(USER_STATUS.NEW, 1)).toBe(false);
+            expect(canUserCancelReservation(USER_STATUS.NEW, 1, twoHoursAgo)).toBe(true);
+            expect(canUserEditReservation(USER_STATUS.NEW, 0, twoHoursAgo)).toBe(true);
+        });
+
+        it('истёкший grace возвращает обычное правило', () => {
+            const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+            expect(canUserCancelReservation(USER_STATUS.NEW, 1, twoDaysAgo)).toBe(false);
+        });
+
+        it('grace не помогает для прошедшей даты и Персоны Нон Грата', () => {
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+            expect(canUserEditReservation(USER_STATUS.NEW, -1, twoHoursAgo)).toBe(false);
+            expect(canUserEditReservation(USER_STATUS.PERSONA_NON_GRATA, 1, twoHoursAgo)).toBe(false);
         });
     });
 

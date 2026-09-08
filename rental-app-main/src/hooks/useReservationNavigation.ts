@@ -4,6 +4,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useReserveStore } from "@/store/reserveStore";
 import type { Reservation } from "@/types/reservation";
 
+/** Возможные поля location.state, используемые навигацией по резервам */
+interface LocationState {
+    from?: string;
+    reservationId?: number;
+    equipmentIds?: number[];
+    startDate?: string;
+    endDate?: string;
+    intent?: string;
+}
+
 /**
  * Хук для централизованного управления навигацией
  * при добавлении оборудования в существующий резерв.
@@ -47,7 +57,7 @@ export function useReservationNavigation() {
             return;
         }
 
-        const returnPath = (location.state as any)?.from || (reservationId ? "/reservations/my" : "/");
+        const returnPath = (location.state as LocationState | null)?.from || (reservationId ? "/reservations/my" : "/");
         const isReturningToAdmin = returnPath.startsWith('/admin');
         
         const returnState = isReturningToAdmin
@@ -65,8 +75,9 @@ export function useReservationNavigation() {
      */
     const cancelAndReturn = () => {
         clearReserveStore();
-        const returnPath = (location.state as any)?.from || "/reservations/my";
-        const reservationId = (location.state as any)?.reservationId;
+        const state = location.state as LocationState | null;
+        const returnPath = state?.from || "/reservations/my";
+        const reservationId = state?.reservationId;
         
         const isReturningToAdmin = returnPath.startsWith('/admin');
         const returnState = isReturningToAdmin

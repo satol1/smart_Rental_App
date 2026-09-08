@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 import { api } from "@/lib/api";
 
 // Типы, соответствующие Pydantic-схемам на бэкенде
@@ -56,8 +57,8 @@ export function useCreateWeeklyRule() {
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.detail || "Ошибка при создании правила");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при создании правила"));
         },
     });
 }
@@ -73,8 +74,8 @@ export function useImportPublicHolidays() {
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.detail || "Ошибка при импорте праздников");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при импорте праздников"));
         },
     });
 }
@@ -90,8 +91,8 @@ export function useDeleteHolidayRule() {
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.detail || "Ошибка при удалении правила");
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при удалении правила"));
         },
     });
 }

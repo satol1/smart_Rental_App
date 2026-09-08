@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BrandSystemService } from "@/core/services/BrandSystemService";
 
 // Переиспользуем типы из админки, так как структура ответа та же
-import type { BrandSystemListResponse } from "@/types/brandSystem";
+
 
 const BRAND_SYSTEMS_QUERY_KEY = ["brandSystems"];
 

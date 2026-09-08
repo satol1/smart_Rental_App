@@ -1,5 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { ReactNode } from "react"
+import type { ReactNode } from "react"
 
 type Props = {
     title: string

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MinusCircle, AlertTriangle, CheckCircle, Sparkles } from "lucide-react";
 import { formatDateRangeEuropean } from "@/lib/utils";
 import type { AvailabilityInfo } from "@/types/availability";
-import { isEquipmentUnderRepair, EQUIPMENT_UNDER_REPAIR_CONDITION } from "@/lib/equipmentUtils";
+import { EQUIPMENT_UNDER_REPAIR_CONDITION } from "@/lib/equipmentUtils";
 
 interface EquipmentItemWithConflictsProps {
     item: { id: number; label: string };
@@ -119,6 +119,7 @@ export default function EquipmentItemWithConflicts({
                     size="icon"
                     onClick={() => onRemove(item.id)}
                     disabled={disabled}
+                    aria-label={`Удалить ${item.label} из резерва`}
                     className={`ml-2 h-8 w-8 flex-shrink-0 hover:text-red-700 ${
                         disabled
                             ? "text-gray-400 cursor-not-allowed"

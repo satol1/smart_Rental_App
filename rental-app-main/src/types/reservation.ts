@@ -22,6 +22,8 @@ export interface Reservation {
     selected_accessories?: Record<number, number[]>;
     accessory_links?: AccessoryLink[];
     rental_id?: number | null;
+    /** Момент создания (ISO) — для grace-периода отмены/редактирования */
+    created_at?: string | null;
 }
 
 export interface ReservationWithNames extends Reservation {

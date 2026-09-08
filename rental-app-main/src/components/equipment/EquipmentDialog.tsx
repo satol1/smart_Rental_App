@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function EquipmentDialog({ isOpen, onClose, mode, equipment }: Props) {
-    const handleSuccess = (data: Equipment) => {
+    const handleSuccess = () => {
         onClose();
     };
 

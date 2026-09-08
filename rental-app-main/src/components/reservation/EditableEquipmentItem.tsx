@@ -72,8 +72,9 @@ export default function EditableEquipmentItem({
                                     onClick={() => onToggleAccessory(fullEquipmentItem.id, acc.id)}
                                     disabled={disabled}
                                     title="Убрать аксессуар"
+                                    aria-label={`Убрать аксессуар ${acc.name}`}
                                 >
-                                    <X className="w-3 h-3" />
+                                    <X className="w-3 h-3" aria-hidden="true" />
                                 </Button>
                             </li>
                         ))}

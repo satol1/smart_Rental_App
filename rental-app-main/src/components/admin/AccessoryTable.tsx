@@ -7,6 +7,7 @@ import { AccessoryCreateDialog, AccessoryEditDialog } from "./AccessoryDialogs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyText } from "@/components/ui/money-text";
 import {
     Table,
     TableBody,
@@ -83,12 +84,12 @@ export default function AccessoryTable() {
                                         <TableCell>{acc.id}</TableCell>
                                         <TableCell className="font-medium">{acc.name}</TableCell>
                                         <TableCell>{acc.accessory_type}</TableCell>
-                                        <TableCell>{acc.price} ₽</TableCell>
+                                        <TableCell><MoneyText value={acc.price} /></TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => setEditingAccessory(acc)}>
+                                            <Button variant="ghost" size="icon" onClick={() => setEditingAccessory(acc)} aria-label={`Редактировать аксессуар ${acc.name}`}>
                                                 <Edit className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(acc.id)} disabled={deleteMutation.isPending}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(acc.id)} disabled={deleteMutation.isPending} aria-label={`Удалить аксессуар ${acc.name}`}>
                                                 <Trash2 className="h-4 w-4 text-red-500" />
                                             </Button>
                                         </TableCell>

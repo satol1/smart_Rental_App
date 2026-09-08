@@ -11,8 +11,8 @@ import { handleQueryError } from "@/lib/queryHelpers";
 type ProfileUpdatePayload = {
     full_name: string;
     email: string;
-    phone?: string;
-    telegram_username?: string;
+    phone?: string | null;
+    telegram_username?: string | null;
 };
 
 /**

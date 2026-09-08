@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 // +++ НАЧАЛО ИЗМЕНЕНИЙ: Исправляем импорт +++
 import type { DurationDiscount, DiscountPayload, DiscountListResponse } from "@/types/discount";
 // +++ КОНЕЦ ИЗМЕНЕНИЙ +++
@@ -30,7 +31,7 @@ export const useCreateDurationDiscount = () => {
             toast.success("Новый уровень скидки добавлен");
             void queryClient.invalidateQueries({ queryKey: [DURATION_DISCOUNTS_KEY] });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка создания"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка создания")),
     });
 };
 
@@ -42,7 +43,7 @@ export const useUpdateDurationDiscount = () => {
             toast.success("Скидка обновлена");
             void queryClient.invalidateQueries({ queryKey: [DURATION_DISCOUNTS_KEY] });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка обновления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка обновления")),
     });
 };
 
@@ -54,6 +55,6 @@ export const useDeleteDurationDiscount = () => {
             toast.success("Скидка удалена");
             void queryClient.invalidateQueries({ queryKey: [DURATION_DISCOUNTS_KEY] });
         },
-        onError: (e: any) => toast.error(e.response?.data?.detail || "Ошибка удаления"),
+        onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка удаления")),
     });
 };

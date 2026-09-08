@@ -24,20 +24,22 @@ interface Props {
 
 export default function EquipmentCopyDialog({ isOpen, onClose, sourceEquipment }: Props) {
     const copyMutation = useCopyEquipment();
-    
+
+    // Правила хуков: useForm до guard'а (иначе смена исхода guard роняет React);
+    // defaultValues безопасно переживают отсутствие sourceEquipment
+    const form = useForm<CopyFormData>({
+        resolver: zodResolver(copySchema),
+        defaultValues: {
+            name: `${sourceEquipment?.name ?? ""} (копия)`,
+            serial_number: "",
+            notes: `Скопировано из ID: ${sourceEquipment?.id ?? "?"}`,
+        },
+    });
+
     // Защита от null/undefined
     if (!sourceEquipment) {
         return null;
     }
-    
-    const form = useForm<CopyFormData>({
-        resolver: zodResolver(copySchema),
-        defaultValues: {
-            name: `${sourceEquipment.name} (копия)`,
-            serial_number: "",
-            notes: `Скопировано из ID: ${sourceEquipment.id}`,
-        },
-    });
 
     const onSubmit = async (data: CopyFormData) => {
         try {

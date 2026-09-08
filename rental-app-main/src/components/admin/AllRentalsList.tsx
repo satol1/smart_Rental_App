@@ -33,7 +33,7 @@ export default function AllRentalsList({ rentals, onReturn, highlightId, element
                     key={rental.id} 
                     rental={rental} 
                     onReturn={onReturn} 
-                    highlightId={highlightId}
+                    highlightId={highlightId ?? undefined}
                     elementRef={highlightId === rental.id ? elementRef : undefined}
                     getHighlightClasses={getHighlightClasses}
                 />

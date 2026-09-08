@@ -1,7 +1,7 @@
 // src/pages/admin/AllReservationsManagementPage.tsx
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import AdminNavigation from "@/components/admin/AdminNavigation";
 import { useAdminReservations, useBulkDeleteAdminReservations } from "@/hooks/useAdminReservations";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
@@ -23,10 +23,10 @@ import { transformAccessoryLinks } from "@/lib/utils";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
 import RentalReceiptDialog from "@/components/admin/RentalReceiptDialog";
 import { PeriodFilter } from "@/components/admin/PeriodFilter";
+import { SkeletonTable } from "@/components/ui/skeleton-list";
 
 export default function AllReservationsManagementPage() {
     const location = useLocation();
-    const navigate = useNavigate();
 
     const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
     const [conversionTarget, setConversionTarget] = useState<AdminReservationOut | null>(null);
@@ -156,7 +156,7 @@ export default function AllReservationsManagementPage() {
             />
 
             <div className="bg-white rounded-lg border shadow-sm p-4 md:p-6">
-                {isLoading && <p className="text-center text-gray-500 py-4">Загрузка данных...</p>}
+                {isLoading && <SkeletonTable rows={6} columns={6} />}
                 {isFetchingNextPage && <p className="text-center text-blue-600 py-2 text-sm">Поиск резерва в следующих страницах...</p>}
                 {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}
 

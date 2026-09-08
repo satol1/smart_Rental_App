@@ -2,13 +2,7 @@
 
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import BalanceHistoryTable from "@/components/profile/BalanceHistoryTable";
 import type { UserOut } from "@/types/user";
 import { formatBalance, getBalanceColor } from "@/lib/balanceUtils";
@@ -27,10 +21,9 @@ export function UserBalanceHistoryDialog({ user, open, onClose }: Props) {
     const queryClient = useQueryClient();
     
     // Получаем актуальные данные пользователя через хук
-    const { data: currentUserData, isLoading: isLoadingUser } = useAdminUser(user?.id || 0);
+    const { data: currentUserData } = useAdminUser(user?.id || 0);
     
     // Используем актуальные данные пользователя, если они есть, иначе fallback на пропс
-    const displayUser = currentUserData || user;
 
     // Инвалидируем кэш при открытии диалога, чтобы получить актуальные данные
     useEffect(() => {
@@ -43,18 +36,21 @@ export function UserBalanceHistoryDialog({ user, open, onClose }: Props) {
 
     if (!user) return null;
 
+    // После guard'а выше user не null; currentUserData может быть undefined
+    const shownUser: UserOut = currentUserData ?? user;
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-4xl max-h-[80vh] flex flex-col">
                 <DialogHeader className="flex-shrink-0">
-                    <DialogTitle>История баланса: {displayUser.full_name}</DialogTitle>
+                    <DialogTitle>История баланса: {shownUser.full_name}</DialogTitle>
                     <DialogDescription>
-                        Просмотр всех транзакций для пользователя {displayUser.email}.
+                        Просмотр всех транзакций для пользователя {shownUser.email}.
                     </DialogDescription>
                     <div className="mt-2">
                         <p className="text-sm text-gray-600">
-                            Текущий баланс: <span className={`font-semibold ${getBalanceColor(displayUser.balance)}`}>
-                                {formatBalance(displayUser.balance)}
+                            Текущий баланс: <span className={`font-semibold ${getBalanceColor(shownUser.balance)}`}>
+                                {formatBalance(shownUser.balance)}
                             </span>
                         </p>
                     </div>

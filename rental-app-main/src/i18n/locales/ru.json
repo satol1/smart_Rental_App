@@ -1,0 +1,77 @@
+{
+  "common": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "close": "Закрыть",
+    "add": "Добавить",
+    "confirm": "Подтвердить",
+    "loading": "Загрузка...",
+    "retry": "Попробовать снова",
+    "actions": "Действия",
+    "back": "Назад",
+    "forward": "Вперед",
+    "search": "Поиск",
+    "yes": "Да",
+    "no": "Нет"
+  },
+  "nav": {
+    "howItWorks": "Как это работает",
+    "ourRules": "Наши правила",
+    "contact": "Связаться",
+    "myOrders": "Мои заказы",
+    "calendar": "Календарь",
+    "loginRegister": "Войти / Регистрация",
+    "resetFilters": "Сбросить фильтры",
+    "goHome": "На главную",
+    "logoAlt": "Логотип PhotoRental",
+    "profile": "Профиль",
+    "adminPanel": "Админ панель",
+    "logout": "Выйти",
+    "themeTitle": "Тема оформления",
+    "themeLabel": "Тема оформления: {{theme}}",
+    "themeLight": "Светлое",
+    "themeDark": "Тёмное",
+    "themeSystem": "Системное",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "menu": "Меню"
+  },
+  "auth": {
+    "welcomeTitle": "Добро пожаловать!",
+    "welcomeDescription": "Войдите в аккаунт или зарегистрируйтесь, чтобы продолжить.",
+    "loginTitle": "Вход в аккаунт",
+    "registerTitle": "Регистрация",
+    "fields": {
+      "fullName": "ФИО",
+      "phone": "Телефон",
+      "telegram": "Telegram",
+      "email": "Email",
+      "password": "Пароль"
+    },
+    "consent": {
+      "privacyText": "Я согласен с",
+      "privacyLink": "политикой обработки персональных данных",
+      "termsText": "Я принимаю",
+      "termsLink": "условия использования сервиса"
+    },
+    "submitLogin": "Войти",
+    "submitRegister": "Зарегистрироваться",
+    "hasAccount": "Уже есть аккаунт? Войти",
+    "noAccount": "Нет аккаунта?",
+    "registerSuccess": "Регистрация прошла успешно! Добро пожаловать!",
+    "loginSuccess": "Вход выполнен успешно! Добро пожаловать!",
+    "termsRequired": "Необходимо принять условия использования и политику конфиденциальности."
+  },
+  "forms": {
+    "required": "Обязательное поле",
+    "invalidEmail": "Некорректный email",
+    "passwordTooShort": "Пароль должен содержать минимум {{count}} символов"
+  },
+  "errors": {
+    "unknownQuery": "Неизвестная ошибка запроса",
+    "unknown": "Произошла неизвестная ошибка",
+    "generic": "Произошла ошибка. Попробуйте снова."
+  }
+}

@@ -1,20 +1,15 @@
 // src/components/equipment/EquipmentForm.tsx
 
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    equipmentCreateSchema,
-    equipmentUpdateExtendedSchema,
-    type EquipmentCreateSchema,
-    type EquipmentUpdateExtendedSchema
-} from "@/lib/validationSchemas";
+import { equipmentCreateSchema, equipmentUpdateExtendedSchema, type EquipmentCreateSchema, type EquipmentUpdateExtendedSchema } from "@/lib/validationSchemas";
 import { useCreateEquipment } from "@/hooks/useAdminEquipment";
 import { useUpdateEquipmentDetails } from "@/hooks/useUpdateEquipmentDetails";
 import { useAccessories } from "@/hooks/useAdminAccessories";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
 import type { Equipment } from "@/types/equipment";
 import { formatDate } from "@/lib/utils";
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
 // Импорты подкомпонентов
@@ -99,17 +94,15 @@ export default function EquipmentForm({ mode, initialData, onSuccess, onCancel }
     }, [isEditing, initialData]);
 
     const form = useForm<EquipmentCreateSchema | EquipmentUpdateExtendedSchema>({
-        resolver: zodResolver(isEditing ? equipmentUpdateExtendedSchema : equipmentCreateSchema) as any,
+        resolver: zodResolver(isEditing ? equipmentUpdateExtendedSchema : equipmentCreateSchema) as Resolver<EquipmentCreateSchema | EquipmentUpdateExtendedSchema>,
         defaultValues,
         mode: "onChange",
     });
 
     const {
-        register,
         handleSubmit,
-        control,
         reset,
-        formState: { errors, isDirty, isValid },
+        formState: { isDirty, isValid },
     } = form;
 
     // Форма инициализируется с правильными defaultValues

@@ -3,7 +3,7 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { DIContext, DIProvider, useDI, useEquipmentService } from '../Container';
+import { DIProvider, useDI, useEquipmentService, createContainer } from '../Container';
 import { EquipmentService } from '../../services/EquipmentService';
 
 import { describe, it, expect, vi } from 'vitest';
@@ -117,7 +117,6 @@ describe('DI Container', () => {
 
   describe('Container creation', () => {
     it('should create container with all services', () => {
-      const { createContainer } = require('../Container');
       const container = createContainer();
 
       expect(container.equipmentService).toBeDefined();

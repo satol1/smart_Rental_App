@@ -1,12 +1,15 @@
 // path: rental-app-main/src/components/EquipmentGrid.tsx
 
+import { motion } from "framer-motion";
 import EquipmentCard from '@/components/equipment-card';
 import CompactEquipmentCard from '@/components/CompactEquipmentCard';
 import PackCard from '@/components/PackCard';
 import CompactPackCard from '@/components/CompactPackCard';
 import { Button } from "@/components/ui/button";
+import { SkeletonList } from "@/components/ui/skeleton-list";
 import { PackageSearch, FilterX } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
+import { listItem, staggerContainer } from "@/lib/motion";
 import type { Equipment } from "@/types/equipment";
 import type { AvailabilityInfo, DayStatus, EquipmentStatus } from "@/types/availability";
 import type { ViewMode } from '@/store/viewModeStore';
@@ -46,6 +49,16 @@ const GridEquipmentCard: React.FC<GridEquipmentCardProps> = ({
     );
 };
 
+/**
+ * Обёртка карточки для каскадного появления и layout-анимации
+ * добавления/удаления (только transform/opacity).
+ */
+const AnimatedGridItem: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <motion.div variants={listItem} layout>
+        {children}
+    </motion.div>
+);
+
 interface EquipmentGridProps {
     isLoading: boolean;
     items: CatalogItem[];
@@ -79,19 +92,24 @@ export default function EquipmentGrid({
 
     // ✅ 5. Логика Intersection Observer полностью удалена отсюда.
 
-
     if (isLoading && items.length === 0) {
-        return <p className="text-gray-500 text-sm col-span-full text-center py-5">Загрузка оборудования...</p>;
+        return (
+            <SkeletonList
+                count={8}
+                compact={viewMode === "compact"}
+                className="mt-4"
+            />
+        );
     }
 
     if (items.length === 0) {
         return (
             <div className="col-span-full my-8">
-                <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 bg-gray-50/50 rounded-lg border-2 border-dashed">
-                    {hasActiveFilters ? <FilterX className="w-16 h-16 text-gray-400" /> : <PackageSearch className="w-16 h-16 text-gray-400" />}
+                <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 bg-muted/50 rounded-lg border-2 border-dashed">
+                    {hasActiveFilters ? <FilterX className="w-16 h-16 text-muted-foreground" /> : <PackageSearch className="w-16 h-16 text-muted-foreground" />}
                     <div className="space-y-1">
-                        <h3 className="text-lg font-semibold text-gray-800">{hasActiveFilters ? "Ничего не найдено" : "Каталог пока пуст"}</h3>
-                        <p className="text-sm text-gray-500">{hasActiveFilters ? "Попробуйте изменить или сбросить фильтры." : "Здесь появится оборудование для аренды."}</p>
+                        <h3 className="text-lg font-semibold text-foreground">{hasActiveFilters ? "Ничего не найдено" : "Каталог пока пуст"}</h3>
+                        <p className="text-sm text-muted-foreground">{hasActiveFilters ? "Попробуйте изменить или сбросить фильтры." : "Здесь появится оборудование для аренды."}</p>
                     </div>
                     {hasActiveFilters && (
                         <div className="mt-4">
@@ -111,24 +129,32 @@ export default function EquipmentGrid({
 
     return (
         <>
-            <div className={gridClasses}>
+            {/* Каскадное появление карточек (staggerChildren: 0.05, только transform/opacity) */}
+            <motion.div
+                className={gridClasses}
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+            >
                 {items.map((item) => {
                     // --- НАЧАЛО ИЗМЕНЕНИЙ ---
                     if (item.entity_type === 'pack') {
                         // Если элемент - это пачка, рендерим компонент PackCard
                         const pack = item as CatalogPackItem;
-                        return viewMode === "compact" ? (
-                            <CompactPackCard 
-                                key={`pack-${pack.id}`} 
-                                pack={pack}
-                                onOpenDetails={onOpenPackDetails}
-                            />
-                        ) : (
-                            <PackCard 
-                                key={`pack-${pack.id}`} 
-                                pack={pack}
-                                onOpenDetails={onOpenPackDetails}
-                            />
+                        return (
+                            <AnimatedGridItem key={`pack-${pack.id}`}>
+                                {viewMode === "compact" ? (
+                                    <CompactPackCard
+                                        pack={pack}
+                                        onOpenDetails={onOpenPackDetails}
+                                    />
+                                ) : (
+                                    <PackCard
+                                        pack={pack}
+                                        onOpenDetails={onOpenPackDetails}
+                                    />
+                                )}
+                            </AnimatedGridItem>
                         );
                     }
                     // --- КОНЕЦ ИЗМЕНЕНИЙ ---
@@ -140,20 +166,21 @@ export default function EquipmentGrid({
                     const status = getEquipmentStatus(eq);
 
                     return (
-                        <GridEquipmentCard
-                            key={eq.id}
-                            equipment={eq}
-                            status={status}
-                            startDate={availability?.start_date ?? undefined}
-                            endDate={availability?.end_date ?? undefined}
-                            dailyStatus={equipmentDailyStatus}
-                            viewMode={viewMode}
-                        />
+                        <AnimatedGridItem key={eq.id}>
+                            <GridEquipmentCard
+                                equipment={eq}
+                                status={status}
+                                startDate={availability?.start_date ?? undefined}
+                                endDate={availability?.end_date ?? undefined}
+                                dailyStatus={equipmentDailyStatus}
+                                viewMode={viewMode}
+                            />
+                        </AnimatedGridItem>
                     );
                 })}
-            </div>
+            </motion.div>
 
-            {/* ✅ 6. Используем наш новый универсальный компонент */}
+            {/* ✅ 6. Используем наш универсальный компонент */}
             <InfiniteScrollTrigger
                 fetchNextPage={fetchNextPage}
                 hasNextPage={hasNextPage}

@@ -2,38 +2,43 @@
 
 import { Button } from "@/components/ui/button";
 import PromoCodeInput from "@/components/PromoCodeInput";
-import { ReceiptText, Loader2, AlertTriangle } from "lucide-react";
+import { ReceiptText, Loader2, AlertTriangle, CalendarClock, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PriceDetails } from "@/hooks/reservation/usePriceCalculator";
 
 interface FinancialSummaryBlockProps {
     // Данные о стоимости
     priceDetails?: PriceDetails | null;
-    
+
     // Дополнительные финансовые данные
     accessoriesDailyTotal?: number;
-    
+
     // Промокод
     promoCode: string;
     setPromoCode: (code: string) => void;
     applyPromoCode: () => void;
     removePromoCode?: () => void;
     promoCodeMessage?: string;
-    
+
     // Состояния загрузки
     isLoading?: boolean;
     isApplyingPromoCode?: boolean;
     isSubmitting?: boolean;
-    
+
     // Валидация
     isFormValid?: boolean;
     hasConflicts?: boolean;
-    
+    /** Понятная причина недоступности кнопки подтверждения (показывается под кнопкой) */
+    formInvalidReason?: string | null;
+
+    /** Условия отмены (показываются до подтверждения, Booking-паттерн) */
+    cancellationPolicyNote?: string;
+
     // Действия
     onCancel?: () => void;
     onAddMore?: () => void;
     onSubmit?: () => void;
-    
+
     // Стилизация
     variant?: 'default' | 'compact' | 'admin' | 'inline';
     className?: string;
@@ -57,6 +62,8 @@ export default function FinancialSummaryBlock({
     isSubmitting = false,
     isFormValid = true,
     hasConflicts = false,
+    formInvalidReason = null,
+    cancellationPolicyNote,
     onCancel,
     onAddMore,
     onSubmit,
@@ -250,6 +257,7 @@ export default function FinancialSummaryBlock({
                 <div className="text-sm text-gray-700 space-y-2 border-t pt-4">
                     <div className="flex justify-between">
                         <span>Аренда оборудования ({dayCount} дн.):</span>
+                        <span>{fullTotal.toLocaleString('ru-RU')} ₽</span>
                     </div>
                     {accessoriesDailyTotal > 0 && (
                         <div className="flex justify-between text-gray-600 pl-4">
@@ -274,6 +282,14 @@ export default function FinancialSummaryBlock({
                 </div>
             )}
 
+            {/* Условия отмены — до подтверждения, чтобы решение было осознанным */}
+            {cancellationPolicyNote && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-sky-50 border border-sky-100 text-xs text-sky-800">
+                    <CalendarClock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>{cancellationPolicyNote}</span>
+                </div>
+            )}
+
             {showActions && (onCancel || onAddMore || onSubmit) && (
                 <div className="flex flex-col sm:flex-row justify-end items-center pt-3 gap-3">
                     {onCancel && (
@@ -295,6 +311,14 @@ export default function FinancialSummaryBlock({
                             {isSubmitting ? "Обработка..." : "Подтвердить резерв"}
                         </Button>
                     )}
+                </div>
+            )}
+
+            {/* Причина, почему подтверждение недоступно */}
+            {onSubmit && !isFormValid && formInvalidReason && (
+                <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-3 py-2">
+                    <Info className="w-4 h-4 flex-shrink-0" />
+                    <span>{formInvalidReason}</span>
                 </div>
             )}
         </div>

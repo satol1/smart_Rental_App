@@ -9,7 +9,7 @@ import { CardImage } from "./CardImage";
 import { DiscountInfo } from "./DiscountInfo";
 import { AccessoriesSection } from "./AccessoriesSection";
 import { CardFooter } from "./CardFooter";
-import { STATUS_BACKGROUND_STYLES } from './constants';
+
 import EquipmentDetailsDialog from "@/components/equipment/EquipmentDetailsDialog";
 import { isEquipmentUnderRepair, getEquipmentCardStyles, getEquipmentStatusText } from "@/lib/equipmentUtils";
 
@@ -17,8 +17,8 @@ import { isEquipmentUnderRepair, getEquipmentCardStyles, getEquipmentStatusText 
 import { useEquipmentCardViewModel } from "@/hooks/features/useEquipmentCardViewModel";
 
 // Типы
-import type { Equipment } from "@/types/equipment";
-import type { DayStatus, EquipmentStatus } from "@/types/availability";
+
+import type { EquipmentStatus } from "@/types/availability";
 import type { EquipmentCardSimpleProps, EquipmentCardBaseProps } from "@/types/equipmentCard";
 
 // Упрощенный интерфейс для нового компонента
@@ -63,20 +63,20 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
         isAccessorySelected,
         onToggleAccessory,
         isCalculatorVisible,
-        accessoriesDailyRate,
-        totalDiscountPercentage,
         discountData,
         handleSetStartDate
     } = cardConfig;
+
+    // Правила хуков: useState до guard, иначе смена исхода guard между
+    // рендерами роняет React («Rendered fewer hooks than expected»)
+    const [showDetails, setShowDetails] = useState(false);
+    const [showAccessories, setShowAccessories] = useState(false);
 
     // Защитный код: проверяем, что все необходимые данные получены
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
         console.warn('EquipmentCard: Missing or invalid data', { equipment, discountData });
         return null;
     }
-
-    const [showDetails, setShowDetails] = useState(false);
-    const [showAccessories, setShowAccessories] = useState(false);
 
     const isUnderRepair = isEquipmentUnderRepair(equipment);
 
@@ -171,20 +171,19 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
         isAccessorySelected,
         onToggleAccessory,
         isCalculatorVisible,
-        accessoriesDailyRate,
-        totalDiscountPercentage,
         discountData,
         handleSetStartDate
     } = props;
+
+    // Правила хуков: useState до guard (см. основной вариант выше)
+    const [showDetails, setShowDetails] = useState(false);
+    const [showAccessories, setShowAccessories] = useState(false);
 
     // Защитный код: проверяем, что все необходимые данные переданы
     if (!equipment || !discountData || typeof discountData.priceAfter !== 'number') {
         console.warn('EquipmentCardLegacy: Missing or invalid data', { equipment, discountData });
         return null;
     }
-
-    const [showDetails, setShowDetails] = useState(false);
-    const [showAccessories, setShowAccessories] = useState(false);
 
     const isUnderRepair = isEquipmentUnderRepair(equipment);
 

@@ -2,6 +2,7 @@
 
 import { api } from "@/lib/api";
 import type { PromoCodeOut, PromoCodeCreate, PromoCodeUpdate } from "@/types/promo_code";
+import { getApiErrorMessage } from "@/lib/queryHelpers";
 
 export interface PromoCodeValidationResult {
     isValid: boolean;
@@ -79,10 +80,10 @@ export class PromoCodeService {
                 user_id: userId
             });
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 isValid: false,
-                message: error.response?.data?.detail || "Промокод недействителен",
+                message: getApiErrorMessage(error, "Промокод недействителен"),
                 discountPercentage: 0
             };
         }

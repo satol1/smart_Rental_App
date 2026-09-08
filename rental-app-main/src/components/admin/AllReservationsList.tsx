@@ -4,7 +4,7 @@ import React from "react";
 import type { AdminReservationOut } from "@/types/reservation";
 import AdminReservationCard from "./AdminReservationCard";
 import type { Equipment } from "@/types/equipment";
-import { RefObject } from "react";
+import type { RefObject } from "react";
 
 interface Props {
     reservations: AdminReservationOut[];

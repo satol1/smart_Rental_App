@@ -1,13 +1,14 @@
 // src/hooks/features/useAuthFormViewModel.ts
 
 import { useState, useEffect } from "react";
-import { useForm, UseFormWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-import { loginSchema, registerSchema, LoginSchema, RegisterSchema } from "@/lib/validationSchemas";
+import { loginSchema, registerSchema, type LoginSchema, type RegisterSchema } from "@/lib/validationSchemas";
 import { AuthService } from "@/core/services";
 
 interface UseAuthFormViewModelProps {
@@ -45,7 +46,20 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
     form: ReturnType<typeof useForm<LoginSchema | RegisterSchema>>;
 } => {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
+    const location = useLocation();
     const navigate = useNavigate();
+
+    // После успешного входа возвращаем пользователя на маршрут, с которого его
+    // редиректило на авторизацию (RequireAuth кладёт его в location.state.from)
+    const completeAuth = () => {
+        const from = (location.state as { from?: string } | null)?.from;
+        if (from && from !== location.pathname) {
+            navigate(from, { replace: true });
+            return;
+        }
+        onSuccess?.();
+    };
 
     // Состояние формы
     const [isRegister, setIsRegister] = useState(false);
@@ -73,7 +87,7 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
         }
     });
 
-    const { reset, watch, formState } = form;
+    const { reset, watch } = form;
 
     // Сбрасываем форму при смене режима
     useEffect(() => {
@@ -132,7 +146,7 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
                 
                 // Дополнительная проверка на случай, если Zod по какой-то причине будет обойден
                 if (!registerData.privacyPolicyAccepted || !registerData.termsAccepted) {
-                    throw new Error("Необходимо принять условия использования и политику конфиденциальности.");
+                    throw new Error(t("auth.termsRequired"));
                 }
 
                 // Регистрируем пользователя
@@ -150,11 +164,11 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
                 // Обновляем кэш пользователя
                 await queryClient.invalidateQueries({ queryKey: ["current_user"] });
 
-                toast.success("Регистрация прошла успешно! Добро пожаловать!");
+                toast.success(t("auth.registerSuccess"));
                 reset();
                 
                 setTimeout(() => {
-                    onSuccess?.();
+                    completeAuth();
                 }, 100);
 
             } else {
@@ -169,17 +183,23 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
                 // Обновляем кэш пользователя
                 await queryClient.invalidateQueries({ queryKey: ["current_user"] });
 
-                toast.success("Вход выполнен успешно! Добро пожаловать!");
+                toast.success(t("auth.loginSuccess"));
                 reset();
                 
                 setTimeout(() => {
-                    onSuccess?.();
+                    completeAuth();
                 }, 100);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Auth error:", err);
-            
-            const errorMessage = err.detail || err.message || "Произошла ошибка. Попробуйте снова.";
+
+            const errDetail =
+                typeof err === "object" && err !== null && "detail" in err
+                    ? String((err as { detail?: unknown }).detail)
+                    : undefined;
+            const errMsg =
+                err instanceof Error ? err.message : undefined;
+            const errorMessage = errDetail || errMsg || t("errors.generic");
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {

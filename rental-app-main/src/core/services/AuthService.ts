@@ -2,7 +2,8 @@
 
 import { api, baseApi } from "@/lib/api";
 import { getAccessToken, setAccessToken, clearAccessToken } from "@/core/services/tokenManager";
-import type { LoginSchema, RegisterSchema } from "@/lib/validationSchemas";
+import type { RegisterSchema } from "@/lib/validationSchemas";
+import type { UserOut } from "@/types/user";
 
 export interface LoginResponse {
     access_token: string;
@@ -67,7 +68,7 @@ export class AuthService {
                 }
             );
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка при входе в систему:", error);
             throw this.handleAuthError(error);
         }
@@ -91,7 +92,7 @@ export class AuthService {
 
             const response = await api.post<RegisterResponse>("/auth/register", apiPayload);
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка при регистрации:", error);
             throw this.handleAuthError(error);
         }
@@ -103,7 +104,7 @@ export class AuthService {
     static async loginAfterRegister(email: string, password: string): Promise<LoginResponse> {
         try {
             return await this.login(email, password);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка при автоматическом входе после регистрации:", error);
             throw this.handleAuthError(error);
         }
@@ -112,13 +113,13 @@ export class AuthService {
     /**
      * Получает профиль текущего пользователя
      */
-    static async getCurrentUser(): Promise<any> {
+    static async getCurrentUser(): Promise<UserOut> {
         try {
             // Пытаемся убедиться, что у нас есть access-токен (восстановим из refresh при необходимости)
             await this.ensureAccessToken();
-            const response = await api.get("/auth/me");
+            const response = await api.get<UserOut>("/auth/me");
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка при получении профиля пользователя:", error);
             throw this.handleAuthError(error);
         }
@@ -138,7 +139,7 @@ export class AuthService {
             } catch (_) {
                 // Игнорируем, если эндпоинт отсутствует
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Ошибка при выходе из системы:", error);
             // Не выбрасываем ошибку, так как очистка localStorage всегда должна происходить
         }
@@ -168,26 +169,55 @@ export class AuthService {
     /**
      * Обрабатывает ошибки авторизации
      */
-    private static handleAuthError(error: any): AuthError {
-        if (error.response?.data) {
-            let detail = error.response.data.detail;
+    private static handleAuthError(error: unknown): AuthError {
+        if (
+            typeof error === "object" &&
+            error !== null &&
+            "response" in error &&
+            typeof (error as { response?: unknown }).response === "object" &&
+            (error as { response?: unknown }).response !== null
+        ) {
+            const response = (error as {
+                response?: {
+                    data?: {
+                        detail?: unknown;
+                        error_type?: string;
+                        error_message?: string;
+                    };
+                };
+            }).response;
+            const data = response?.data;
 
-            // Если detail - это массив (ошибки валидации Pydantic)
-            if (Array.isArray(detail)) {
-                detail = detail.map((err: any) => err.msg).join(", ");
-            } else if (typeof detail !== 'string') {
-                detail = JSON.stringify(detail);
+            if (data) {
+                let detail: string;
+
+                // Если detail - это массив (ошибки валидации Pydantic)
+                if (Array.isArray(data.detail)) {
+                    detail = data.detail
+                        .map((err) => (typeof err?.msg === "string" ? err.msg : ""))
+                        .filter(Boolean)
+                        .join(", ");
+                } else if (typeof data.detail === "string") {
+                    detail = data.detail;
+                } else {
+                    detail = JSON.stringify(data.detail) ?? "";
+                }
+
+                return {
+                    detail: detail || "Произошла ошибка авторизации",
+                    error_type: data.error_type,
+                    error_message: data.error_message,
+                };
             }
-
-            return {
-                detail: detail || "Произошла ошибка авторизации",
-                error_type: error.response.data.error_type,
-                error_message: error.response.data.error_message,
-            };
         }
 
+        const message =
+            typeof error === "object" && error !== null && "message" in error
+                ? String((error as { message?: unknown }).message)
+                : "";
+
         return {
-            detail: error.message || "Неизвестная ошибка авторизации",
+            detail: message || "Неизвестная ошибка авторизации",
         };
     }
 

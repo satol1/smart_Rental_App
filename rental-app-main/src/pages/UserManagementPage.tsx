@@ -39,7 +39,7 @@ export default function UserManagementPage() {
     const isManager = currentUser?.role === "manager" || isAdmin;
 
     // Обработчик обновления пользователя
-    const handleUserUpdated = (updatedUser: UserOut) => {
+    const handleUserUpdated = (_updatedUser: UserOut) => {
         // Принудительно обновляем кэш пользователей
         void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     };
