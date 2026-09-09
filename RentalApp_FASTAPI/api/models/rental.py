@@ -46,7 +46,7 @@ class Rental(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    user = relationship("User", foreign_keys=[user_id], back_populates="rentals")
+    user = relationship("User", foreign_keys=[user_id], back_populates="rentals", lazy="joined")
     created_by = relationship("User", foreign_keys=[created_by_id])
 
     # --- НАЧАЛО ИСПРАВЛЕНИЙ ---
@@ -55,7 +55,7 @@ class Rental(Base):
     reservation = relationship("Reservation", back_populates="rental")
     # --- КОНЕЦ ИСПРАВЛЕНИЙ ---
 
-    equipment = relationship("Equipment", secondary=rental_equipment_association)
+    equipment = relationship("Equipment", secondary=rental_equipment_association, lazy="joined")
     balance_history = relationship("BalanceHistory", back_populates="rental")
     payments = relationship("Payment", back_populates="rental", cascade="all, delete-orphan")
     accessory_links = relationship(

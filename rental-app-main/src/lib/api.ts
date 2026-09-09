@@ -182,8 +182,10 @@ api.interceptors.request.use(
       }
     }
 
-    // 3. Устанавливаем Content-Type для POST/PUT/PATCH запросов с данными
-    if (config.data && ['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
+    // 3. Устанавливаем Content-Type для POST/PUT/PATCH запросов с данными.
+    // FormData пропускаем: заголовок multipart/form-data с boundary должен
+    // выставить браузер (иначе axios сериализует FormData в JSON).
+    if (config.data && !(config.data instanceof FormData) && ['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '')) {
       if (!config.headers['Content-Type']) {
         config.headers['Content-Type'] = 'application/json'
       }

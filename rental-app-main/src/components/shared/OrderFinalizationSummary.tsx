@@ -21,6 +21,7 @@ interface OrderFinalizationSummaryProps<TFieldValues extends FieldValues & Final
     discountAmount?: number;
     discountPercentage?: number;
     className?: string;
+    hideSummary?: boolean;
 }
 
 export default function OrderFinalizationSummary<TFieldValues extends FieldValues & FinalizationFormFields>({
@@ -28,7 +29,8 @@ export default function OrderFinalizationSummary<TFieldValues extends FieldValue
     finalCost,
     discountAmount = 0,
     discountPercentage = 0,
-    className = ""
+    className = "",
+    hideSummary = false
 }: OrderFinalizationSummaryProps<TFieldValues>) {
     const id = useId();
     const { t } = useTranslation();
@@ -37,26 +39,28 @@ export default function OrderFinalizationSummary<TFieldValues extends FieldValue
 
     return (
         <div className={`space-y-4 ${className}`}>
-            {/* Финансовая сводка */}
-            <div className="border-b border-border pb-5 space-y-3">
-                <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <ReceiptText className="w-5 h-5 text-primary" />
-                    {t('ordersDesign.finalCost')}
-                </h4>
+            {/* Финансовая сводка (если не скрыта) */}
+            {!hideSummary && (
+                <div className="border-b border-border pb-5 space-y-3">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <ReceiptText className="w-5 h-5 text-primary" />
+                        {t('ordersDesign.finalCost')}
+                    </h4>
 
-                <div className="text-xs text-foreground space-y-1.5 border-t pt-2">
-                    {discountAmount > 0 && (
-                        <div className="flex justify-between text-success">
-                            <span>Скидка ({discountPercentage.toFixed(0)}%):</span>
-                            <span className="font-medium">- {discountAmount.toLocaleString('ru-RU')} ₽</span>
+                    <div className="text-xs text-foreground space-y-1.5 border-t pt-2">
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-success">
+                                <span>Скидка ({discountPercentage.toFixed(0)}%):</span>
+                                <span className="font-medium">- {discountAmount.toLocaleString('ru-RU')} ₽</span>
+                            </div>
+                        )}
+                        <div className="flex flex-wrap justify-between items-baseline gap-3 text-base font-semibold pt-3 border-t border-border mt-3">
+                            <span>{t('ordersDesign.balanceDebit')}</span>
+                            <span className="text-2xl font-semibold tabular-nums text-foreground">{finalCost.toLocaleString('ru-RU')} ₽</span>
                         </div>
-                    )}
-                    <div className="flex flex-wrap justify-between items-baseline gap-3 text-base font-semibold pt-3 border-t border-border mt-3">
-                        <span>{t('ordersDesign.balanceDebit')}</span>
-                        <span className="text-2xl font-semibold tabular-nums text-foreground">{finalCost.toLocaleString('ru-RU')} ₽</span>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Поля для ввода финансовых деталей */}
             <div className="grid gap-4 sm:grid-cols-2">

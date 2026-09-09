@@ -1,12 +1,14 @@
 import BrandLogo from "@/components/shared/BrandLogo";
+import { COMPANY_INFO } from "@/lib/companyInfo";
 
 interface ReceiptHeaderProps {
     rentalId: number;
     createdAt: string;
+    /** @deprecated Kept for backward compatibility; the header uses a single responsive design. */
     isCompact?: boolean;
 }
 
-export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }: ReceiptHeaderProps) {
+export default function ReceiptHeader({ rentalId, createdAt }: ReceiptHeaderProps) {
     const formatDateTime = (dateString: string) => {
         return new Date(dateString).toLocaleString('ru-RU', {
             day: '2-digit',
@@ -17,53 +19,37 @@ export default function ReceiptHeader({ rentalId, createdAt, isCompact = false }
         });
     };
 
-    if (isCompact) {
-        return (
-            <div className="text-center mb-2">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                    <BrandLogo size={36} showText={false} animated={false} />
+    return (
+        <header className="receipt-header mb-5">
+            <div className="receipt-header-top flex items-start justify-between gap-4 border-b-2 border-gray-900 pb-3">
+                <div className="flex items-center gap-3">
+                    <BrandLogo size={44} showText={false} animated={false} />
                     <div>
-                        <h1 className="text-lg font-bold text-gray-900">
-                            Цифровой. Умная аренда техники
-                        </h1>
-                        <p className="text-xs text-gray-600">
-                            ИП Садомцев Анатолий Юрьевич
+                        <p className="receipt-company-name text-lg font-bold leading-tight text-gray-900">
+                            {COMPANY_INFO.name}
+                        </p>
+                        <p className="receipt-company-legal text-xs text-gray-600">
+                            {COMPANY_INFO.legalEntity}
                         </p>
                     </div>
                 </div>
-                <div className="bg-sky-50 border border-sky-200 rounded-lg p-2">
-                    <h2 className="text-base font-semibold text-sky-950">
-                        БЛАНК АРЕНДЫ №{rentalId}
-                    </h2>
-                    <p className="text-xs text-sky-700">
-                        Дата выдачи: {formatDateTime(createdAt)}
-                    </p>
+                <div className="receipt-contacts text-right text-xs leading-snug text-gray-700">
+                    {COMPANY_INFO.phones.map((phone) => (
+                        <p key={phone}>{phone}</p>
+                    ))}
+                    {COMPANY_INFO.emails.map((email) => (
+                        <p key={email}>{email}</p>
+                    ))}
                 </div>
             </div>
-        );
-    }
-
-    return (
-        <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-4 mb-4">
-                <BrandLogo size={56} showText={false} animated={false} />
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Цифровой. Умная аренда техники
-                    </h1>
-                    <p className="text-sm text-gray-600">
-                        ИП Садомцев Анатолий Юрьевич
-                    </p>
-                </div>
-            </div>
-            <div className="bg-sky-50 border border-sky-200 rounded-xl p-4">
-                <h2 className="text-xl font-semibold text-sky-950">
+            <div className="receipt-title mt-3 rounded-md bg-sky-800 px-4 py-2 text-center text-white">
+                <h1 className="text-lg font-bold tracking-wide">
                     БЛАНК АРЕНДЫ №{rentalId}
-                </h2>
-                <p className="text-sm text-sky-700">
+                </h1>
+                <p className="text-xs opacity-90">
                     Дата выдачи: {formatDateTime(createdAt)}
                 </p>
             </div>
-        </div>
+        </header>
     );
 }

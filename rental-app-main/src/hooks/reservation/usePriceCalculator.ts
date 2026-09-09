@@ -49,7 +49,7 @@ export const usePriceCalculator = ({
                 promo_code: promoCode
             });
         },
-        enabled: enabled && equipmentIds.length > 0 && !!startDate && !!endDate && startDate < endDate,
+        enabled: enabled && equipmentIds.length > 0 && !!startDate && !!endDate && startDate <= endDate,
         staleTime: 5000,
     });
 

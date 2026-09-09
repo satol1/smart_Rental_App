@@ -80,13 +80,14 @@ class RentalRepository(RentalBaseRepository):
         recalculated_cost: float, 
         recalculated_discount: float, 
         new_start_date, 
-        prepayment_amount: float = 0.0
+        prepayment_amount: float = 0.0,
+        promo_code: Optional[str] = None
     ) -> Rental:
         """Создает аренду из резерва."""
         return self._command_repo.create_rental_from_reservation(
             reservation, manager, deposit, notes, 
             recalculated_cost, recalculated_discount, 
-            new_start_date, prepayment_amount
+            new_start_date, prepayment_amount, promo_code
         )
 
     def create_rental_instance(

@@ -31,18 +31,33 @@ export default function RentalReceiptDialog({ isOpen, onClose, rentalData }: Ren
     };
 
     const handlePrint = () => {
+        if (!rentalData) {
+            window.print();
+            return;
+        }
+        // Временно меняем заголовок документа, чтобы при сохранении в PDF
+        // файл получал осмысленное имя вида «Бланк_аренды_123.pdf»
+        const previousTitle = document.title;
+        document.title = `Бланк_аренды_${rentalData.id}`;
+        const restoreTitle = () => {
+            document.title = previousTitle;
+            window.removeEventListener('afterprint', restoreTitle);
+        };
+        window.addEventListener('afterprint', restoreTitle);
         window.print();
+        // Фолбэк для браузеров без события afterprint
+        window.setTimeout(restoreTitle, 1000);
     };
 
     if (!rentalData) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col rental-receipt-dialog">
-                <DialogHeader className="dialog-header">
-                    <DialogTitle>Бланк аренды #{rentalData.id}</DialogTitle>
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col gap-0 rental-receipt-dialog">
+                <DialogHeader className="dialog-header pb-3">
+                    <DialogTitle>Бланк аренды №{rentalData.id}</DialogTitle>
                     <DialogDescription>
-                        Печатная версия бланка аренды оборудования
+                        Проверьте данные перед печатью — документ формируется в формате A4
                     </DialogDescription>
                 </DialogHeader>
 
@@ -59,7 +74,7 @@ export default function RentalReceiptDialog({ isOpen, onClose, rentalData }: Ren
                     )}
                 </div>
 
-                <DialogFooter className="flex-col sm:flex-row sm:justify-between sm:items-center dialog-footer">
+                <DialogFooter className="flex-col pt-3 sm:flex-row sm:justify-between sm:items-center dialog-footer">
                     <Button 
                         variant="outline" 
                         onClick={handlePrint}

@@ -35,8 +35,8 @@ class Reservation(Base):
     discount_amount = Column(Float, nullable=False, default=0.0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    user = relationship("User", back_populates="reservations")
-    applied_promo_code = relationship("PromoCode")
+    user = relationship("User", back_populates="reservations", lazy="joined")
+    applied_promo_code = relationship("PromoCode", lazy="joined")
     equipment = relationship(
         "Equipment",
         secondary=reservation_equipment_association,

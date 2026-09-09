@@ -10,6 +10,7 @@ import type { Equipment } from "@/types/equipment";
 import ReservationFinancialSummary from "./ReservationFinancialSummary";
 import OrderFinalizationSummary from "@/components/shared/OrderFinalizationSummary";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
+import { usePriceCalculator } from "@/hooks/reservation/usePriceCalculator";
 // +++ 1. ИМПОРТИРУЕМ ДИАЛОГ ПОДТВЕРЖДЕНИЯ И ТИП ОШИБКИ +++
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import type { AxiosError } from "axios";
@@ -37,20 +38,36 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
     const [holidayConflict, setHolidayConflict] = useState<string | null>(null);
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    const { newStartDate, newEndDate } = useMemo(() => {
+    const { newStartDate, newEndDate, isExpired } = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        if (!reservation) return { newStartDate: today, newEndDate: today };
+        if (!reservation) return { newStartDate: today, newEndDate: today, isExpired: false };
         const originalEndDate = new Date(reservation.end_date);
+        originalEndDate.setHours(0, 0, 0, 0);
         
-        // Если дата окончания резерва уже прошла или наступает сегодня, 
-        // устанавливаем дату окончания на завтра
-        const finalEndDate = originalEndDate <= today 
-            ? new Date(today.getTime() + 24 * 60 * 60 * 1000) // завтра
-            : originalEndDate;
-            
-        return { newStartDate: today, newEndDate: finalEndDate };
+        return {
+            newStartDate: today,
+            newEndDate: originalEndDate,
+            isExpired: originalEndDate < today
+        };
     }, [reservation]);
+
+    const {
+        data: priceDetails,
+        isFetching: isCalculatingPrice,
+        error: priceError
+    } = usePriceCalculator({
+        equipmentIds: reservation?.equipment_ids || [],
+        startDate: newStartDate,
+        endDate: newEndDate,
+        selectedAccessories: reservation?.selected_accessories || {},
+        promoCode: reservation?.promo_code || undefined,
+        enabled: open && !isExpired && !!reservation,
+    });
+
+    const finalCost = priceDetails?.final_total ?? reservation?.total_cost ?? 0;
+    const discountAmount = priceDetails?.discount_amount ?? 0;
+    const totalDiscountPercentage = (priceDetails?.duration_discount_percentage || 0) + (priceDetails?.promo_discount_percentage || 0);
 
     const { hasConflicts, conflictingItemIds, isLoading: isCheckingAvailability } = useAvailabilityCheck({
         equipmentIds: reservation?.equipment_ids || [],
@@ -133,19 +150,26 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
                             conflictingItemIds={conflictingItemIds}
                             isCheckingAvailability={isCheckingAvailability}
                             equipmentMap={equipmentMap}
+                            priceDetails={priceDetails}
+                            isCalculatingPrice={isCalculatingPrice}
+                            priceError={priceError}
                         />
 
                         <OrderFinalizationSummary
                             form={form}
-                            finalCost={reservation.total_cost || 0}
-                            discountAmount={0}
-                            discountPercentage={0}
+                            finalCost={finalCost}
+                            discountAmount={discountAmount}
+                            discountPercentage={totalDiscountPercentage}
+                            hideSummary={true}
                         />
                     </div>
 
                     <DialogFooter>
                         <Button variant="ghost" onClick={onClose}>Отмена</Button>
-                        <Button onClick={() => handleSubmit(false)} disabled={convertMutation.isPending || isCheckingAvailability || hasConflicts}>
+                        <Button
+                            onClick={() => handleSubmit(false)}
+                            disabled={convertMutation.isPending || isCheckingAvailability || hasConflicts || isCalculatingPrice || isExpired}
+                        >
                             {convertMutation.isPending ? "Обработка..." : "Подтвердить и выдать"}
                         </Button>
                     </DialogFooter>

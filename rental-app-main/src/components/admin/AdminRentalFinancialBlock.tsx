@@ -32,6 +32,12 @@ const AdminRentalFinancialBlock = React.memo(({ rental }: AdminRentalFinancialBl
                         <span className="font-medium text-success">-<MoneyText value={rental.discount_amount} /></span>
                     </div>
                 )}
+                {rental.promo_code && (
+                    <div className="flex justify-between gap-3 text-purple-700">
+                        <span>Промокод:</span>
+                        <span className="font-medium font-mono bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">{rental.promo_code}</span>
+                    </div>
+                )}
                 {rental.prepayment_amount > 0 && (
                     <div className="flex justify-between gap-3">
                         <span>Предоплата:</span>

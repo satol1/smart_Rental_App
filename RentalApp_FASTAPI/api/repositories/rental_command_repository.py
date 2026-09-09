@@ -26,7 +26,8 @@ class RentalCommandRepository(RentalBaseRepository):
         recalculated_cost: float, 
         recalculated_discount: float, 
         new_start_date, 
-        prepayment_amount: float = 0.0
+        prepayment_amount: float = 0.0,
+        promo_code: Optional[str] = None
     ) -> Rental:
         """
         Создает аренду из резерва.
@@ -40,6 +41,7 @@ class RentalCommandRepository(RentalBaseRepository):
             recalculated_discount: Пересчитанная скидка
             new_start_date: Новая дата начала
             prepayment_amount: Сумма предоплаты
+            promo_code: Промокод (если None, берется из reservation.promo_code)
             
         Returns:
             Созданный объект аренды
@@ -53,6 +55,8 @@ class RentalCommandRepository(RentalBaseRepository):
         else:
             logger.warning(f"ТОЧКА 1 (КОПИРОВАНИЕ): В исходном резерве #{reservation.id} аксессуары не найдены.")
         
+        effective_promo_code = promo_code if promo_code is not None else reservation.promo_code
+        
         # Создаем аренду без передачи аксессуаров в конструктор
         rental = Rental(
             user_id=reservation.user_id,
@@ -63,7 +67,7 @@ class RentalCommandRepository(RentalBaseRepository):
             end_date=reservation.end_date,
             total_cost=recalculated_cost,
             discount_amount=recalculated_discount,
-            promo_code=reservation.promo_code,
+            promo_code=effective_promo_code,
             deposit_amount=deposit,
             prepayment_amount=prepayment_amount,
             notes_on_issue=notes

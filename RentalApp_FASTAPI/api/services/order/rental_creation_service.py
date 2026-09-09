@@ -3,7 +3,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Tuple
 import logging
 
 from api.models.user import User
@@ -77,14 +77,14 @@ class RentalCreationService:
                 new_start_date = date.today()
 
                 # Пересчитываем стоимость с учетом новой даты
-                price_details = await self._recalculate_price_for_conversion(
+                price_details, effective_promo_code = await self._recalculate_price_for_conversion(
                     reservation, equipment_ids, selected_accessories, new_start_date
                 )
 
                 # Создаем аренду
                 try:
                     rental = await self._create_rental_from_reservation(
-                        reservation, manager, request, price_details, new_start_date
+                        reservation, manager, request, price_details, new_start_date, effective_promo_code
                     )
                 except IntegrityError:
                     # Гонка двух конвертаций: unique(reservation_id) уже занят
@@ -236,8 +236,8 @@ class RentalCreationService:
     async def _recalculate_price_for_conversion(
         self, reservation: Reservation, equipment_ids: List[int], 
         selected_accessories: Dict[int, List[int]], new_start_date: date
-    ) -> Any:
-        """Пересчитывает стоимость для конвертации резерва в аренду."""
+    ) -> tuple[Any, Optional[str]]:
+        """Пересчитывает стоимость для конвертации резерва в аренду и возвращает (price_details, applied_promo_code)."""
         # Предварительный расчет
         preliminary_price = await self.financial_service.calculate_final_price(
             equipment_ids, selected_accessories, new_start_date, reservation.end_date, None
@@ -249,7 +249,7 @@ class RentalCreationService:
         # создала аренду без скидки
         re_validated_promo_obj = None
         if reservation.promo_code_id:
-            original_promo_code = await self.system_service.get_promo_code_by_id(reservation.promo_code_id)
+            original_promo_code = reservation.applied_promo_code or await self.system_service.get_promo_code_by_id(reservation.promo_code_id)
 
             if original_promo_code:
                 try:
@@ -264,13 +264,15 @@ class RentalCreationService:
                     re_validated_promo_obj = None
         
         # Финальный расчет
-        return await self.financial_service.calculate_final_price(
+        final_price = await self.financial_service.calculate_final_price(
             equipment_ids, selected_accessories, new_start_date, reservation.end_date, re_validated_promo_obj
         )
+        applied_promo_code_str = re_validated_promo_obj.code if re_validated_promo_obj else None
+        return final_price, applied_promo_code_str
     
     async def _create_rental_from_reservation(
         self, reservation: Reservation, manager: User, request: RentalCreateFromReservationRequest,
-        price_details: Any, new_start_date: date
+        price_details: Any, new_start_date: date, promo_code: Optional[str] = None
     ) -> Rental:
         """Создает аренду из резерва."""
         rental = self.rental_repo.create_rental_from_reservation(
@@ -282,6 +284,7 @@ class RentalCreationService:
             recalculated_discount=price_details.discount_amount,
             new_start_date=new_start_date,
             prepayment_amount=request.prepayment_amount,
+            promo_code=promo_code,
         )
         
         # Сохраняем резерв через репозиторий (статус уже изменен на FULFILLED в create_rental_from_reservation)

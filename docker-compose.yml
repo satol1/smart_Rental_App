@@ -45,6 +45,8 @@ services:
       context: ./RentalApp_FASTAPI
       dockerfile: Dockerfile.backend
     # Без bind-mount: код попадает в образ сборкой (см. Dockerfile.backend)
+    volumes:
+      - uploads_data:/app/uploads
     ports:
       - "8000:8000"
     environment:
@@ -183,3 +185,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:

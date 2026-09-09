@@ -10,12 +10,13 @@ import type { Equipment } from "@/types/equipment"; // Импортируем т
 interface ReservationFinancialSummaryProps {
     reservation: AdminReservationOut;
     open: boolean;
-    // +++ НАЧАЛО: Новые пропсы для отображения конфликтов +++
     hasConflicts: boolean;
     conflictingItemIds: number[];
     isCheckingAvailability: boolean;
     equipmentMap: Map<number, Equipment>;
-    // +++ КОНЕЦ: Новые пропсы +++
+    priceDetails?: any;
+    isCalculatingPrice?: boolean;
+    priceError?: any;
 }
 
 export default function ReservationFinancialSummary({
@@ -24,7 +25,10 @@ export default function ReservationFinancialSummary({
                                                         hasConflicts,
                                                         conflictingItemIds,
                                                         isCheckingAvailability,
-                                                        equipmentMap
+                                                        equipmentMap,
+                                                        priceDetails: propPriceDetails,
+                                                        isCalculatingPrice: propIsCalculatingPrice,
+                                                        priceError: propPriceError
                                                     }: ReservationFinancialSummaryProps) {
 
     const { newStartDate, newEndDate, newDateRangeIsValid } = useMemo(() => {
@@ -32,22 +36,27 @@ export default function ReservationFinancialSummary({
         today.setHours(0, 0, 0, 0);
 
         const originalEndDate = new Date(reservation.end_date);
+        originalEndDate.setHours(0, 0, 0, 0);
 
         return {
             newStartDate: today,
             newEndDate: originalEndDate,
-            newDateRangeIsValid: originalEndDate > today,
+            newDateRangeIsValid: originalEndDate >= today,
         };
     }, [reservation]);
 
-    const { data: priceDetails, isFetching: isCalculatingPrice, error: priceError } = usePriceCalculator({
+    const fallbackCalculator = usePriceCalculator({
         equipmentIds: reservation.equipment_ids || [],
         startDate: newStartDate!,
         endDate: newEndDate!,
         selectedAccessories: reservation.selected_accessories || {},
         promoCode: reservation.promo_code || undefined,
-        enabled: open && newDateRangeIsValid,
+        enabled: open && newDateRangeIsValid && propPriceDetails === undefined,
     });
+
+    const priceDetails = propPriceDetails ?? fallbackCalculator.data;
+    const isCalculatingPrice = propIsCalculatingPrice ?? fallbackCalculator.isFetching;
+    const priceError = propPriceError ?? fallbackCalculator.error;
 
     const finalCost = priceDetails?.final_total ?? reservation.total_cost ?? 0;
 
@@ -103,12 +112,25 @@ export default function ReservationFinancialSummary({
                     {priceDetails && (priceDetails.discount_amount > 0) && (() => {
                         const totalDiscountPercentage = (priceDetails.duration_discount_percentage || 0) + (priceDetails.promo_discount_percentage || 0);
                         return (
-                            <div className="flex justify-between text-green-600">
-                                <span>Скидка ({totalDiscountPercentage.toFixed(0)}%):</span>
+                            <div className="flex justify-between items-center text-green-600">
+                                <span className="flex items-center gap-1.5">
+                                    <span>Скидка ({totalDiscountPercentage.toFixed(0)}%):</span>
+                                    {reservation.promo_code && (priceDetails.promo_discount_percentage > 0) && (
+                                        <span className="text-[11px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-mono font-medium">
+                                            {reservation.promo_code}
+                                        </span>
+                                    )}
+                                </span>
                                 <span className="font-medium">- <MoneyText value={priceDetails.discount_amount} /></span>
                             </div>
                         );
                     })()}
+                    {reservation.promo_code && priceDetails && (priceDetails.promo_discount_percentage ?? 0) === 0 && (
+                        <div className="flex justify-between items-center text-amber-700 text-xs bg-amber-50 px-2 py-1 rounded">
+                            <span>Промокод {reservation.promo_code} не применен:</span>
+                            <span className="font-medium">{priceDetails.promo_code_message || "условия не выполнены"}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between text-base font-bold pt-1 border-t mt-1">
                         <span>Итого к списанию с баланса:</span>
                         <span className="text-sky-700"><MoneyText value={finalCost} /></span>

@@ -40,7 +40,8 @@ COPY --from=builder /install /usr/local
 
 # Непривилегированный пользователь
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
-    && chown appuser:appuser /app
+    && chown appuser:appuser /app \
+    && mkdir -p /app/uploads && chown appuser:appuser /app/uploads
 
 # Код приложения (без tests/, pytest.ini, requirements-test.txt — они не нужны в проде).
 # containers — пакет (был сломанный COPY containers.py, файла не существует)

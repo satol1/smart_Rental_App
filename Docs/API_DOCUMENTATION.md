@@ -342,6 +342,29 @@ GET /equipment/?skip=0&limit=10&type=camera&available_only=true&start_date=2024-
 #### DELETE /equipment/{id}
 Удаление оборудования (требует права admin/manager)
 
+### Загрузка файлов (фото оборудования)
+
+#### POST /uploads/images
+Загрузка фотографии с компьютера (требует права admin/manager + CSRF).
+
+**Запрос:** `multipart/form-data`, поле `file` (JPEG/PNG/WebP, до 15 МБ).
+
+Фото автоматически обрабатывается на сервере: коррекция ориентации по EXIF, уменьшение до 1600px по длинной стороне, сохранение в JPEG (quality=82).
+
+**Ответ (201):**
+```json
+{
+  "url": "/api/uploads/images/9f2c4a8b1d3e4f5a6b7c8d9e0f1a2b3c.jpg"
+}
+```
+
+Полученный URL подставляется в поля `image_url` / `image_urls` оборудования. Файлы раздаются статикой по адресу `/api/uploads/images/{filename}`.
+
+**Ошибки:** 400 — неподдерживаемый тип или повреждённое изображение; 413 — файл больше 15 МБ; 401/403 — нет прав.
+
+#### DELETE /uploads/images/{filename}
+Удаление ранее загруженного файла (требует права admin/manager + CSRF). Ответ 204; 404 — файл не найден или некорректное имя.
+
 ### Резервации
 
 #### GET /reservations/

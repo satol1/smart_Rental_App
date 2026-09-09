@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FileText, Shield, Clock, CreditCard, AlertTriangle, CheckCircle, User, Calendar, Phone, MapPin, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { COMPANY_INFO } from "@/lib/companyInfo";
 
 
 interface TermsOfServiceModalProps {
@@ -303,8 +304,8 @@ export default function TermsOfServiceModal({ open, onOpenChange }: TermsOfServi
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">Способы связи</h3>
                     <ul className="text-gray-600 space-y-2 text-sm">
-                      <li>• Телефон: +7 (8512) 39-28-88</li>
-                      <li>• Email: 392888@digital30.ru</li>
+                      <li>• Телефон: {COMPANY_INFO.phones[0]}</li>
+                      <li>• Email: {COMPANY_INFO.emails[0]}</li>
                       <li>• Онлайн-чат на сайте</li>
                       <li>• Telegram: @smartrental_support</li>
                     </ul>
@@ -350,8 +351,8 @@ export default function TermsOfServiceModal({ open, onOpenChange }: TermsOfServi
                       Контакты
                     </h3>
                     <div className="space-y-1 text-sm text-gray-600">
-                      <p>Телефон: +7 (8512) 39-28-88, +7 (908) 617-71-77</p>
-                      <p>Email: 392888@digital30.ru, info@digital30.ru</p>
+                      <p>Телефон: {COMPANY_INFO.phones.join(', ')}</p>
+                      <p>Email: {COMPANY_INFO.emails.join(', ')}</p>
                       <p>Сайт: https://smartrental.ru</p>
                     </div>
                   </div>

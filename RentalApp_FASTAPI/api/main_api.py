@@ -410,6 +410,16 @@ app.add_middleware(SecureHeadersMiddleware)
 
 app.include_router(all_routes, prefix="/api")
 
+# Статическая раздача загруженных изображений.
+# Монтируется ПОСЛЕ include_router: иначе mount перехватит POST/DELETE
+# /api/uploads/images до роутера и вернёт 405.
+from fastapi.staticfiles import StaticFiles
+app.mount(
+    "/api/uploads/images",
+    StaticFiles(directory=str(settings.UPLOAD_DIR)),
+    name="uploads",
+)
+
 # Инициализируем middleware в состоянии приложения для статистики
 @app.on_event("startup")
 async def startup_event():

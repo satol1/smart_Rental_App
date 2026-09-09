@@ -1,60 +1,53 @@
-import { Card, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { AdminRentalOut } from "@/types/rental";
 
 interface ReceiptFinancialsProps {
-    rentalData: Pick<AdminRentalOut, 'total_cost' | 'discount_amount' | 'prepayment_amount' | 'remaining_amount'>;
+    rentalData: Pick<AdminRentalOut, 'total_cost' | 'discount_amount' | 'prepayment_amount' | 'remaining_amount'> & {
+        promo_code?: string | null;
+    };
+    /** @deprecated Kept for backward compatibility; the section uses a single responsive design. */
     isCompact?: boolean;
+    /** @deprecated Kept for backward compatibility; the section uses a single responsive design. */
     useCard?: boolean;
 }
 
-export default function ReceiptFinancials({ rentalData, isCompact = false, useCard = true }: ReceiptFinancialsProps) {
-    const content = (
-        <>
-            <h3 className={`${isCompact ? 'text-base' : 'text-lg'} font-semibold ${!useCard ? 'mb-1' : ''}`}>
+export default function ReceiptFinancials({ rentalData }: ReceiptFinancialsProps) {
+    return (
+        <section className="receipt-section receipt-financials">
+            <h3 className="receipt-section-title mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
                 Стоимость аренды
             </h3>
-            <div className={isCompact ? "space-y-1" : "space-y-2"}>
-                <div className="flex justify-between items-center">
-                    <span className={isCompact ? "text-xs" : "text-sm"}>Общая стоимость:</span>
-                    <span className={`${isCompact ? 'text-sm' : ''} font-medium`}>{rentalData.total_cost.toLocaleString()} ₽</span>
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Общая стоимость:</span>
+                    <span className="text-sm font-medium text-gray-900">{rentalData.total_cost.toLocaleString()} ₽</span>
                 </div>
                 {rentalData.discount_amount > 0 && (
-                    <div className="flex justify-between items-center text-green-600">
-                        <span className={isCompact ? "text-xs" : "text-sm"}>Размер скидки:</span>
-                        <span className={`${isCompact ? 'text-sm' : ''} font-medium`}>-{rentalData.discount_amount.toLocaleString()} ₽</span>
+                    <div className="flex items-center justify-between text-green-700">
+                        <span className="text-sm">Размер скидки:</span>
+                        <span className="text-sm font-medium">-{rentalData.discount_amount.toLocaleString()} ₽</span>
+                    </div>
+                )}
+                {rentalData.promo_code && (
+                    <div className="flex items-center justify-between text-purple-700">
+                        <span className="text-sm">Промокод:</span>
+                        <span className="font-mono text-sm font-medium">{rentalData.promo_code}</span>
                     </div>
                 )}
                 {rentalData.prepayment_amount > 0 && (
-                    <div className="flex justify-between items-center">
-                        <span className={isCompact ? "text-xs" : "text-sm"}>Размер предоплаты:</span>
-                        <span className={`${isCompact ? 'text-sm' : ''} font-medium`}>{rentalData.prepayment_amount.toLocaleString()} ₽</span>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">Размер предоплаты:</span>
+                        <span className="text-sm font-medium text-gray-900">{rentalData.prepayment_amount.toLocaleString()} ₽</span>
                     </div>
                 )}
-                <Separator className={isCompact ? "my-1" : ""} />
-                <div className={`flex justify-between items-center ${isCompact ? 'text-sm' : 'text-base'} font-bold`}>
-                    <span>Остаток к оплате:</span>
-                    <span className="text-blue-600">
+                <Separator className="receipt-financials-separator my-1.5" />
+                <div className="receipt-financials-total flex items-center justify-between text-base font-bold">
+                    <span className="text-gray-900">Остаток к оплате:</span>
+                    <span className="text-sky-800">
                         {rentalData.remaining_amount.toLocaleString()} ₽
                     </span>
                 </div>
             </div>
-        </>
-    );
-
-    if (!useCard) {
-        return (
-            <div className="border-t pt-2 mt-2">
-                {content}
-            </div>
-        );
-    }
-
-    return (
-        <Card>
-            <CardHeader className={isCompact ? "pb-2" : "pb-2"}>
-                {content}
-            </CardHeader>
-        </Card>
+        </section>
     );
 }

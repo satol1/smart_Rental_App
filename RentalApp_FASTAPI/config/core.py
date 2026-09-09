@@ -247,6 +247,13 @@ class Settings(BaseSettings):
         folder = self.BASE_DIR / "exports"
         folder.mkdir(exist_ok=True)
         return folder
+
+    @property
+    def UPLOAD_DIR(self) -> Path:
+        """Папка для загруженных изображений."""
+        folder = self.BASE_DIR / "uploads"
+        folder.mkdir(exist_ok=True)
+        return folder
     
     @property
     def CONTRACT_TEMPLATE(self) -> Path:

@@ -294,14 +294,14 @@
   }
 }
 
-/* The rental receipt remains a paper document in either interface theme. */
+/* Бланк аренды остаётся бумажным документом в любой теме интерфейса. */
 @media print {
-  /* 1. Скрываем все элементы страницы, кроме диалога с бланком */
+  /* 1. Скрываем всё, кроме диалога с бланком (Radix portal — прямой потомок body) */
   body > *:not(.rental-receipt-dialog) {
     display: none !important;
   }
-  
-  /* 2. Преобразуем диалог в статичный элемент страницы */
+
+  /* 2. Превращаем диалог в статичный элемент страницы */
   .rental-receipt-dialog {
     display: block !important;
     position: static !important;
@@ -314,7 +314,7 @@
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    background: white !important;
+    background: #fff !important;
     z-index: auto !important;
     transform: none !important;
     max-width: none !important;
@@ -327,7 +327,7 @@
     display: none !important;
   }
 
-  /* 4. Настраиваем контейнер с бланком */
+  /* 4. Разворачиваем скролл-контейнер с бланком */
   .rental-receipt-content {
     display: block !important;
     overflow: visible !important;
@@ -337,222 +337,257 @@
     max-height: none !important;
     flex: none !important;
   }
-  
-  /* 5. Основные стили для печати - двухколоночная компоновка */
+
+  /* 5. Базовая типографика документа. Принудительно светлые токены,
+     чтобы бланк печатался одинаково в светлой и тёмной теме. */
   .print-container {
-    display: block !important;
-    font-size: 9pt !important;
-    color: #000 !important;
-    background: #fff !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: none !important;
-    line-height: 1.3 !important;
-  }
-
-  /* 6. Двухколоночная сетка для печати */
-  .print-container .grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1rem !important;
-    margin-bottom: 0 !important;
-  }
-
-  /* 7. Элементы, растягивающиеся на обе колонки */
-  .print-container .col-span-2 {
-    grid-column: 1 / -1 !important;
-  }
-
-  /* 8. Компактная шапка */
-  .print-container > div:first-child {
-    margin-bottom: 8px !important;
-  }
-
-  .print-container > div:first-child > div:first-child {
-    margin-bottom: 4px !important;
-  }
-
-  .print-container > div:first-child > div:first-child h1 {
-    font-size: 12pt !important;
-    margin: 0 0 2px 0 !important;
-  }
-
-  .print-container > div:first-child > div:first-child p {
-    font-size: 8pt !important;
-    margin: 0 !important;
-  }
-
-  .print-container > div:first-child > div:last-child {
-    padding: 6px !important;
-  }
-
-  .print-container > div:first-child > div:last-child h2 {
-    font-size: 10pt !important;
-    margin: 0 0 2px 0 !important;
-  }
-
-  .print-container > div:first-child > div:last-child p {
-    font-size: 8pt !important;
-    margin: 0 !important;
-  }
-
-  /* 9. Компактные блоки без карточек */
-  .print-container .border-t {
-    border-top: 1px solid #ddd !important;
-    padding-top: 4px !important;
-    margin-top: 4px !important;
-    page-break-inside: avoid;
-  }
-
-  .print-container .border-t:first-child {
-    border-top: none !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-  
-  /* 10. Компактные заголовки */
-  .print-container h3 {
-    font-size: 9pt !important;
-    margin: 0 0 3px 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
+    font-size: 9.5pt;
+    line-height: 1.3;
+    color: #111;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --foreground: 0 0% 7%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 35%;
+    --border: 0 0% 75%;
+    --primary: 201 71% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 15%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --accent: 201 42% 91%;
+    --accent-foreground: 201 62% 27%;
+    --brand: 201 71% 38%;
+    --brand-ink: 0 0% 7%;
+    --brand-paper: 0 0% 100%;
   }
 
   .print-container .lucide {
-    width: 12px !important;
-    height: 12px !important;
+    width: 10pt;
+    height: 10pt;
   }
 
-  /* 11. Компактная сетка */
-  .print-container .grid > div {
-    margin-bottom: 2px !important;
+  /* 6. Секции документа: не разрываем по страницам */
+  .receipt-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 4pt;
   }
 
-  .print-container .grid > div:last-child {
-    margin-bottom: 0 !important;
+  .receipt-section-title {
+    font-size: 8pt;
+    letter-spacing: 0.05em;
+    color: #444;
+    margin-bottom: 3pt;
   }
 
-  .print-container .grid p:first-child {
-    font-size: 7pt !important;
-    margin: 0 0 1px 0 !important;
-    font-weight: 500 !important;
+  .receipt-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14pt;
+    align-items: start;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 3pt;
   }
 
-  .print-container .grid p:last-child {
-    font-size: 8pt !important;
-    margin: 0 !important;
+  /* 7. Брендированная шапка */
+  .receipt-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+    margin-bottom: 5pt;
   }
 
-  /* Компактные блоки с space-y-1 */
-  .print-container .space-y-1 > * + * {
-    margin-top: 2px !important;
+  .receipt-header-top {
+    border-bottom: 1.5pt solid #111;
+    padding-bottom: 4pt;
   }
 
-  /* 12. Компактная таблица */
-  .print-container table {
-    font-size: 8pt !important;
-    margin: 0 !important;
-    width: 100% !important;
+  .receipt-company-name {
+    font-size: 13pt;
+    line-height: 1.15;
   }
 
-  .print-container th, 
-  .print-container td { 
-    padding: 3px 6px !important;
-    border: 1px solid #ddd !important;
+  .receipt-company-legal {
+    font-size: 8pt;
+    color: #444;
   }
 
-  .print-container th {
-    font-size: 8pt !important;
-    font-weight: 600 !important;
-    background-color: #f5f5f5 !important;
+  .receipt-contacts {
+    font-size: 8pt;
+    line-height: 1.4;
+    color: #333;
+    text-align: right;
   }
 
-  .print-container td {
-    font-size: 8pt !important;
+  /* Единственный цветной элемент документа — фирменная плашка заголовка */
+  .receipt-title {
+    margin-top: 4pt;
+    padding: 3pt 8pt;
+    border-radius: 3pt;
+    background-color: #155e86;
+    color: #fff;
+    text-align: center;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  .print-container ul {
-    margin: 0 !important;
-    padding-left: 16px !important;
+  .receipt-title h1 {
+    font-size: 12pt;
+    letter-spacing: 0.06em;
+    margin: 0;
   }
 
-  .print-container li {
-    font-size: 8pt !important;
-    margin-bottom: 2px !important;
+  .receipt-title p {
+    font-size: 8pt;
+    margin: 1pt 0 0;
+    opacity: 0.9;
   }
 
-  /* 13. Компактные бейджи */
-  .print-container .badge {
-    background-color: #eee !important;
-    color: #000 !important;
-    border: 1px solid #ccc !important;
-    padding: 2px 4px !important;
-    font-size: 7pt !important;
-    border-radius: 3px !important;
+  /* 8. Клиент и детали аренды */
+  .receipt-client-info p,
+  .receipt-details p {
+    margin: 0;
   }
 
-  /* 14. Компактные разделители */
-  .print-container .separator {
-    margin: 6px 0 !important;
-    height: 1px !important;
-    background-color: #ddd !important;
+  .receipt-status-badge {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #555 !important;
+    padding: 0.5pt 4pt;
+    font-size: 8pt;
+    border-radius: 3pt;
   }
 
-  /* 15. Компактные блоки с фоном */
-  .print-container .bg-blue-50,
-  .print-container .bg-yellow-50,
-  .print-container .bg-red-50,
-  .print-container .bg-green-50 {
-    padding: 6px !important;
-    margin: 4px 0 !important;
+  /* 9. Таблица оборудования: полные границы, шапка повторяется на новой странице */
+  .receipt-equipment-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin: 0;
   }
 
-  .print-container .bg-blue-50 h2,
-  .print-container .bg-yellow-50 h2,
-  .print-container .bg-red-50 h2,
-  .print-container .bg-green-50 h2 {
-    font-size: 9pt !important;
-    margin: 0 0 4px 0 !important;
+  .receipt-equipment-table thead {
+    display: table-header-group;
   }
 
-  .print-container .bg-blue-50 p,
-  .print-container .bg-yellow-50 p,
-  .print-container .bg-red-50 p,
-  .print-container .bg-green-50 p {
-    font-size: 8pt !important;
-    margin: 0 !important;
+  .receipt-equipment-table th,
+  .receipt-equipment-table td {
+    border: 1px solid #777;
+    padding: 2pt 5pt;
+    text-align: left;
+    vertical-align: top;
+    height: auto;
   }
 
-  /* 16. Компактные списки правил */
-  .print-container .space-y-2 > * + * {
-    margin-top: 4px !important;
+  .receipt-equipment-table thead th {
+    background-color: #e5e5e5;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    font-weight: 600;
+    color: #111;
   }
 
-  .print-container .space-y-2 li {
-    font-size: 8pt !important;
-    line-height: 1.2 !important;
+  .receipt-equipment-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
-  /* 17. Компактная подпись */
-  .print-container > div:last-child {
-    margin-top: 8px !important;
+  .receipt-equipment-table td ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
   }
 
-  .print-container > div:last-child p {
-    font-size: 8pt !important;
-    margin: 0 !important;
+  /* 10. Финансы и правила */
+  .receipt-financials .receipt-financials-separator {
+    margin: 3pt 0;
+    background-color: #999;
   }
 
-  .print-container > div:last-child p:last-child {
-    font-size: 7pt !important;
+  .receipt-financials-total {
+    font-size: 10pt;
   }
 
-  /* 18. Настройки страницы A4 */
+  .receipt-financials-total span:last-child {
+    color: #111;
+  }
+
+  .receipt-rules ol {
+    margin: 0;
+    padding-left: 12pt;
+    font-size: 8pt;
+  }
+
+  .receipt-rules li {
+    margin-bottom: 1.5pt;
+  }
+
+  /* 11. Блоки возврата: рамки вместо цветных заливок */
+  .receipt-return-info .receipt-note {
+    background: none !important;
+    border: 1px solid #888 !important;
+    border-radius: 3pt;
+    padding: 3pt 5pt;
+  }
+
+  .receipt-return-info .receipt-note * {
+    color: #111 !important;
+  }
+
+  .receipt-return-info .receipt-note > div {
+    margin-bottom: 1pt;
+  }
+
+  .receipt-return-info .receipt-note p {
+    margin: 0;
+    font-size: 8pt;
+  }
+
+  /* 12. Подписи: никогда не разрываются между страницами */
+  .receipt-signatures {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-top: 6pt;
+  }
+
+  .receipt-signatures-statement {
+    font-size: 9pt;
+    margin-bottom: 5pt;
+  }
+
+  .receipt-signatures h3 {
+    font-size: 9pt;
+    margin: 0;
+  }
+
+  .receipt-signatures-client > * + *,
+  .receipt-signatures-manager > * + * {
+    margin-top: 5pt;
+  }
+
+  .receipt-sign-line {
+    display: block;
+    flex: 1;
+    height: 13pt;
+    border-bottom: 1px solid #111;
+  }
+
+  .receipt-signatures-stamp {
+    font-size: 9pt;
+    padding-top: 0;
+  }
+
+  /* 13. Параметры страницы A4 */
   @page {
     size: A4;
-    margin: 1.2cm;
+    margin: 10mm 12mm;
   }
 }
-
-

@@ -50,6 +50,18 @@ export default function ReturnFinancials({
                     <span className="text-sm text-gray-600">Стоимость аренды:</span>
                     <span className="font-medium">{rental.total_cost.toLocaleString()} ₽</span>
                 </div>
+                {rental.discount_amount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                        <span className="text-sm">Скидка:</span>
+                        <span className="font-medium">- {rental.discount_amount.toLocaleString()} ₽</span>
+                    </div>
+                )}
+                {rental.promo_code && (
+                    <div className="flex justify-between text-purple-700">
+                        <span className="text-sm">Промокод:</span>
+                        <span className="font-medium font-mono bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">{rental.promo_code}</span>
+                    </div>
+                )}
                 <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Внесенная предоплата:</span>
                     <span className="font-medium">{rental.prepayment_amount.toLocaleString()} ₽</span>

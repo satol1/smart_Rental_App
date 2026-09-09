@@ -526,6 +526,8 @@ class TestRentalCreationService:
         )
 
         # Assert
-        assert result == price_details
+        calculated_price, promo_code = result
+        assert calculated_price == price_details
+        assert promo_code is None
         assert rental_creation_service.financial_service.calculate_final_price.call_count == 2  # Предварительный и финальный расчет
 

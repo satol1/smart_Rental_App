@@ -1,5 +1,6 @@
 import { Shield, Clock, CreditCard, AlertTriangle, CheckCircle, FileText, User, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { COMPANY_INFO } from "@/lib/companyInfo";
 
 
 export default function RulesPage() {
@@ -262,8 +263,8 @@ export default function RulesPage() {
                     Контакты
                   </h3>
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>Телефон: +7 (8512) 39-28-88, +7 (908) 617-71-77</p>
-                    <p>Email: 392888@digital30.ru, info@digital30.ru</p>
+                    <p>Телефон: {COMPANY_INFO.phones.join(', ')}</p>
+                    <p>Email: {COMPANY_INFO.emails.join(', ')}</p>
                     <p>Время работы: Пн-Пт 9:00-21:00, Сб-Вс 10:00-20:00</p>
                   </div>
                 </div>

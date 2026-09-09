@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Shield, FileText, Eye, Lock, Database, CheckCircle, Phone, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { COMPANY_INFO } from "@/lib/companyInfo";
 
 
 interface PrivacyPolicyModalProps {
@@ -253,8 +254,8 @@ export default function PrivacyPolicyModal({ open, onOpenChange }: PrivacyPolicy
                       Контакты
                     </h3>
                     <div className="space-y-1 text-sm text-gray-600">
-                      <p>Телефон: +7 (8512) 39-28-88, +7 (908) 617-71-77</p>
-                      <p>Email: 392888@digital30.ru, info@digital30.ru</p>
+                      <p>Телефон: {COMPANY_INFO.phones.join(', ')}</p>
+                      <p>Email: {COMPANY_INFO.emails.join(', ')}</p>
                     </div>
                   </div>
                 </div>
@@ -263,8 +264,8 @@ export default function PrivacyPolicyModal({ open, onOpenChange }: PrivacyPolicy
                   <h4 className="font-semibold text-blue-800 mb-2">Ответственный за обработку персональных данных</h4>
                   <p className="text-blue-700 text-sm">
                     Садомцев Анатолий Юрьевич<br />
-                    Email: 392888@digital30.ru<br />
-                    Телефон: +7 (8512) 39-28-88, +7 (908) 617-71-77
+                    Email: {COMPANY_INFO.emails[0]}<br />
+                    Телефон: {COMPANY_INFO.phones.join(', ')}
                   </p>
                 </div>
               </CardContent>

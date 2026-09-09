@@ -17,20 +17,16 @@ interface RentalReceiptProps {
 }
 
 export default function RentalReceipt({ rentalData }: RentalReceiptProps) {
-    // Отладочная информация для проверки deposit_amount
-    console.log('RentalReceipt - deposit_amount:', rentalData.deposit_amount, 'type:', typeof rentalData.deposit_amount);
-    console.log('RentalReceipt - should show deposit block:', rentalData.deposit_amount != null && Number(rentalData.deposit_amount) > 0);
-
     return (
-        <div className="max-w-4xl mx-auto bg-white print-container">
-            {/* Шапка */}
-            <ReceiptHeader 
-                rentalId={rentalData.id} 
-                createdAt={rentalData.created_at} 
+        <div className="print-container mx-auto max-w-4xl bg-white text-gray-900">
+            {/* Брендированная шапка с контактами и заголовком документа */}
+            <ReceiptHeader
+                rentalId={rentalData.id}
+                createdAt={rentalData.created_at}
             />
 
-            {/* Информация о клиенте и детали аренды - двухколоночная компоновка */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Клиент и детали аренды — две колонки */}
+            <div className="receipt-pair mb-5 grid grid-cols-1 items-start gap-5 md:grid-cols-2">
                 <ReceiptClientInfo user={rentalData.user} />
                 <ReceiptRentalDetails rentalData={rentalData} />
             </div>
@@ -38,8 +34,8 @@ export default function RentalReceipt({ rentalData }: RentalReceiptProps) {
             {/* Список оборудования */}
             <ReceiptEquipmentList rentalData={rentalData} />
 
-            {/* Стоимость аренды и правила пользования - двухколоночная компоновка */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Стоимость и правила — две колонки */}
+            <div className="receipt-pair mb-5 grid grid-cols-1 items-start gap-5 md:grid-cols-2">
                 <ReceiptFinancials rentalData={rentalData} />
                 <ReceiptRules />
             </div>
@@ -47,7 +43,7 @@ export default function RentalReceipt({ rentalData }: RentalReceiptProps) {
             {/* Информация о возврате */}
             <ReceiptReturnInfo rentalData={rentalData} />
 
-            {/* Подпись */}
+            {/* Подписи сторон */}
             <ReceiptSignatures />
         </div>
     );
