@@ -102,3 +102,19 @@ dist/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Playwright-cli временные сессии и скриншоты
+.playwright-cli/
+**/.playwright-cli/
+
+# Скриншоты и дампы тестирования бланков
+receipt-*.png
+*.tmp.html
+.receipt-dom*
+
+# Пользовательские загрузки бэкенда
+RentalApp_FASTAPI/uploads/*
+!RentalApp_FASTAPI/uploads/.gitkeep
+
+# Исключение скомпилированного JS из исходников фронтенда
+rental-app-main/src/**/*.js

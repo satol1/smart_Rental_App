@@ -1,3 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Image as ImageIcon } from "lucide-react";
-export const CardImage = ({ imageUrl, name }) => (_jsxs("div", { className: "relative w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden", children: [imageUrl ? (_jsx("img", { src: imageUrl, alt: name, className: "w-full h-full object-cover transition-transform duration-300 group-hover:scale-105", loading: "lazy" })) : (_jsx(ImageIcon, { className: "w-12 h-12 text-gray-300" })), _jsx("div", { className: "absolute inset-0 bg-black/40 transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0" })] }));
