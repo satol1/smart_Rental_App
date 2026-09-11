@@ -1,6 +1,7 @@
 # api/holiday_api.py
 
 from fastapi import APIRouter, Depends, Query
+from api.csrf import validate_csrf_dependency
 from datetime import date, datetime
 
 from dependency_injector.wiring import inject, Provide
@@ -33,7 +34,8 @@ async def get_holidays(
 async def create_holiday(
         holiday_in: HolidayCreate,
         service: HolidayService = Depends(Provide[Container.holiday_service_with_repos]),
-        current_user: User = Depends(require_admin)
+        current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
 ):
     """Создать новый выходной день (ручное добавление)."""
     return await service.create_single_holiday(holiday_in, current_user)
@@ -44,7 +46,8 @@ async def create_holiday(
 async def delete_holiday(
         holiday_date: date,
         service: HolidayService = Depends(Provide[Container.holiday_service_with_repos]),
-        _current_user: User = Depends(require_admin)
+        _current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
 ):
     """Удалить выходной день."""
     await service.delete_holiday(holiday_date)
@@ -55,7 +58,8 @@ async def delete_holiday(
 async def create_weekly_recurring_holidays(
         rule_in: RecurringHolidayRuleCreate,
         service: HolidayService = Depends(Provide[Container.holiday_service_with_repos]),
-        current_user: User = Depends(require_admin)
+        current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
 ):
     """Создает правило и генерирует выходные для указанного дня недели в диапазоне дат."""
     return await service.create_weekly_recurring_holidays(rule_in, current_user)
@@ -67,7 +71,8 @@ async def import_public_holidays(
         country_code: str = Query("RU", description="ISO 3166-1 alpha-2 код страны"),
         year: int = Query(datetime.now().year, description="Год для импорта"),
         service: HolidayService = Depends(Provide[Container.holiday_service_with_repos]),
-        current_user: User = Depends(require_admin)
+        current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
 ):
     """Импортирует государственные праздники для указанной страны и года."""
     return await service.import_public_holidays(country_code, year, current_user)
@@ -89,7 +94,8 @@ async def get_all_rules(
 async def delete_rule(
         rule_id: int,
         service: HolidayService = Depends(Provide[Container.holiday_service_with_repos]),
-        current_user: User = Depends(require_admin)
+        current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
 ):
     """Удаляет правило. Благодаря `cascade='all, delete-orphan'`, все созданные им выходные будут удалены автоматически."""
     await service.delete_rule(rule_id)

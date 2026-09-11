@@ -126,11 +126,59 @@ class TestTelegramNotificationService:
 
     @pytest.mark.asyncio
     async def test_send_message_timeout_handled_gracefully(self, configured_service):
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post,                 patch("api.services.telegram_notification_service.asyncio.sleep", new_callable=AsyncMock):
             mock_post.side_effect = httpx.TimeoutException("Connection timed out")
 
             result = await configured_service.send_message("Привет")
             assert result is False
+            # Транзиентная ошибка: исчерпаны все попытки
+            assert mock_post.await_count == configured_service.max_attempts
+
+    @pytest.mark.asyncio
+    async def test_send_message_retries_on_5xx_then_succeeds(self, configured_service):
+        ok_response = MagicMock(spec=httpx.Response)
+        ok_response.status_code = 200
+        ok_response.json.return_value = {"ok": True, "result": {"message_id": 1}}
+        server_error = MagicMock(spec=httpx.Response)
+        server_error.status_code = 503
+        server_error.text = "Service Unavailable"
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post,                 patch("api.services.telegram_notification_service.asyncio.sleep", new_callable=AsyncMock):
+            mock_post.side_effect = [server_error, ok_response]
+
+            result = await configured_service.send_message("Привет")
+            assert result is True
+            assert mock_post.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_send_message_respects_429_retry_after(self, configured_service):
+        rate_limited = MagicMock(spec=httpx.Response)
+        rate_limited.status_code = 429
+        rate_limited.json.return_value = {"ok": False, "parameters": {"retry_after": 7}}
+        ok_response = MagicMock(spec=httpx.Response)
+        ok_response.status_code = 200
+        ok_response.json.return_value = {"ok": True, "result": {"message_id": 2}}
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post,                 patch("api.services.telegram_notification_service.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            mock_post.side_effect = [rate_limited, ok_response]
+
+            result = await configured_service.send_message("Привет")
+            assert result is True
+            # Пауза взята из retry_after ответа Telegram
+            mock_sleep.assert_awaited_once_with(7.0)
+
+    @pytest.mark.asyncio
+    async def test_send_message_no_retry_on_4xx(self, configured_service):
+        not_found = MagicMock(spec=httpx.Response)
+        not_found.status_code = 404
+        not_found.text = "Not Found"
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_post.return_value = not_found
+
+            result = await configured_service.send_message("Привет")
+            assert result is False
+            mock_post.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_notify_new_reservation_formatting(self, configured_service, sample_reservation, sample_user):

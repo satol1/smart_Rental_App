@@ -1,11 +1,9 @@
 # api/auth_api.py
 
-import hmac
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.schemas.user_schema import UserCreate, Token
 from datetime import timedelta
@@ -22,50 +20,11 @@ from api.rate_limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["Аутентификация"])
 
-# Параметры CSRF-защиты (совместимы с fastapi-csrf-protect и фронтендом)
-CSRF_COOKIE_KEY = "fastapi-csrf-token"
-CSRF_HEADER_KEY = "X-CSRF-Token"
-CSRF_TOKEN_MAX_AGE = 3600  # секунд
-
-
-def _csrf_serializer() -> URLSafeTimedSerializer:
-    """Сериализатор CSRF-токенов с тем же секретом/salt, что у fastapi-csrf-protect."""
-    return URLSafeTimedSerializer(
-        settings.CSRF_SECRET_KEY.get_secret_value(), salt="fastapi-csrf-token"
-    )
-
-
-async def _validate_csrf(request: Request, csrf_protect: CsrfProtect) -> None:
-    """Реальная валидация CSRF-токена запроса (double-submit + подпись).
-
-    Фронтенд шлёт в X-CSRF-Token значение cookie fastapi-csrf-token (или то же
-    значение из JSON /auth/csrf-token), поэтому проверяем:
-    1) заголовок совпадает с cookie (double-submit);
-    2) токен подписан серверным секретом и не истёк.
-
-    При выключенной защите (DISABLE_CSRF=true, только тестовые окружения)
-    проверка пропускается. Ошибки валидации -> CsrfProtectError -> 403
-    (обработчик в main_api).
-    """
-    if settings.DISABLE_CSRF:
-        return
-
-    cookie_token = request.cookies.get(CSRF_COOKIE_KEY)
-    header_token = request.headers.get(CSRF_HEADER_KEY)
-
-    if (
-        not cookie_token
-        or not header_token
-        or not hmac.compare_digest(header_token, cookie_token)
-    ):
-        raise CsrfProtectError(403, "CSRF-токен отсутствует или не совпадает")
-
-    try:
-        _csrf_serializer().loads(cookie_token, max_age=CSRF_TOKEN_MAX_AGE)
-    except SignatureExpired:
-        raise CsrfProtectError(403, "CSRF-токен истёк")
-    except BadData:
-        raise CsrfProtectError(403, "CSRF-токен недействителен")
+# CSRF-логика вынесена в api/csrf.py (общая для всех роутеров)
+from api.csrf import (  # noqa: E402
+    CSRF_COOKIE_KEY,
+    _validate_csrf,
+)
 
 
 # OAuth2PasswordBearer определяет, что для получения токена нужно обратиться к /auth/token

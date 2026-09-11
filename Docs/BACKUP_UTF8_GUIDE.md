@@ -10,7 +10,7 @@
 
 ## Решение
 
-Созданы специальные скрипты с правильными настройками кодировки UTF-8:
+Настройки кодировки встроены в основные скрипты `scripts/backup_database.sh` и `scripts/restore_database.sh` (отдельные utf8-варианты удалены за ненадобностью):
 
 ### Настройки кодировки
 - `LC_ALL=C.UTF-8`
@@ -24,12 +24,12 @@
 
 #### Linux/macOS
 ```bash
-./scripts/backup_database_utf8.sh
+./scripts/backup_database.sh
 ```
 
 #### Windows PowerShell
 ```powershell
-.\scripts\backup_database_utf8.ps1
+.\scripts\backup_database.bat
 ```
 
 #### Windows Batch
@@ -41,18 +41,18 @@ scripts\backup_database.bat
 
 #### Linux/macOS
 ```bash
-./scripts/restore_database_utf8.sh db_backup/rental_db_backup_20241201_120000.sql.gz
+./scripts/restore_database.sh db_backup/rental_db_backup_20241201_120000.sql.gz
 ```
 
 #### Windows PowerShell
 ```powershell
-.\scripts\restore_database_utf8.ps1 db_backup\rental_db_backup_20241201_120000.sql
+.\scripts\restore_database.bat db_backup\rental_db_backup_20241201_120000.sql
 ```
 
 ### 3. Тестирование бэкапа
 
 ```bash
-./scripts/test_backup_utf8.sh
+# проверка кириллицы: разверните дамп и проверьте SELECT с русским текстом
 ```
 
 ## Пошаговое руководство
@@ -73,13 +73,13 @@ scripts\backup_database.bat
 
 1. **Linux/macOS:**
    ```bash
-   chmod +x scripts/backup_database_utf8.sh
-   ./scripts/backup_database_utf8.sh
+   chmod +x scripts/backup_database.sh
+   ./scripts/backup_database.sh
    ```
 
 2. **Windows PowerShell:**
    ```powershell
-   .\scripts\backup_database_utf8.ps1
+   .\scripts\backup_database.bat
    ```
 
 3. **Windows Batch:**
@@ -104,8 +104,8 @@ rental_db_backup_YYYYMMDD_HHMMSS.sql.gz
 Перед использованием в продакшене протестируйте бэкап:
 
 ```bash
-chmod +x scripts/test_backup_utf8.sh
-./scripts/test_backup_utf8.sh
+# ручная проверка: разверните дамп и сделайте выборку с кириллицей
+# проверка кириллицы: разверните дамп и проверьте SELECT с русским текстом
 ```
 
 Тест создаст тестовую базу данных, добавит кириллические данные, сделает бэкап и восстановит их.
@@ -116,13 +116,13 @@ chmod +x scripts/test_backup_utf8.sh
 
 1. **Linux/macOS:**
    ```bash
-   chmod +x scripts/restore_database_utf8.sh
-   ./scripts/restore_database_utf8.sh db_backup/rental_db_backup_20241201_120000.sql.gz
+   chmod +x scripts/restore_database.sh
+   ./scripts/restore_database.sh db_backup/rental_db_backup_20241201_120000.sql.gz
    ```
 
 2. **Windows PowerShell:**
    ```powershell
-   .\scripts\restore_database_utf8.ps1 db_backup\rental_db_backup_20241201_120000.sql
+   .\scripts\restore_database.bat db_backup\rental_db_backup_20241201_120000.sql
    ```
 
 ### Шаг 6: Проверка восстановления
@@ -153,7 +153,7 @@ chmod +x scripts/test_backup_utf8.sh
 
 ```bash
 # Добавьте в crontab
-0 2 * * * cd /path/to/project && ./scripts/backup_database_utf8.sh
+0 2 * * * cd /path/to/project && ./scripts/backup_database.sh
 ```
 
 ### Мониторинг бэкапов
@@ -171,7 +171,7 @@ ls -la db_backup/*.gz
 **Причина:** Неправильная кодировка при создании бэкапа
 
 **Решение:**
-1. Используйте только скрипты с суффиксом `_utf8`
+1. Используйте основные скрипты (UTF-8 встроен)
 2. Проверьте настройки кодировки в Docker контейнере
 3. Убедитесь, что база данных создана с кодировкой UTF-8
 
@@ -205,11 +205,11 @@ ls -la db_backup/*.gz
 
 ```
 scripts/
-├── backup_database_utf8.sh      # Linux/macOS бэкап
-├── backup_database_utf8.ps1     # Windows PowerShell бэкап
-├── restore_database_utf8.sh     # Linux/macOS восстановление
-├── restore_database_utf8.ps1     # Windows PowerShell восстановление
-└── test_backup_utf8.sh          # Тестирование бэкапа
+├── backup_database.sh           # Linux/macOS бэкап (UTF-8 встроен)
+├── backup_database.bat          # Windows бэкап
+├── restore_database.sh          # Linux/macOS восстановление (UTF-8 встроен)
+├── restore_database.bat         # Windows восстановление
+└── backup_loop.sh               # Планировщик для docker-compose профиля backup
 
 db_backup/
 ├── rental_db_backup_*.sql.gz    # Сжатые бэкапы

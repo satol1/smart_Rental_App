@@ -157,7 +157,7 @@ scripts/backup_database.sh        # создать бэкап в db_backup/
 scripts/restore_database.sh       # восстановить из бэкапа
 ```
 
-Есть вариант с гарантией кодировки UTF-8: `scripts/backup_database_utf8.sh` / `scripts/restore_database_utf8.sh`.
+UTF-8-обработка (LC_ALL/PGCLIENTENCODING) встроена в сами `scripts/backup_database.sh` и `scripts/restore_database.sh`; отдельные utf8-варианты удалены. Автоматический планировщик: `docker compose --profile backup up -d db-backup` (дамп БД + архив uploads + ротация 14 дней).
 
 ## Развёртывание на VPS
 

@@ -10,9 +10,9 @@ from api.permissions import require_user
 from api.models.user import User as PermissionUser
 from api.services.rental.rental_query_service import RentalQueryService
 from shared.schemas.rental_schema import RentalListResponse
-from shared.schemas.user_schema import UserUpdate, UserOut
+from shared.schemas.user_schema import UserUpdate, UserOut, validate_password_strength
 from shared.schemas.balance_history_schema import BalanceHistoryOut, BalanceHistoryListResponse
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 # Удален импорт get_db_session
 from api.services.user_service import UserService
 
@@ -81,7 +81,7 @@ async def get_my_balance_history(
 async def update_my_profile(
         data: UserUpdate,
         current_user: PermissionUser = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -96,7 +96,7 @@ async def update_my_profile(
 async def change_password(
         password_data: dict,
         current_user: PermissionUser = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -104,13 +104,22 @@ async def change_password(
     """
     current_password = password_data.get("current_password")
     new_password = password_data.get("new_password")
-    
+
     if not current_password or not new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Требуются current_password и new_password"
         )
-    
+
+    # Сложность нового пароля — те же правила, что при регистрации
+    try:
+        validate_password_strength(new_password)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Слабый пароль: {e}"
+        )
+
     await user_service.change_password(current_user.id, current_password, new_password)
     
     return {"message": "Пароль успешно изменен"}
@@ -120,7 +129,7 @@ async def change_password(
 async def confirm_email_change(
         token: str,
         current_user: PermissionUser = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """
     ЗАГЛУШКА: В будущем здесь будет логика подтверждения смены email по токену.

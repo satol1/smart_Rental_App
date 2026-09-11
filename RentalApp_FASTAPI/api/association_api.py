@@ -9,7 +9,7 @@ from api.services.association_service import AssociationService
 from api.models.user import User
 from api.permissions import require_manager
 from shared.schemas.association_schema import AssociationCreate, AssociationUpdate, AssociationOut, AssociationListResponse
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 
 # Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
@@ -36,7 +36,7 @@ async def create_association(
         assoc_in: AssociationCreate,
         service: AssociationService = Depends(Provide[Container.association_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Создать новую ассоциацию (Менеджер/Админ)."""
     return await service.create_new_association(assoc_in)
@@ -48,7 +48,7 @@ async def update_association(
         assoc_in: AssociationUpdate,
         service: AssociationService = Depends(Provide[Container.association_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Обновить ассоциацию (Менеджер/Админ)."""
     return await service.update_association(assoc_id, assoc_in)
@@ -59,7 +59,7 @@ async def delete_association(
         assoc_id: int,
         service: AssociationService = Depends(Provide[Container.association_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Удалить ассоциацию (Менеджер/Админ)."""
     await service.delete_association(assoc_id)

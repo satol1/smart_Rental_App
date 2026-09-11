@@ -1,5 +1,6 @@
 # api/settings_api.py
 from fastapi import APIRouter, Depends
+from api.csrf import validate_csrf_dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
@@ -29,6 +30,7 @@ async def get_settings(
 async def update_settings(
     settings_in: List[SettingUpdate], 
     _=Depends(require_admin),
+    _csrf: None = Depends(validate_csrf_dependency),
     service: SettingsService = Depends(Provide[Container.settings_service])
 ):
     await service.update_settings(settings_in)

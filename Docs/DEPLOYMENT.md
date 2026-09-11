@@ -167,8 +167,7 @@ nginx продолжит отдавать статику, кратковреме
 ```bash
 ./scripts/backup_database.sh           # бэкап в db_backup/
 ./scripts/restore_database.sh          # восстановление
-./scripts/backup_database_utf8.sh      # вариант с гарантией UTF-8
-./scripts/restore_database_utf8.sh
+# UTF-8-обработка встроена в основные скрипты; utf8-дубликаты удалены
 ```
 
 Скрипты работают через `docker compose exec db pg_dump` — внешний порт БД не

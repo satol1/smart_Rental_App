@@ -171,11 +171,6 @@ async def health_check():
     """Health check endpoint для мониторинга состояния системы."""
     return {"status": "ok"}
 
-@app.get("/test-simple")
-async def test_simple():
-    """Простой тест без DI"""
-    return {"status": "success", "message": "Simple test works"}
-
 @app.get("/monitoring/stats")
 async def get_middleware_stats(admin: "User" = Depends(require_admin)):
     """Эндпоинт для мониторинга статистики middleware (только для администраторов)"""
@@ -287,7 +282,7 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
         request_id = self.request_count
         
         # Пропускаем простые эндпоинты, которые не требуют DI
-        if request.url.path in ["/health", "/test-simple", "/docs", "/openapi.json", "/redoc"]:
+        if request.url.path in ["/health", "/docs", "/openapi.json", "/redoc"]:
             response = await call_next(request)
             duration = time.time() - start_time
             response.headers["X-Request-ID"] = str(request_id)

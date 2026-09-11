@@ -9,7 +9,7 @@ from api.permissions import require_manager, require_admin
 from api.models.user import User as PermissionUser
 from shared.schemas.user_schema import UserPaymentRequest, AdminBalanceAdjustmentRequest, UserOut
 from shared.schemas.balance_history_schema import BalanceHistoryOut, BalanceHistoryListResponse
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 # Удален импорт get_db_session
 from api.services.user_service import UserService
 
@@ -51,7 +51,7 @@ async def add_payment_to_user(
         user_id: int,
         payment_data: UserPaymentRequest,
         current_user: PermissionUser = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -71,7 +71,7 @@ async def adjust_user_balance(
         user_id: int,
         adjustment_data: AdminBalanceAdjustmentRequest,
         current_user: PermissionUser = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -86,7 +86,7 @@ async def adjust_user_balance(
 async def delete_balance_history_entry(
     history_id: int,
     current_user: PermissionUser = Depends(require_admin),
-    csrf_protect: CsrfProtect = Depends(),
+    _csrf: None = Depends(validate_csrf_dependency),
     user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """

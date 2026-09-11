@@ -1,7 +1,7 @@
 # api/discount_api.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 from dependency_injector.wiring import inject, Provide
 from containers import Container
@@ -32,7 +32,7 @@ async def create_discount(
         discount_in: DiscountCreate,
         service: DiscountService = Depends(Provide[Container.discount_service]),
         current_user: User = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Создать новый уровень скидки."""
     return await service.create_discount(discount_in)
@@ -44,7 +44,7 @@ async def update_discount(
         discount_in: DiscountUpdate,
         service: DiscountService = Depends(Provide[Container.discount_service]),
         current_user: User = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Обновить существующий уровень скидки."""
     return await service.update_discount(discount_id, discount_in)
@@ -55,7 +55,7 @@ async def delete_discount(
         discount_id: int,
         service: DiscountService = Depends(Provide[Container.discount_service]),
         current_user: User = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Удалить уровень скидки."""
     await service.delete_discount(discount_id)

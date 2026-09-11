@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 from datetime import date
 from collections import defaultdict
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 # Удален импорт get_db_session
 
 from dependency_injector.wiring import inject, Provide
@@ -100,7 +100,7 @@ async def update_single_equipment_details_route(
         equipment_data: EquipmentUpdateExtended,
         equipment_crud_service: EquipmentCRUDService = Depends(Provide[Container.equipment_crud_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Обновляет детали указанного оборудования."""
     return await equipment_crud_service.update_equipment_details(equipment_id, equipment_data)
@@ -112,7 +112,7 @@ async def create_equipment(
         equipment_data: EquipmentCreate,
         equipment_crud_service: EquipmentCRUDService = Depends(Provide[Container.equipment_crud_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Создает новое оборудование."""
     return await equipment_crud_service.create_equipment(equipment_data)
@@ -125,7 +125,7 @@ async def copy_equipment(
         copy_data: EquipmentCopyRequest,
         equipment_crud_service: EquipmentCRUDService = Depends(Provide[Container.equipment_crud_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Копирует оборудование с возможностью изменения полей"""
     return await equipment_crud_service.copy_equipment(equipment_id, copy_data)
@@ -137,7 +137,7 @@ async def delete_equipment(
         equipment_id: int,
         equipment_crud_service: EquipmentCRUDService = Depends(Provide[Container.equipment_crud_service]),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Удаляет оборудование."""
     await equipment_crud_service.delete_equipment(equipment_id)

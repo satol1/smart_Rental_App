@@ -1,7 +1,7 @@
 # api/uploads_api.py
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 from api.models.user import User
 from api.permissions import require_manager
@@ -17,7 +17,7 @@ CHUNK_SIZE = 1024 * 1024
 async def upload_image(
         file: UploadFile = File(...),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Загружает фото оборудования: сжимает серверно и возвращает URL."""
     if file.content_type not in image_service.ALLOWED_CONTENT_TYPES:
@@ -52,7 +52,7 @@ async def upload_image(
 async def delete_image(
         filename: str,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Удаляет ранее загруженное изображение."""
     deleted = await image_service.delete_image(filename, settings.UPLOAD_DIR)

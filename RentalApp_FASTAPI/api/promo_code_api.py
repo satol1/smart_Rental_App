@@ -18,7 +18,7 @@ from shared.schemas.promo_code_schema import (
     PromoCodeListResponse
 )
 from fastapi.security import OAuth2PasswordBearer
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 from api.services.promo_code.promo_code_manager import PromoCodeManager
 from api.services.promo_code import PromoCodeBusinessLogic
 
@@ -34,7 +34,7 @@ optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error
 async def create_promo_code(
         promo_in: PromoCodeCreate,
         current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         manager: PromoCodeManager = Depends(Provide[Container.promo_code_manager])
 ):
     """
@@ -112,7 +112,7 @@ async def update_promo_code(
         promo_code_id: int,
         promo_in: PromoCodeUpdate,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         manager: PromoCodeManager = Depends(Provide[Container.promo_code_manager])
 ):
     """Обновляет существующий промокод (только для менеджеров/админов)."""
@@ -130,7 +130,7 @@ async def update_promo_code(
 async def delete_promo_code(
         promo_code_id: int,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         manager: PromoCodeManager = Depends(Provide[Container.promo_code_manager])
 ):
     """Удаляет промокод"""

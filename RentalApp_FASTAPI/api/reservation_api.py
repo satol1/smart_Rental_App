@@ -15,7 +15,7 @@ from shared.schemas.reservation_schema import (
 from api.permissions import require_user
 from api.models.user import User
 from api.models.promo_code import PromoCode
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 from api.services.financial_service import FinancialService
 from api.services.promo_code_service import PromoCodeService
@@ -31,7 +31,7 @@ router = APIRouter(prefix="/reservations", tags=["Резервы (для пол�
 async def create_reservation(
         request: ReservationCreateRequest,
         current_user: User = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Создать резерв для текущего пользователя."""
@@ -83,7 +83,7 @@ async def get_user_reservations(
 async def delete_reservation(
         reservation_id: int,
         current_user: User = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Удалить свой резерв."""
@@ -96,7 +96,7 @@ async def update_reservation(
         reservation_id: int,
         data: ReservationUpdateRequest,
         current_user: User = Depends(require_user),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Обновить свой резерв."""

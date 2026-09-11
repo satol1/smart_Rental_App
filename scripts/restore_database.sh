@@ -123,11 +123,17 @@ log "Восстанавливаем базу данных..."
 
 # Восстанавливаем базу данных
 # Используем psql с правильными настройками кодировки
-docker-compose exec -T db psql \
-    --username="$POSTGRES_USER" \
-    --dbname=postgres \
-    --set=ON_ERROR_STOP=1 \
-    --file="/tmp/restore.sql"
+# Явная UTF-8-кодировка окружения в контейнере — иначе кириллица может биться при восстановлении
+docker-compose exec -T db bash -c "
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PGCLIENTENCODING=UTF8
+    psql \
+        --username='$POSTGRES_USER' \
+        --dbname=postgres \
+        --set=ON_ERROR_STOP=1 \
+        --file='/tmp/restore.sql'
+"
 
 # Удаляем временный файл из контейнера
 docker-compose exec -T db rm -f /tmp/restore.sql

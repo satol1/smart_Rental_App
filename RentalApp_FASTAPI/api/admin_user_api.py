@@ -10,7 +10,7 @@ from api.permissions import require_manager, require_admin
 from api.models.user import User as PermissionUser
 from api.repositories.user_repository import UserRepository
 from shared.schemas.user_schema import AdminUserCreate, AdminUserUpdate, UserOut, UserListResponse
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 # Удален импорт get_db_session
 from api.services.user_service import UserService
 
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/admin/users", tags=["Администрирован�
 async def create_user_by_admin(
         user_data: AdminUserCreate,
         current_user: PermissionUser = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -77,7 +77,7 @@ async def update_user_by_admin_or_manager(
         user_id: int,
         data: AdminUserUpdate,
         current_user: PermissionUser = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -92,7 +92,7 @@ async def update_user_by_admin_or_manager(
 async def block_user(
         user_id: int,
         current_user: PermissionUser = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -107,7 +107,7 @@ async def block_user(
 async def unblock_user(
         user_id: int,
         current_user: PermissionUser = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         user_service: UserService = Depends(Provide[Container.user_service])
 ):
     """
@@ -123,7 +123,7 @@ async def delete_user(
         user_id: int,
         user_service: UserService = Depends(Provide[Container.user_service]),
         current_user: PermissionUser = Depends(require_admin),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """
     Полностью удаляет пользователя из базы данных.

@@ -1,6 +1,7 @@
 # api/pack_api.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from api.csrf import validate_csrf_dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import logging
@@ -25,6 +26,7 @@ router = APIRouter(prefix="/admin/packs", tags=["Администрирован�
 async def create_pack(
     pack_data: PackCreate,
     current_user = Depends(require_manager),
+    _csrf: None = Depends(validate_csrf_dependency),
     pack_service: PackService = Depends(Provide[Container.pack_service])
 ):
     """Создание новой пачки."""
@@ -72,6 +74,7 @@ async def update_pack(
     pack_id: int,
     pack_data: PackUpdate,
     current_user = Depends(require_manager),
+    _csrf: None = Depends(validate_csrf_dependency),
     pack_service: PackService = Depends(Provide[Container.pack_service])
 ):
     """Обновление пачки."""
@@ -88,6 +91,7 @@ async def update_pack(
 async def delete_pack(
     pack_id: int,
     current_user = Depends(require_manager),
+    _csrf: None = Depends(validate_csrf_dependency),
     pack_service: PackService = Depends(Provide[Container.pack_service])
 ):
     """Удаление пачки."""

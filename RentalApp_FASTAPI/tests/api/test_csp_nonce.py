@@ -165,7 +165,7 @@ class TestCSPNonce:
         """
         # Act
         response1 = client.get("/health")
-        response2 = client.get("/test-simple")
+        response2 = client.get("/health")
         
         # Assert
         assert response1.status_code == 200

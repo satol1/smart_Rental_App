@@ -1,6 +1,7 @@
 # api/admin_security_api.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from api.csrf import validate_csrf_dependency
 from dependency_injector.wiring import inject, Provide
 from containers import Container
 from api.services.security_audit_service import SecurityAuditService
@@ -109,6 +110,7 @@ async def get_blocked_ips(
 async def unblock_ip(
     ip_address: str,
     current_user: ApiUser = Depends(require_admin),
+    _csrf: None = Depends(validate_csrf_dependency),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Разблокировка IP адреса."""
@@ -149,6 +151,7 @@ async def get_ip_stats(
 async def add_to_whitelist(
     ip_address: str,
     current_user: ApiUser = Depends(require_admin),
+    _csrf: None = Depends(validate_csrf_dependency),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Добавление IP адреса в whitelist."""
@@ -166,6 +169,7 @@ async def add_to_whitelist(
 async def remove_from_whitelist(
     ip_address: str,
     current_user: ApiUser = Depends(require_admin),
+    _csrf: None = Depends(validate_csrf_dependency),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Удаление IP адреса из whitelist."""
@@ -182,6 +186,7 @@ async def remove_from_whitelist(
 @inject
 async def cleanup_brute_force_data(
     current_user: ApiUser = Depends(require_admin),
+    _csrf: None = Depends(validate_csrf_dependency),
     brute_force_service: BruteForceProtectionService = Depends(Provide[Container.brute_force_protection_service])
 ):
     """Очистка истекших данных защиты от брутфорса."""

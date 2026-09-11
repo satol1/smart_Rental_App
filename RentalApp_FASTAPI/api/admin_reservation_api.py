@@ -23,7 +23,7 @@ from shared.schemas.rental_schema import (
 )
 from api.services.order.rental_service import RentalLifecycleService
 from api.services.rental.rental_query_service import RentalQueryService
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 
 # Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 async def delete_multiple_reservations(
         request: ReservationBulkDeleteRequest = Body(...),
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Массово удалить резервы по их ID."""
@@ -90,7 +90,7 @@ async def get_all_reservations(
 async def create_reservation_for_user(
         request: AdminReservationCreateRequest,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Создать резерв для конкретного пользователя."""
@@ -104,7 +104,7 @@ async def update_any_reservation(
         reservation_id: int,
         data: ReservationUpdateRequest,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Обновить любой резерв по его ID."""
@@ -123,7 +123,7 @@ async def update_any_reservation(
 async def delete_any_reservation(
         reservation_id: int,
         _current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: ReservationLifecycleService = Depends(Provide[Container.reservation_lifecycle_service])
 ):
     """Удалить любой резерв по его ID."""
@@ -137,7 +137,7 @@ async def convert_reservation_to_rental(
         reservation_id: int,
         request: RentalCreateFromReservationRequest,
         current_user: User = Depends(require_manager),
-        _csrf_protect: CsrfProtect = Depends(),
+        _csrf: None = Depends(validate_csrf_dependency),
         rental_service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
 ):

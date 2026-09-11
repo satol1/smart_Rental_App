@@ -48,7 +48,8 @@ services:
     volumes:
       - uploads_data:/app/uploads
     ports:
-      - "8000:8000"
+      # Только для локальной отладки с хоста; в прод API ходит через nginx по внутренней сети
+      - "127.0.0.1:8000:8000"
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
@@ -90,6 +91,7 @@ services:
       dockerfile: Dockerfile.backend
     # Без bind-mount: код попадает в образ сборкой (см. Dockerfile.backend)
     environment:
+      - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
@@ -140,7 +142,7 @@ services:
 
   # Certbot для автоматического получения SSL сертификатов
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v2.11.0
     volumes:
       - ./letsencrypt:/etc/letsencrypt
       - ./ssl:/etc/nginx/ssl
@@ -166,20 +168,26 @@ services:
     image: postgres:15-alpine
     volumes:
       - ./db_backup:/backups
-      - ./scripts:/scripts
+      - uploads_data:/uploads:ro
+      - ./scripts/backup_loop.sh:/backup_loop.sh:ro
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - DB_HOST=db
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      # Раз в сутки; устаревшие бэкапы старше 14 дней удаляются
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}
     profiles:
       - backup
-    command: >
-      sh -c "
-        echo 'Сервис бэкапов запущен. Для создания бэкапа используйте:';
-        echo 'docker-compose exec db pg_dump -U ${POSTGRES_USER} -d ${POSTGRES_DB} --clean --if-exists --create > /backups/rental_db_backup_\$(date +%Y%m%d_%H%M%S).sql';
-        echo 'Ожидание...';
-        tail -f /dev/null
-      "
+    depends_on:
+      db:
+        condition: service_healthy
+    # Планировщик бэкапов (скрипт в scripts/backup_loop.sh): дамп БД + архив
+    # uploads + ротация. Запуск: docker compose --profile backup up -d db-backup
+    restart: unless-stopped
+    command: ["sh", "/backup_loop.sh"]
     # Без ограничений ресурсов для основной конфигурации
 
 volumes:

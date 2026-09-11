@@ -1,6 +1,7 @@
 # api/admin_rental_api.py
 
 from fastapi import APIRouter, Depends, Query, Response, status
+from api.csrf import validate_csrf_dependency
 
 from dependency_injector.wiring import inject, Provide
 from containers import Container
@@ -47,6 +48,7 @@ async def get_all_rentals(
 async def create_rental_from_scratch(
         request: RentalCreateFromScratchRequest,
         current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
 ):
@@ -63,6 +65,7 @@ async def update_rental_details(
         rental_id: int,
         request: AdminRentalUpdate,
         current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
 ):
@@ -79,6 +82,7 @@ async def convert_reservation_to_rental(
         reservation_id: int,
         request: RentalCreateFromReservationRequest,
         current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
 ):
@@ -95,6 +99,7 @@ async def return_rental(
         rental_id: int,
         request: RentalReturnRequest,
         current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
 ):
@@ -111,6 +116,7 @@ async def revert_rental_to_reservation(
         rental_id: int,
         request: RentalRevertRequest,
         current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service])
 ):
     """
@@ -127,6 +133,7 @@ async def revert_rental_to_reservation(
 async def delete_rental_by_admin(
         rental_id: int,
         current_user: User = Depends(require_admin),
+        _csrf: None = Depends(validate_csrf_dependency),
         service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service])
 ):
     """Удалить аренду (только для администраторов)."""

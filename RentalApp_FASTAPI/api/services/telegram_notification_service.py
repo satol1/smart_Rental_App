@@ -28,6 +28,8 @@ class TelegramNotificationService:
         bot_token: Optional[str] = None,
         default_chat_id: Optional[str] = None,
         timeout: float = 10.0,
+        max_attempts: int = 3,
+        retry_base_delay: float = 1.0,
     ):
         raw_token = (
             bot_token
@@ -35,7 +37,7 @@ class TelegramNotificationService:
             else settings.TELEGRAM_TOKEN.get_secret_value()
         )
         self.bot_token = (raw_token or "").strip()
-        
+
         raw_chat_id = (
             default_chat_id
             if default_chat_id is not None
@@ -43,6 +45,8 @@ class TelegramNotificationService:
         )
         self.default_chat_id = (raw_chat_id or "").strip()
         self.timeout = timeout
+        self.max_attempts = max(1, max_attempts)
+        self.retry_base_delay = retry_base_delay
 
     @property
     def is_configured(self) -> bool:
@@ -65,7 +69,11 @@ class TelegramNotificationService:
     ) -> bool:
         """
         Асинхронно отправляет сообщение в указанный Telegram чат.
-        
+
+        Транзиентные сбои (429 rate limit, 5xx, таймаут/транспорт) ретраятся
+        до max_attempts раз с экспоненциальной паузой. Ошибки уровня API
+        (ok=False, прочие 4xx) не ретраятся — повтор не имеет смысла.
+
         Возвращает True при успешной доставке, False при отключенном боте или ошибке.
         Исключения перехватываются, гарантируя стабильность бизнес-логики.
         """
@@ -89,27 +97,67 @@ class TelegramNotificationService:
             "disable_web_page_preview": disable_web_page_preview,
         }
 
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(self._get_api_url("sendMessage"), json=payload)
+        for attempt in range(1, self.max_attempts + 1):
+            retry_delay: Optional[float] = None
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(self._get_api_url("sendMessage"), json=payload)
+
                 if response.status_code == 200:
                     data = response.json()
                     if data.get("ok"):
-                        logger.info(f"[TelegramNotificationService] Сообщение успешно отправлено в чат {target_chat_id}")
+                        logger.info(
+                            f"[TelegramNotificationService] Сообщение успешно отправлено в чат {target_chat_id}"
+                        )
                         return True
-                    logger.error(f"[TelegramNotificationService] Ошибка API Telegram: {data.get('description')}")
+                    logger.error(
+                        f"[TelegramNotificationService] Ошибка API Telegram: {data.get('description')}"
+                    )
                     return False
+
+                if response.status_code == 429:
+                    # Telegram сам сообщает, сколько ждать
+                    try:
+                        retry_after = response.json().get("parameters", {}).get("retry_after")
+                    except ValueError:
+                        retry_after = None
+                    retry_delay = min(float(retry_after or self.retry_base_delay), 30.0)
+                    logger.warning(
+                        f"[TelegramNotificationService] Попытка {attempt}/{self.max_attempts}: "
+                        f"rate limit (429), повтор через {retry_delay:.1f}s"
+                    )
+                elif response.status_code >= 500:
+                    retry_delay = self.retry_base_delay * (2 ** (attempt - 1))
+                    logger.warning(
+                        f"[TelegramNotificationService] Попытка {attempt}/{self.max_attempts}: "
+                        f"Telegram ответил {response.status_code}, повтор через {retry_delay:.1f}s"
+                    )
                 else:
                     logger.error(
                         f"[TelegramNotificationService] Неуспешный HTTP-статус {response.status_code}: {response.text}"
                     )
                     return False
-        except httpx.TimeoutException:
-            logger.warning(f"[TelegramNotificationService] Таймаут при отправке в чат {target_chat_id}")
-            return False
-        except Exception as e:
-            logger.error(f"[TelegramNotificationService] Исключение при отправке в Telegram: {e}", exc_info=True)
-            return False
+
+            except httpx.TransportError as e:
+                retry_delay = self.retry_base_delay * (2 ** (attempt - 1))
+                logger.warning(
+                    f"[TelegramNotificationService] Попытка {attempt}/{self.max_attempts}: "
+                    f"сетевая ошибка ({type(e).__name__}), повтор через {retry_delay:.1f}s"
+                )
+            except Exception as e:
+                logger.error(
+                    f"[TelegramNotificationService] Исключение при отправке в Telegram: {e}", exc_info=True
+                )
+                return False
+
+            if retry_delay is not None and attempt < self.max_attempts:
+                await asyncio.sleep(retry_delay)
+
+        logger.error(
+            f"[TelegramNotificationService] Не удалось доставить сообщение в чат "
+            f"{target_chat_id} после {self.max_attempts} попыток"
+        )
+        return False
 
     def send_in_background(self, coro: Coroutine) -> Optional[asyncio.Task]:
         """

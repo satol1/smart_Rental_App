@@ -7,7 +7,7 @@ from api.services.accessory_service import AccessoryService
 from api.models.user import User
 from api.permissions import require_manager
 from shared.schemas.accessory_schema import AccessoryCreate, AccessoryUpdate, AccessoryOut, AccessoryListResponse
-from fastapi_csrf_protect import CsrfProtect
+from api.csrf import validate_csrf_dependency
 
 
 # Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
@@ -21,7 +21,7 @@ async def create_accessory(
         accessory_in: AccessoryCreate,
         accessory_service: AccessoryService = Depends(Provide[Container.accessory_service]),
         current_user: User = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Создать новый аксессуар (только для менеджеров/админов)"""
     return await accessory_service.create_accessory(accessory_in)
@@ -52,7 +52,7 @@ async def update_accessory(
         accessory_in: AccessoryUpdate,
         accessory_service: AccessoryService = Depends(Provide[Container.accessory_service]),
         current_user: User = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Обновить аксессуар (только для менеджеров/админов)"""
     return await accessory_service.update_accessory(accessory_id, accessory_in)
@@ -63,7 +63,7 @@ async def delete_accessory(
         accessory_id: int,
         accessory_service: AccessoryService = Depends(Provide[Container.accessory_service]),
         current_user: User = Depends(require_manager),
-        csrf_protect: CsrfProtect = Depends()
+        _csrf: None = Depends(validate_csrf_dependency)
 ):
     """Удалить аксессуар (только для менеджеров/админов)"""
     await accessory_service.delete_accessory(accessory_id)

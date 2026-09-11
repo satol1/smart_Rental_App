@@ -82,17 +82,23 @@ log "База данных готова, создаем бэкап..."
 # Создаем бэкап с правильной кодировкой UTF-8 и поддержкой индексов
 # Используем pg_dump с опциями для корректной работы с кодировками и индексами
 log "Создаем полный бэкап с индексами и оптимизациями..."
-docker-compose exec -T db pg_dump \
-    --username="$POSTGRES_USER" \
-    --dbname="$POSTGRES_DB" \
-    --verbose \
-    --clean \
-    --if-exists \
-    --create \
-    --encoding=UTF8 \
-    --no-password \
-    --format=plain \
-    --file="/tmp/backup.sql"
+# Явная UTF-8-кодировка окружения в контейнере — иначе кириллица может биться (см. Docs/BACKUP_UTF8_GUIDE.md)
+docker-compose exec -T db bash -c "
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PGCLIENTENCODING=UTF8
+    pg_dump \
+        --username='$POSTGRES_USER' \
+        --dbname='$POSTGRES_DB' \
+        --verbose \
+        --clean \
+        --if-exists \
+        --create \
+        --encoding=UTF8 \
+        --no-password \
+        --format=plain \
+        --file='/tmp/backup.sql'
+"
 
 # Копируем файл из контейнера
 docker-compose exec -T db cat /tmp/backup.sql > "$BACKUP_FILE"
@@ -128,6 +134,18 @@ GROUP BY schemaname;
 # Сжимаем бэкап для экономии места
 log "Сжимаем бэкап..."
 gzip "$BACKUP_FILE"
+
+# Бэкап тома uploads (фото оборудования) — файлы не входят в pg_dump.
+# Имя тома с префиксом проекта — стандартное docker-compose имя.
+UPLOADS_BACKUP="uploads_$(date +%Y%m%d_%H%M%S).tar.gz"
+log "Создаем бэкап тома uploads..."
+# Имя тома ищем динамически: compose-префикс зависит от имени проекта/каталога
+UPLOADS_VOLUME=$(docker volume ls --format '{{.Name}}' 2>/dev/null | grep 'uploads_data$' | head -n1)
+if [ -n "$UPLOADS_VOLUME" ] && docker run --rm -v "$UPLOADS_VOLUME":/data:ro -v "$(pwd)/db_backup:/backup" alpine tar czf "/backup/$UPLOADS_BACKUP" -C /data .; then
+    success "Бэкап uploads создан: db_backup/$UPLOADS_BACKUP (том: $UPLOADS_VOLUME)"
+else
+    warning "Не удалось создать бэкап uploads (том не найден или Docker недоступен)"
+fi
 
 # Проверяем сжатый файл
 if [ ! -f "$BACKUP_FILE_COMPRESSED" ]; then
