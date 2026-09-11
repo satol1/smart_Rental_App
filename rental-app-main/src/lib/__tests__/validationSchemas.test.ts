@@ -161,6 +161,7 @@ describe('reservationCreateSchema — валидация дат', () => {
 
     it('подставляет пустой объект аксессуаров по умолчанию', () => {
         const { selected_accessories: _omit, ...rest } = valid;
+        void _omit; // ключ намеренно исключён из полезной нагрузки
         const res = reservationCreateSchema.safeParse(rest);
         expect(res.success).toBe(true);
         if (res.success) {

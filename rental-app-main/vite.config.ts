@@ -11,7 +11,9 @@ export default defineConfig({
 
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // Цель прокси параметризуется для e2e-прогонов (Playwright поднимает
+        // изолированный бэкенд на другом порту). По умолчанию поведение не меняется.
+        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8000',
         changeOrigin: true,
         // КРИТИЧНО: передача cookies через proxy
         cookieDomainRewrite: '',

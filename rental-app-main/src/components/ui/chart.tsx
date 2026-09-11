@@ -2,6 +2,8 @@
 // Переиспользуемая обёртка над recharts.
 // Цвета берутся из CSS-переменных темы (--chart-1..5, --muted-foreground, --border)
 // через getComputedStyle, поэтому графики работают и в светлой, и в тёмной теме.
+//
+/* eslint-disable react-refresh/only-export-components -- модуль намеренно совмещает компоненты-обёртки recharts и тематические хуки (useChartColors и др.), используемые потребителями отдельно */
 
 import * as React from "react";
 import { ResponsiveContainer } from "recharts";

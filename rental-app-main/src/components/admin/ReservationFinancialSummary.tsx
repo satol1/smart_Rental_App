@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePriceCalculator } from "@/hooks/reservation/usePriceCalculator";
+import type { PriceDetails } from "@/core/services";
 import { AlertCircle, Loader2, ReceiptText } from "lucide-react";
 import type { AdminReservationOut } from "@/types/reservation";
 import { MoneyText } from "@/components/ui/money-text";
@@ -14,9 +15,9 @@ interface ReservationFinancialSummaryProps {
     conflictingItemIds: number[];
     isCheckingAvailability: boolean;
     equipmentMap: Map<number, Equipment>;
-    priceDetails?: any;
+    priceDetails?: PriceDetails;
     isCalculatingPrice?: boolean;
-    priceError?: any;
+    priceError?: Error | null;
 }
 
 export default function ReservationFinancialSummary({

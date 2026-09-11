@@ -1,5 +1,6 @@
 // src/components/ui/button.tsx
 
+/* eslint-disable react-refresh/only-export-components -- shadcn-паттерн: cva-варианты экспортируются рядом с компонентом и переиспользуются извне (AdminNavigation) */
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";

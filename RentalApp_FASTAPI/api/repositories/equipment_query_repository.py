@@ -39,12 +39,13 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         available_only: bool = False,
-        group_similar: bool = True
-    ) -> Tuple[List[Equipment], int, AvailableFilters]:
+        group_similar: bool = True,
+        include_available_filters: bool = True
+    ) -> Tuple[List[Equipment], int, Optional[AvailableFilters]]:
         """
         Получение отфильтрованного и пагинированного списка оборудования.
         Инкапсулирует всю логику фильтрации из EquipmentQueryBuilder.
-        
+
         Args:
             skip: Количество записей для пропуска
             limit: Максимальное количество записей
@@ -56,9 +57,13 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
             end_date: Конечная дата для проверки доступности
             available_only: Показывать только доступное оборудование
             group_similar: Группировать похожее оборудование
-            
+            include_available_filters: Вычислять ли доступные фильтры (~4 доп.
+                запроса). Отключайте, когда фильтры не нужны вызывающему коду,
+                чтобы не считать их впустую.
+
         Returns:
-            Кортеж (items, total, available_filters)
+            Кортеж (items, total, available_filters); available_filters=None,
+            если include_available_filters=False.
         """
         # Создаем базовый запрос с предзагрузкой связей
         base_query = select(Equipment).options(
@@ -82,8 +87,11 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
         result = await self.db.execute(paginated_query)
         items = result.unique().scalars().all()
 
-        # Получаем доступные фильтры
-        available_filters = await self.get_available_filters()
+        # Получаем доступные фильтры (опционально: вызывающий код может
+        # считать их отдельно, тогда здесь они не нужны)
+        available_filters: Optional[AvailableFilters] = None
+        if include_available_filters:
+            available_filters = await self.get_available_filters()
 
         return items, total, available_filters
 
@@ -172,18 +180,20 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
         )
         types = [row[0] for row in types_result.fetchall()]
 
-        # Получаем все ID оборудования для получения связанных систем брендов
-        equipment_ids_result = await self.db.execute(
-            select(Equipment.id)
+        # Получаем системы брендов, связанные с любым оборудованием:
+        # 1) прямая связь m2m; 2) совпадение имени бренда оборудования.
+        # Раньше выбирались ВСЕ Equipment.id и передавались списком в
+        # get_by_equipment_ids — теперь exists/подзапрос без выборки всех ID.
+        brand_systems_result = await self.db.execute(
+            select(BrandSystem).distinct().where(
+                or_(
+                    BrandSystem.equipment.any(),
+                    BrandSystem.name.in_(select(Equipment.brand))
+                )
+            ).order_by(BrandSystem.name)
         )
-        equipment_ids = [row[0] for row in equipment_ids_result.fetchall()]
+        brand_systems = brand_systems_result.unique().scalars().all()
 
-        # Получаем системы брендов, связанные с оборудованием
-        if not self._brand_system_repo:
-            raise ValueError("BrandSystemRepository must be injected via DI container")
-        
-        brand_systems = await self._brand_system_repo.get_by_equipment_ids(equipment_ids)
-        
         # Преобразуем в BrandSystemSimple
         from shared.schemas.brand_system_schema import BrandSystemSimple
         brands = [BrandSystemSimple(id=bs.id, name=bs.name) for bs in brand_systems]
@@ -193,7 +203,7 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
             select(Association).order_by(Association.name)
         )
         associations = [
-            AssociationSimple.model_validate(assoc) 
+            AssociationSimple.model_validate(assoc)
             for assoc in associations_result.scalars().all()
         ]
 

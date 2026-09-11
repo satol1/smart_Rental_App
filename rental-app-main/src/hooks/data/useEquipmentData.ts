@@ -6,7 +6,7 @@ import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
 import { useDailyAvailability } from "@/hooks/useDailyAvailability";
 import { useReserveStore } from "@/store/reserveStore";
 import type { Equipment } from "@/types/equipment";
-import type { AvailabilityInfo, DailyAvailabilityData } from "@/types/availability";
+import type { AvailabilityInfo, DailyAvailabilityData, DayStatus } from "@/types/availability";
 import { isPackItem, isEquipmentItem } from "@/types/catalog";
 
 export interface EquipmentFilters {
@@ -30,7 +30,7 @@ export interface UseEquipmentDataReturn {
     getEquipmentData: (equipmentId: number) => {
         equipment: Equipment | undefined;
         availability: AvailabilityInfo | undefined;
-        dailyStatus: Record<string, any> | undefined;
+        dailyStatus: Record<string, DayStatus> | undefined;
     };
 }
 

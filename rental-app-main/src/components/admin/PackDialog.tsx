@@ -110,7 +110,7 @@ export default function PackDialog({ open, onClose, pack }: PackDialogProps) {
             }
             reset();
             onClose();
-        } catch (error) {
+        } catch {
             // Ошибка обработается в хуке
         }
     };
@@ -128,7 +128,7 @@ export default function PackDialog({ open, onClose, pack }: PackDialogProps) {
             // Добавляем предложения к уже выбранным элементам
             const newEquipmentIds = [...new Set([...selectedEquipmentIds, ...suggestions])];
             setValue("equipment_ids", newEquipmentIds, { shouldValidate: true });
-        } catch (error) {
+        } catch {
             // Ошибка обработается в хуке
         }
     };

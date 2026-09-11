@@ -8,7 +8,7 @@ import {
     getBalanceValue,
     isNegativeBalance,
 } from '@/lib/balanceUtils';
-import { formatMoney } from '@/components/ui/money-text';
+import { formatMoney } from '@/lib/money';
 
 describe('formatBalance', () => {
     it('совместим с единым форматом formatMoney', () => {

@@ -65,10 +65,7 @@ export default function PrintableRentalReceipt({ rentalData }: PrintableRentalRe
                 {/* Правая колонка */}
                 <div className="space-y-2">
                     {/* Правила пользования */}
-                    <ReceiptRules 
-                        isCompact={true} 
-                        useCard={false} 
-                    />
+                    <ReceiptRules />
 
                     {/* Информация о возврате */}
                     <ReceiptReturnInfo 
@@ -81,7 +78,7 @@ export default function PrintableRentalReceipt({ rentalData }: PrintableRentalRe
 
             {/* Подпись - растягиваем на обе колонки */}
             <div className="col-span-2 mt-4">
-                <ReceiptSignatures isCompact={true} />
+                <ReceiptSignatures />
             </div>
         </div>
     );

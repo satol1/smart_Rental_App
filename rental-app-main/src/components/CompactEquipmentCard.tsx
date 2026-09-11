@@ -108,7 +108,7 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
     // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
     // Используем централизованную логику для определения стиля
-    const cardStyles = getEquipmentCardStyles(equipment, status, isSelected);
+    const cardStyles = getEquipmentCardStyles(equipment, isSelected);
     const backgroundClass = isSelected
         ? COMPACT_SELECTED_STYLES
         : isUnderRepair

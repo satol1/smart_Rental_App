@@ -2,15 +2,36 @@
  * Тесты для PeriodFilter компонента
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PeriodFilter, PeriodFilterCompact } from '@/components/admin/PeriodFilter';
 import { useOrderFilterStore } from '@/store/orderFilterStore';
+import type { PeriodType } from '@/types/period';
 
 // Мокаем store
 vi.mock('@/store/orderFilterStore', () => ({
   useOrderFilterStore: vi.fn()
 }));
+
+// Модуль замокан как vi.fn(): приводим к типизированному Mock с полным состоянием стора.
+// Тип состояния берём через getState(), т.к. ReturnType самого хука zustand
+// резолвится в unknown (перегрузка с селектором).
+type OrderFilterState = ReturnType<typeof useOrderFilterStore.getState>;
+const useOrderFilterStoreMock = useOrderFilterStore as unknown as Mock<() => OrderFilterState>;
+
+// Полное состояние стора фильтров (все обязательные поля OrderFilterState)
+const createMockStoreFields = (): Omit<OrderFilterState, 'periodType' | 'periodOffset'> => ({
+  searchQuery: '',
+  statusFilter: null,
+  sortOption: 'id_desc',
+  setSearchQuery: vi.fn(),
+  setStatusFilter: vi.fn(),
+  setSortOption: vi.fn(),
+  setPeriodType: vi.fn(),
+  setPeriodOffset: vi.fn(),
+  resetFilters: vi.fn(),
+  getDefaultStatusFilter: vi.fn(),
+});
 
 // Мокаем PeriodService
 vi.mock('@/core/services/PeriodService', () => ({
@@ -31,16 +52,15 @@ vi.mock('@/core/services/PeriodService', () => ({
 }));
 
 describe('PeriodFilter', () => {
-  const mockStore = {
+  const mockStore: OrderFilterState = {
+    ...createMockStoreFields(),
     periodType: null,
-    periodOffset: 0,
-    setPeriodType: vi.fn(),
-    setPeriodOffset: vi.fn()
+    periodOffset: 0
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useOrderFilterStore as any).mockReturnValue(mockStore);
+    useOrderFilterStoreMock.mockReturnValue(mockStore);
   });
 
   it('должен рендериться без ошибок', () => {
@@ -51,7 +71,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен отображать выбранный тип периода', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week'
     });
@@ -77,7 +97,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен сбрасывать период при выборе "Все периоды"', async () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week'
     });
@@ -107,7 +127,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен отображать кнопки навигации при выбранном периоде', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week'
     });
@@ -120,7 +140,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен вызывать setPeriodOffset при навигации', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week',
       periodOffset: 0
@@ -140,7 +160,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен сбрасывать offset при нажатии на "Текущий период"', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week',
       periodOffset: 2
@@ -155,7 +175,7 @@ describe('PeriodFilter', () => {
   });
 
   it('должен отображать текущую метку периода', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week'
     });
@@ -173,16 +193,15 @@ describe('PeriodFilter', () => {
 });
 
 describe('PeriodFilterCompact', () => {
-  const mockStore = {
+  const mockStore: OrderFilterState = {
+    ...createMockStoreFields(),
     periodType: null,
-    periodOffset: 0,
-    setPeriodType: vi.fn(),
-    setPeriodOffset: vi.fn()
+    periodOffset: 0
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useOrderFilterStore as any).mockReturnValue(mockStore);
+    useOrderFilterStoreMock.mockReturnValue(mockStore);
   });
 
   it('должен рендериться без ошибок', () => {
@@ -193,7 +212,7 @@ describe('PeriodFilterCompact', () => {
   });
 
   it('должен отображать кнопки навигации при выбранном периоде', () => {
-    (useOrderFilterStore as any).mockReturnValue({
+    useOrderFilterStoreMock.mockReturnValue({
       ...mockStore,
       periodType: 'week'
     });
@@ -226,13 +245,14 @@ describe('Интеграционные тесты PeriodFilter', () => {
     // Статичный mockReturnValue не обновлял periodType — навигационные кнопки
     // (рендерятся только при выбранном periodType) не появлялись и тест падал.
     // Делаем мок "живым": store отражает применённый setPeriodType.
-    let mockPeriodType: string | null = null;
-    mockSetPeriodType.mockImplementation((value: string | null) => { mockPeriodType = value; });
-    (useOrderFilterStore as any).mockImplementation(() => ({
-      periodType: mockPeriodType,
-      periodOffset: 0,
+    let mockPeriodType: PeriodType | null = null;
+    mockSetPeriodType.mockImplementation((value: PeriodType | null) => { mockPeriodType = value; });
+    useOrderFilterStoreMock.mockImplementation(() => ({
+      ...createMockStoreFields(),
       setPeriodType: mockSetPeriodType,
-      setPeriodOffset: mockSetPeriodOffset
+      setPeriodOffset: mockSetPeriodOffset,
+      periodType: mockPeriodType,
+      periodOffset: 0
     }));
 
     const { rerender } = render(<PeriodFilter />);
@@ -270,11 +290,12 @@ describe('Интеграционные тесты PeriodFilter', () => {
     const mockSetPeriodType = vi.fn();
     const mockSetPeriodOffset = vi.fn();
 
-    (useOrderFilterStore as any).mockReturnValue({
-      periodType: 'week',
-      periodOffset: 2,
+    useOrderFilterStoreMock.mockReturnValue({
+      ...createMockStoreFields(),
       setPeriodType: mockSetPeriodType,
-      setPeriodOffset: mockSetPeriodOffset
+      setPeriodOffset: mockSetPeriodOffset,
+      periodType: 'week',
+      periodOffset: 2
     });
 
     render(<PeriodFilter />);

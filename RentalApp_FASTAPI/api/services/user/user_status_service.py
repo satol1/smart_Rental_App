@@ -9,8 +9,9 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 import logging
+import time
 
 from api.models.user import User
 from api.repositories.user_repository import UserRepository
@@ -41,9 +42,17 @@ class UserStatusService:
     для снижения нагрузки на БД при частых проверках статусов.
     """
     
-    # Классовый кэш для количества завершенных аренд (user_id -> count)
+    # TTL кэша количества завершённых аренд: значение считается свежим
+    # 5 минут, после чего перезапрашивается из БД. Гарантирует актуальность
+    # даже при пропущенной инвалидации и естественным образом ограничивает
+    # размер кэша (просроченные записи удаляются при чтении), поэтому
+    # отдельный лимит размера не нужен.
+    _COMPLETED_RENTALS_CACHE_TTL_SECONDS = 300
+
+    # Классовый кэш для количества завершенных аренд:
+    # user_id -> (count, created_at_monotonic)
     # Обновляется при каждом вызове update_user_status_by_rentals
-    _completed_rentals_cache: Dict[int, int] = {}
+    _completed_rentals_cache: Dict[int, Tuple[int, float]] = {}
     
     def __init__(
         self,
@@ -94,8 +103,8 @@ class UserStatusService:
         # Получаем количество завершенных аренд (с использованием кэша)
         completed_count = await self._get_user_completed_rentals_count(user_id)
         
-        # Обновляем кэш
-        self._completed_rentals_cache[user_id] = completed_count
+        # Обновляем кэш (со свежим таймстампом)
+        self._completed_rentals_cache[user_id] = (completed_count, time.monotonic())
         
         # Определяем новый статус
         if completed_count >= COMPLETED_RENTALS_FOR_VIP:
@@ -330,11 +339,16 @@ class UserStatusService:
         Returns:
             Количество завершенных аренд
         """
-        # Проверяем кэш, если он включен и данные есть
-        if use_cache and user_id in self._completed_rentals_cache:
-            cached_count = self._completed_rentals_cache[user_id]
-            logger.debug(f"Использован кэш для количества завершенных аренд пользователя {user_id}: {cached_count}")
-            return cached_count
+        # Проверяем кэш, если он включен и данные есть (и не истёк TTL)
+        if use_cache:
+            cached = self._completed_rentals_cache.get(user_id)
+            if cached is not None:
+                cached_count, created_at = cached
+                if time.monotonic() - created_at < self._COMPLETED_RENTALS_CACHE_TTL_SECONDS:
+                    logger.debug(f"Использован кэш для количества завершенных аренд пользователя {user_id}: {cached_count}")
+                    return cached_count
+                # Просроченное значение игнорируем — перезапрашиваем из БД
+                del self._completed_rentals_cache[user_id]
         
         # Запрашиваем из БД
         counts = await self.rental_repo.get_user_completed_rentals_count([user_id])
@@ -342,7 +356,7 @@ class UserStatusService:
         
         # Обновляем кэш
         if use_cache:
-            self._completed_rentals_cache[user_id] = count
+            self._completed_rentals_cache[user_id] = (count, time.monotonic())
         
         return count
     

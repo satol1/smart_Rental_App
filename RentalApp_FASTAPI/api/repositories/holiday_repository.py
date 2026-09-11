@@ -120,19 +120,30 @@ class HolidayRepository:
         return result.scalars().all()
     
     async def find_next_working_day(self, start_date: date) -> date:
-        """Находит ближайший рабочий день."""
+        """Находит ближайший рабочий день.
+
+        Загружает праздники диапазона ОДНИМ запросом и итерируется по
+        множеству дат в памяти (семантика прежняя: до 365 шагов вперёд,
+        каждый шаг пропускает день, являющийся выходным).
+        """
         from datetime import timedelta
-        
-        next_day = start_date
+
         max_iterations = 365
+
+        holidays = await self.get_holidays_in_range(
+            start_date, start_date + timedelta(days=max_iterations)
+        )
+        holiday_dates = {holiday.date for holiday in holidays}
+
+        next_day = start_date
         iterations = 0
-        
+
         while iterations < max_iterations:
-            if not await self.is_holiday(next_day):
+            if next_day not in holiday_dates:
                 break
             next_day += timedelta(days=1)
             iterations += 1
-            
+
         return next_day
     
     async def check_conflicting_rentals(self, holiday_date: date) -> List[int]:

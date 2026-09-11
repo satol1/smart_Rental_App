@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FinancialSummaryBlock from '../FinancialSummaryBlock';
-import { formatMoney } from '@/components/ui/money-text';
+import { formatMoney } from '@/lib/money';
 
 const priceDetails = {
     day_count: 3, full_total: 9000, final_total: 7200, discount_amount: 1800,

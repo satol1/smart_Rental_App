@@ -121,7 +121,7 @@ export default function EquipmentForm({ mode, initialData, onSuccess, onCancel }
                 const createdData = await createMutation.mutateAsync(data as EquipmentCreateSchema);
                 onSuccess(createdData);
             }
-        } catch (error) {
+        } catch {
             // Ошибки обрабатываются в хуках мутаций
         }
     };

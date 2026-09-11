@@ -76,7 +76,7 @@ export default function AllReservationsManagementPage() {
         return () => {
             clearSelection();
         };
-    }, []);
+    }, [clearSelection]);
 
     const equipmentMap = useMemo(() => {
         return new Map(allEquipment.map(e => [e.id, e]));

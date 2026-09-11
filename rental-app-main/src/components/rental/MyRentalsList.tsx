@@ -11,7 +11,8 @@ import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger
 import { useOrderFilterStore } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
 import type { RefObject } from "react";
-import EmptyStateWithActions, { useEmptyStateActions } from "../shared/EmptyStateWithActions";
+import EmptyStateWithActions from "../shared/EmptyStateWithActions";
+import { useEmptyStateActions } from "../shared/useEmptyStateActions";
 
 interface MyRentalsListProps {
     getHighlightClasses: (id: number) => string;

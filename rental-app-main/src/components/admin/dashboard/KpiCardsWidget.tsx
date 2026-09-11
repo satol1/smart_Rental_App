@@ -1,5 +1,5 @@
 // src/components/admin/dashboard/KpiCardsWidget.tsx
-import { formatMoney } from "@/components/ui/money-text";
+import { formatMoney } from "@/lib/money";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

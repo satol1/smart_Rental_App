@@ -11,6 +11,7 @@ from api.models.equipment import Equipment
 from api.models.rental import Rental
 from api.models.reservation import Reservation
 from api.repositories.equipment_repository import EquipmentRepository
+from api.services.equipment_filter_service import invalidate_available_filters_cache
 from shared.constants.order_status import OrderStatus
 from shared.schemas.equipment_schema import EquipmentUpdateExtended, EquipmentCopyRequest
 
@@ -52,11 +53,14 @@ class EquipmentCRUDService:
     async def update_equipment_details(self, equipment_id: int, equipment_data: EquipmentUpdateExtended) -> Equipment:
         """Обновляет детали оборудования с обработкой связей."""
         db_equipment = await self.get_equipment_by_id(equipment_id)
-        
+
         # Используем метод репозитория для обновления с обработкой связей
         updated_equipment = await self.repo.update_with_relations(db_equipment, equipment_data)
         # Коммитим транзакцию для сохранения изменений в базе данных
         # Транзакция коммитится middleware
+
+        # Инвалидация кэша availableFilters каталога
+        invalidate_available_filters_cache()
         return updated_equipment
 
     async def create_equipment(self, equipment_data) -> Equipment:
@@ -64,6 +68,9 @@ class EquipmentCRUDService:
         equipment = await self.repo.create(equipment_data)
         # Коммитим транзакцию для сохранения изменений в базе данных
         # Транзакция коммитится middleware
+
+        # Инвалидация кэша availableFilters каталога
+        invalidate_available_filters_cache()
         return equipment
 
     async def count_active_links(self, equipment_id: int) -> Tuple[int, int]:
@@ -115,11 +122,18 @@ class EquipmentCRUDService:
         await self.repo.delete(equipment_id)
         # Коммитим транзакцию для сохранения изменений в базе данных
         # Транзакция коммитится middleware
-    
-    
+
+        # Инвалидация кэша availableFilters каталога
+        invalidate_available_filters_cache()
+
+
     async def copy_equipment(self, source_id: int, copy_data: EquipmentCopyRequest) -> Equipment:
         """Копирует оборудование через репозиторий"""
-        return await self.repo.copy_equipment(source_id, copy_data)
+        equipment = await self.repo.copy_equipment(source_id, copy_data)
+
+        # Инвалидация кэша availableFilters каталога (копия = новое оборудование)
+        invalidate_available_filters_cache()
+        return equipment
     
     def _validate_equipment_fields(self, equipment_list: list[Equipment]) -> None:
         """Валидирует и исправляет поля оборудования."""

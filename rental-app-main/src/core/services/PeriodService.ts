@@ -112,9 +112,10 @@ export class PeriodService {
           return `Неделя ${this.formatDate(startDate, "dd.MM")} - ${this.formatDate(endDate, "dd.MM.yyyy")}`;
         case "month":
           return this.formatDate(startDate, "MMMM yyyy");
-        case "quarter":
+        case "quarter": {
           const quarterNum = Math.floor(startDate.getMonth() / 3) + 1;
           return `${quarterNum} Квартал ${startDate.getFullYear()}`;
+        }
         case "year":
           return startDate.getFullYear().toString();
         default:

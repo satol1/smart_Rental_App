@@ -2,6 +2,12 @@
 
 **Дата:** 11.09.2026 · **Ветка:** `feat/rental-design-system-v2` · **Охват:** бэкенд (146 файлов API), фронтенд (423 TS/TSX), контракт API, Docker/nginx/тесты/CI.
 
+> **Статус внедрения (12.09.2026):** этапы 0–3 — выполнены (коммиты 916b0d3…1337bf2).
+> **Этап 4 (контракт API и архитектура) — выполнен** (e46aad1): codegen openapi-typescript + CI-job проверки дрейфа, чистка мёртвого API (13 эндпоинтов, включая модуль admin_security), фиксы PromoCodeService/AvailabilityService/packs, дедуп reservation_service (681→558), CalendarViewService, guard'ы ошибок, смена пароля в ProfilePage.
+> **Этап 5 (производительность, тесты, CI) — выполнен:** N+1 (кэш+однократный расчёт фильтров каталога, батч праздников, find_next_working_day одним запросом, lazy=selectin), integration/e2e + Playwright smoke в CI, eslint блокирующий (0 ошибок), +33 HTTP-теста, redis.asyncio, TTL кэша, CI-гигиена (concurrency/timeout/audit).
+> **Отложено:** ruff format --check (361 файл — отдельная миграция форматирования), advisory mypy (нет базовой конфигурации), ARQ/outbox для Telegram, rate-limiter на Redis (осознанно memory://).
+> **Новые находки (кандидаты в следующий цикл):** POST /promocodes/validate без CSRF-зависимости; пагинация GET /promocodes/ режет полный список в роутере; поля applicable_to_* в PromoCodeBase без ORM-колонок (сериализуются как Optional-пустышки).
+
 Аудит проводился четырьмя параллельными направлениями (бэкенд, фронтенд/UI-UX, контракт фронт↔бэк, инфраструктура). Все находки уровня «критично» перепроверены вручную по коду. Пути фронтенда указаны от `rental-app-main/src`, бэкенда — от `RentalApp_FASTAPI`.
 
 ---

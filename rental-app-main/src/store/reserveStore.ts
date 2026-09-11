@@ -210,28 +210,3 @@ export const useReserveStore = create<ReserveStore>()(
         }
     }))
 );
-
-// Подписки на изменения для отладки (остаются без изменений)
-useReserveStore.subscribe(
-    (state) => state.items,
-    (items, previousItems) => {
-        if (items.length !== previousItems.length) {
-        }
-    }
-);
-
-useReserveStore.subscribe(
-    (state) => state.reservationId,
-    (reservationId, previousReservationId) => {
-        if (reservationId !== previousReservationId) {
-        }
-    }
-);
-
-useReserveStore.subscribe(
-    (state) => state.addToReservationMode,
-    (addToReservationMode, previousAddToReservationMode) => {
-        if (addToReservationMode !== previousAddToReservationMode) {
-        }
-    }
-);

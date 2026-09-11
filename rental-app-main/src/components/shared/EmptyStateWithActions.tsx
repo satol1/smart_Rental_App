@@ -2,7 +2,6 @@
 
 
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 
 interface ActionButton {
@@ -68,22 +67,4 @@ export default function EmptyStateWithActions({
             </div>
         </div>
     );
-}
-
-// Хук для стандартных действий
-export function useEmptyStateActions() {
-    const navigate = useNavigate();
-
-    const goToEquipmentSelection = () => {
-        navigate("/");
-    };
-
-    const goToHowItWorks = () => {
-        navigate("/how-it-works");
-    };
-
-    return {
-        goToEquipmentSelection,
-        goToHowItWorks
-    };
 }

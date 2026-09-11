@@ -7,6 +7,7 @@ get_summary не дёргает под-сервисы/репозитории, а
 пересчитать агрегат заново.
 """
 
+import asyncio
 import time
 
 import pytest
@@ -40,24 +41,24 @@ KPI_DATA = {
 
 
 class FakeDashboardStorage:
-    """Fake redis-хранилище кэша: get/setex/delete."""
+    """Fake async redis-хранилище кэша: get/setex/delete."""
 
     def __init__(self):
         self.data: dict = {}
         self.expires: dict = {}
         self.now = time.time()
 
-    def get(self, key):
+    async def get(self, key):
         if key in self.data and self.expires.get(key, float("inf")) > self.now:
             return self.data[key]
         return None
 
-    def setex(self, key, ttl_seconds, value):
+    async def setex(self, key, ttl_seconds, value):
         self.data[key] = value
         self.expires[key] = self.now + int(ttl_seconds)
         return True
 
-    def delete(self, *keys):
+    async def delete(self, *keys):
         deleted = 0
         for key in keys:
             if key in self.data:
@@ -70,7 +71,7 @@ class FakeDashboardStorage:
 @pytest.fixture
 def fake_storage(monkeypatch):
     fake = FakeDashboardStorage()
-    monkeypatch.setattr(redis_module.redis_client, "is_available", lambda: True)
+    monkeypatch.setattr(redis_module.redis_client, "is_available", AsyncMock(return_value=True))
     monkeypatch.setattr(redis_module.redis_client, "get", fake.get)
     monkeypatch.setattr(redis_module.redis_client, "setex", fake.setex)
     monkeypatch.setattr(redis_module.redis_client, "delete", fake.delete)
@@ -143,6 +144,9 @@ class TestDashboardSummaryCache:
         calls_after_first = _compute_calls(dashboard_service)
 
         invalidate_dashboard_summary()
+        # Redis-часть инвалидации выполняется фоновой задачей — даём loop
+        # отработать запланированную задачу до следующего чтения кэша
+        await asyncio.sleep(0)
 
         await dashboard_service.get_summary()
         assert _compute_calls(dashboard_service) == calls_after_first * 2

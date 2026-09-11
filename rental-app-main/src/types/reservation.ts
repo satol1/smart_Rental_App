@@ -2,7 +2,7 @@
 
 import type { UserOut } from "./user";
 import type { Accessory } from "./accessory";
-import type { AdminRentalOut } from "./rental";
+import type { Equipment } from "./equipment";
 import type { OrderStatus } from '@/constants/statusConstants';
 
 export interface AccessoryLink {
@@ -72,9 +72,32 @@ export interface AdminReservationListResponse {
     total: number;
 }
 
+/**
+ * Унифицированное представление заказа (резерв/аренда) для модалки деталей события календаря.
+ * Объединяет поля админ-версий (AdminReservationOut/AdminRentalOut) и публичной
+ * (ограниченной) версии API; отсутствующие в конкретной версии поля опциональны.
+ */
+export interface CalendarEventOrder {
+    id: number;
+    start_date: string;
+    end_date: string;
+    // Поля админ-версий
+    user?: UserOut | null;
+    user_info?: UserOut | null;
+    equipment?: Equipment[];
+    accessory_links?: AccessoryLink[];
+    total_cost?: number;
+    discount_amount?: number;
+    promo_code?: string | null;
+    // Поля публичной (ограниченной) версии
+    equipment_name?: string | null;
+    equipment_type?: string | null;
+    equipment_brand?: string | null;
+}
+
 // Интерфейс для ответа API деталей события календаря
 export interface CalendarEventDetailsResponse {
-    order: AdminReservationOut | AdminRentalOut | any; // any для публичной версии
+    order: CalendarEventOrder;
     is_owner: boolean;
     has_extended_access: boolean;
 }

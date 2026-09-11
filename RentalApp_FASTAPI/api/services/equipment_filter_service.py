@@ -1,6 +1,8 @@
 # api/services/equipment_filter_service.py
 
-from typing import List, Optional
+import time
+from typing import Dict, List, Optional, Tuple
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, and_
 from fastapi import HTTPException
@@ -13,6 +15,36 @@ from api.repositories.brand_system_repository import BrandSystemRepository
 from api.services.availability.availability_service import AvailabilityService
 from shared.schemas.association_schema import AssociationSimple
 from shared.schemas.brand_system_schema import BrandSystemSimple
+
+# --- In-process TTL-кэш availableFilters каталога ---
+# Простой кэш на время жизни процесса (без cache_service/redis): фильтры
+# каталога меняются редко, а рассинхрон между воркерами до TTL допустим.
+# Инвалидация — invalidate_available_filters_cache() при CUD оборудования.
+AVAILABLE_FILTERS_CACHE_TTL_SECONDS = 60.0
+# Верхняя граница записей: ключ включает свободный текст query, и без лимита
+# словарь неограниченно растёт от каждого уникального поискового запроса
+# (истёкшие по TTL записи иначе никто не вычищает).
+AVAILABLE_FILTERS_CACHE_MAX_ENTRIES = 128
+
+_available_filters_cache: Dict[Tuple, Tuple[float, dict]] = {}
+
+
+def _evict_and_bound_filters_cache(now: float) -> None:
+    """Вычищает просроченные записи; при переполнении выкидывает самые старые."""
+    expired = [k for k, (ts, _) in _available_filters_cache.items()
+               if now - ts >= AVAILABLE_FILTERS_CACHE_TTL_SECONDS]
+    for key in expired:
+        del _available_filters_cache[key]
+    overflow = len(_available_filters_cache) - AVAILABLE_FILTERS_CACHE_MAX_ENTRIES + 1
+    if overflow > 0:
+        oldest = sorted(_available_filters_cache.items(), key=lambda kv: kv[1][0])[:overflow]
+        for key, _ in oldest:
+            del _available_filters_cache[key]
+
+
+def invalidate_available_filters_cache() -> None:
+    """Сбрасывает in-process кэш availableFilters (вызывается при CUD оборудования)."""
+    _available_filters_cache.clear()
 
 
 class EquipmentFilterService:
@@ -41,8 +73,10 @@ class EquipmentFilterService:
         """
         # Валидация дат на уровне сервиса
         self._validate_date_range(available_only, start_date, end_date)
-        
-        # Используем репозиторий для получения отфильтрованных данных
+
+        # Используем репозиторий для получения отфильтрованных данных.
+        # Фильтры здесь не запрашиваем: доступные фильтры считаются отдельно
+        # через calculate_available_filters (с кэшем) — не считаем их дважды.
         items, total, _ = await self.equipment_repo.get_filtered_paginated(
             skip=skip,
             limit=limit,
@@ -52,7 +86,8 @@ class EquipmentFilterService:
             association_id=association_id,
             start_date=start_date,
             end_date=end_date,
-            available_only=available_only
+            available_only=available_only,
+            include_available_filters=False
         )
         
         # Валидируем поля оборудования
@@ -74,22 +109,40 @@ class EquipmentFilterService:
         Вычисляет доступные опции для фильтров на основе текущих примененных фильтров.
         Реализует "умную" фильтрацию - показывает только те опции, которые релевантны
         для текущего набора фильтров.
+
+        Результат кэшируется in-process на AVAILABLE_FILTERS_CACHE_TTL_SECONDS
+        (ключ — набор примененных фильтров), поэтому повторные запросы каталога
+        не выполняют служебные запросы фильтров заново.
         """
+        cache_key: Tuple = (
+            query, type, brand_system_id, association_id,
+            start_date, end_date, available_only
+        )
+        now = time.monotonic()
+        cached = _available_filters_cache.get(cache_key)
+        if cached is not None and now - cached[0] < AVAILABLE_FILTERS_CACHE_TTL_SECONDS:
+            # Копия включая вложенные списки — внешние мутации не должны попасть в кэш
+            return {k: list(v) for k, v in cached[1].items()}
+
         # Получаем базовые условия для всех запросов
         base_conditions = self._get_base_filter_conditions(
             query, start_date, end_date, available_only
         )
-        
+
         # Выполняем все запросы последовательно для избежания конфликтов сессий
         available_types = await self._get_available_types(base_conditions, brand_system_id, association_id)
         available_brands = await self._get_available_brands(base_conditions, type, association_id)
         available_associations = await self._get_available_associations(base_conditions, type, brand_system_id)
-        
-        return {
+
+        result = {
             "types": available_types,
             "brands": available_brands,
             "associations": available_associations
         }
+
+        _evict_and_bound_filters_cache(now)
+        _available_filters_cache[cache_key] = (now, result)
+        return {k: list(v) for k, v in result.items()}
     
     def _validate_date_range(
         self, 

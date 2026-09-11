@@ -38,7 +38,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
                 return {
                     bgColor: "bg-success-soft/60 hover:bg-success-soft",
                     badgeText: "Возврат",
-                    badgeVariant: "secondary" as "secondary",
+                    badgeVariant: "secondary" as const,
                     scheduledTime: returnItem.scheduled_time ? new Date(returnItem.scheduled_time).toLocaleDateString('ru-RU') : 'Не указано'
                 };
             }
@@ -48,7 +48,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
                 return {
                     bgColor: "bg-danger-soft/60 hover:bg-danger-soft",
                     badgeText: "Просрочено",
-                    badgeVariant: "destructive" as "destructive",
+                    badgeVariant: "destructive" as const,
                     scheduledTime: daysOverdue > 0 ? `${daysOverdue} дн.` : 'Просрочено',
                     showAlertIcon: true
                 };

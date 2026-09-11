@@ -52,15 +52,26 @@ def event_loop():
 def _clean_aggregate_cache():
     """Кэш агрегатов (dashboard:summary) не должен протекать между тестами.
 
-    Очищает и in-memory, и redis-часть хранилища (если redis доступен).
+    Очищает in-memory часть хранилища (sync-контекст фикстуры); redis-часть
+    в тестовом окружении недоступна и всегда идёт по fail-open пути.
     """
     from api.services.cache_service import app_cache, DASHBOARD_SUMMARY_KEY
 
     app_cache.clear()
-    app_cache.invalidate(DASHBOARD_SUMMARY_KEY)
+    app_cache.invalidate_memory(DASHBOARD_SUMMARY_KEY)
     yield
     app_cache.clear()
-    app_cache.invalidate(DASHBOARD_SUMMARY_KEY)
+    app_cache.invalidate_memory(DASHBOARD_SUMMARY_KEY)
+
+
+@pytest.fixture(autouse=True)
+def _clean_available_filters_cache():
+    """In-process TTL-кэш availableFilters каталога не должен протекать между тестами."""
+    from api.services.equipment_filter_service import invalidate_available_filters_cache
+
+    invalidate_available_filters_cache()
+    yield
+    invalidate_available_filters_cache()
 
 
 @pytest.fixture

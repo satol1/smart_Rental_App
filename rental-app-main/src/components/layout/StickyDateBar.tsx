@@ -7,7 +7,7 @@ import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange
 import { Button } from '@/components/ui/button';
 import { transitionBase } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { useHeaderScrolled } from './Header';
+import { useHeaderScrolled } from './useHeaderScrolled';
 
 interface StickyDateBarProps { isVisible: boolean; }
 

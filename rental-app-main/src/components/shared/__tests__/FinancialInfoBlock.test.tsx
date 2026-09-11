@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import FinancialInfoBlock from '@/components/shared/FinancialInfoBlock';
-import { formatMoney } from '@/components/ui/money-text';
+import { formatMoney } from '@/lib/money';
 
 describe('FinancialInfoBlock', () => {
     it('показывает итоговую сумму', () => {

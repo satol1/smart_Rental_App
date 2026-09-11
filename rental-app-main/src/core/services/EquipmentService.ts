@@ -43,7 +43,7 @@ export class EquipmentService {
         limit: number,
         filters: EquipmentFilterParams = {}
     ): Promise<EquipmentListResponse> {
-        const params: Record<string, any> = { skip, limit };
+        const params: Record<string, string | number | boolean> = { skip, limit };
 
         if (filters.query) {
             params.query = filters.query;

@@ -119,12 +119,13 @@ async def calculate_price(
     promo_code_obj: Optional[PromoCode] = None
     promo_message: Optional[str] = None
 
-    preliminary_price_details = await financial_service.calculate_final_price(
-        request.equipment_ids, request.selected_accessories,
-        request.start_date, request.end_date, None
-    )
-
+    # Предварительный расчёт нужен только для валидации промокода (порог order_amount);
+    # без промокода считаем итоговую цену один раз
     if request.promo_code:
+        preliminary_price_details = await financial_service.calculate_final_price(
+            request.equipment_ids, request.selected_accessories,
+            request.start_date, request.end_date, None
+        )
         try:
             promo_code_obj = await promo_code_service.validate_promo_code_for_use(
                 request.promo_code, preliminary_price_details.full_total,

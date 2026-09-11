@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { MoneyText, formatMoney } from '@/components/ui/money-text';
+import { MoneyText } from '@/components/ui/money-text';
+import { formatMoney } from '@/lib/money';
 
 interface FinancialInfoBlockProps {
     totalCost?: number | null;

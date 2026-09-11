@@ -98,7 +98,7 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
         action();
     };
 
-    const cardStyles = getEquipmentCardStyles(equipment, status, isSelected);
+    const cardStyles = getEquipmentCardStyles(equipment, isSelected);
     const backgroundClass = cardStyles.background;
     const selectionClass = cardStyles.border;
     const dateRangeDisplay = (startDate && endDate) ? `(${formatDateRangeEuropean(startDate, endDate)})` : "";
@@ -220,7 +220,7 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
         action();
     };
 
-    const cardStyles = getEquipmentCardStyles(equipment, status, isSelected);
+    const cardStyles = getEquipmentCardStyles(equipment, isSelected);
     const backgroundClass = cardStyles.background;
     const selectionClass = cardStyles.border;
     const dateRangeDisplay = (startDate && endDate) ? `(${formatDateRangeEuropean(startDate, endDate)})` : "";

@@ -149,7 +149,7 @@ api.interceptors.response.use(
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`
           return api(originalRequest)
         }
-      } catch (e) {
+      } catch {
         // Если refresh не доступен/упал — очищаем токен и пробрасываем ошибку
         clearAccessToken()
         pendingRequests.forEach((cb) => cb(null))

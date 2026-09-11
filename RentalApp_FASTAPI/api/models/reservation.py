@@ -40,18 +40,20 @@ class Reservation(Base):
 
     user = relationship("User", back_populates="reservations", lazy="joined")
     applied_promo_code = relationship("PromoCode", lazy="joined")
+    # Коллекции грузим selectin-ом (отдельный IN-запрос): joined давал
+    # декартово произведение строк на выборках списка резервов
     equipment = relationship(
         "Equipment",
         secondary=reservation_equipment_association,
         back_populates="reservations",
-        lazy="joined"
+        lazy="selectin"
     )
     # --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
     accessory_links = relationship(
         "ReservationAccessory",
         back_populates="reservation",
         cascade="all, delete-orphan",
-        lazy="joined"
+        lazy="selectin"
     )
     # -------------------------
     rental = relationship("Rental", back_populates="reservation", uselist=False, cascade="all, delete-orphan", single_parent=True)

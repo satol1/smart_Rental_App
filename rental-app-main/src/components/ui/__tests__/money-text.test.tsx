@@ -3,7 +3,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { MoneyText, formatMoney } from '@/components/ui/money-text';
+import { MoneyText } from '@/components/ui/money-text';
+import { formatMoney } from '@/lib/money';
 
 describe('formatMoney', () => {
     it('форматирует целую сумму в рублях', () => {

@@ -14,8 +14,7 @@ type UseReservationManagementReturn = {
 
 export function useReservationManagement(
     _filteredItems: Equipment[],
-    availabilityMap: Record<number, AvailabilityInfo>,
-    _availableOnly: boolean
+    availabilityMap: Record<number, AvailabilityInfo>
 ): UseReservationManagementReturn {
     const location = useLocation();
     const { items: selectedItems, addToReservationMode } = useReserveStore();

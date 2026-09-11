@@ -21,7 +21,7 @@ from config.core import settings
 
 
 class FakeRedis:
-    """Минимальный fake redis-клиента: get/setex/incr/expire/delete/ttl/keys."""
+    """Минимальный fake async redis-клиента: get/setex/incr/expire/delete/ttl/keys."""
 
     def __init__(self):
         self.data: dict = {}       # key -> value
@@ -36,18 +36,18 @@ class FakeRedis:
     def fast_forward(self, seconds: float):
         self.now += seconds
 
-    # ── API redis ──
-    def get(self, key):
+    # ── API redis (async, как у redis.asyncio) ──
+    async def get(self, key):
         if key in self.data and self._alive(key):
             return self.data[key]
         return None
 
-    def setex(self, key, ttl_seconds, value):
+    async def setex(self, key, ttl_seconds, value):
         self.data[key] = value
         self.expires[key] = self.now + int(ttl_seconds)
         return True
 
-    def incr(self, key):
+    async def incr(self, key):
         value = int(self.data[key]) if self._alive(key) and key in self.data else 0
         value += 1
         self.data[key] = value
@@ -56,19 +56,19 @@ class FakeRedis:
             self.expires.pop(key, None)
         return value
 
-    def expire(self, key, ttl_seconds):
+    async def expire(self, key, ttl_seconds):
         if key in self.data:
             self.expires[key] = self.now + int(ttl_seconds)
             return True
         return False
 
-    def ttl(self, key):
+    async def ttl(self, key):
         if key not in self.data or not self._alive(key):
             return -2
         expires_at = self.expires.get(key)
         return int(expires_at - self.now) if expires_at else -1
 
-    def delete(self, *keys):
+    async def delete(self, *keys):
         deleted = 0
         for key in keys:
             if key in self.data:
@@ -77,7 +77,7 @@ class FakeRedis:
                 deleted += 1
         return deleted
 
-    def keys(self, pattern):
+    async def keys(self, pattern):
         prefix = pattern.rstrip("*")
         return [k for k in self.data if k.startswith(prefix) and self._alive(k)]
 
@@ -86,7 +86,7 @@ class FakeRedis:
 def fake_redis(monkeypatch):
     """Подменяет singleton redis-клиента на fake: хранилища идут по redis-пути."""
     fake = FakeRedis()
-    monkeypatch.setattr(redis_module.redis_client, "is_available", lambda: True)
+    monkeypatch.setattr(redis_module.redis_client, "is_available", AsyncMock(return_value=True))
     monkeypatch.setattr(redis_module.redis_client, "get", fake.get)
     monkeypatch.setattr(redis_module.redis_client, "setex", fake.setex)
     monkeypatch.setattr(redis_module.redis_client, "incr", fake.incr)
@@ -101,36 +101,36 @@ def fake_redis(monkeypatch):
 
 class TestTokenDenylistRedisPath:
 
-    def test_deny_writes_key_with_ttl(self, fake_redis):
+    async def test_deny_writes_key_with_ttl(self, fake_redis):
         denylist = TokenDenylistService()
 
-        denylist.deny("jti-redis-1", expires_at=time.time() + 3600)
+        await denylist.deny("jti-redis-1", expires_at=time.time() + 3600)
 
         assert "denylist:jti-redis-1" in fake_redis.data
         assert fake_redis.expires["denylist:jti-redis-1"] > time.time() + 3500
 
-    def test_deny_of_expired_token_writes_min_ttl(self, fake_redis):
+    async def test_deny_of_expired_token_writes_min_ttl(self, fake_redis):
         """Уже истёкший токен всё равно денонсируется минимум на 1 секунду."""
         denylist = TokenDenylistService()
 
-        denylist.deny("jti-late", expires_at=time.time() - 10)
+        await denylist.deny("jti-late", expires_at=time.time() - 10)
 
         assert "denylist:jti-late" in fake_redis.data
 
-    def test_is_denied_reads_redis(self, fake_redis):
+    async def test_is_denied_reads_redis(self, fake_redis):
         denylist = TokenDenylistService()
-        denylist.deny("jti-redis-2", expires_at=time.time() + 3600)
+        await denylist.deny("jti-redis-2", expires_at=time.time() + 3600)
 
-        assert denylist.is_denied("jti-redis-2") is True
-        assert denylist.is_denied("jti-unknown") is False
+        assert await denylist.is_denied("jti-redis-2") is True
+        assert await denylist.is_denied("jti-unknown") is False
 
-    def test_is_denied_false_after_ttl_expiry(self, fake_redis):
+    async def test_is_denied_false_after_ttl_expiry(self, fake_redis):
         denylist = TokenDenylistService()
-        denylist.deny("jti-ttl", expires_at=time.time() + 60)
+        await denylist.deny("jti-ttl", expires_at=time.time() + 60)
 
         fake_redis.fast_forward(61)
 
-        assert denylist.is_denied("jti-ttl") is False
+        assert await denylist.is_denied("jti-ttl") is False
 
 
 # ═══════════════════════ BruteForceProtectionService ═══════════════════════
@@ -170,9 +170,9 @@ class TestBruteForceRedisPath:
 
     async def test_blocked_ip_rejected_by_can_attempt_login(self, brute_force_service, fake_redis):
         ip = "10.0.0.3"
-        fake_redis.setex("bf:block:" + ip, 3600, "1")
+        await fake_redis.setex("bf:block:" + ip, 3600, "1")
 
-        can_attempt, reason = brute_force_service.can_attempt_login(ip)
+        can_attempt, reason = await brute_force_service.can_attempt_login(ip)
 
         assert can_attempt is False
         assert "заблокирован" in reason.lower()
@@ -188,30 +188,30 @@ class TestBruteForceRedisPath:
 
     async def test_unblock_and_list_blocked(self, brute_force_service, fake_redis):
         ip = "10.0.0.5"
-        brute_force_service._block_ip(ip)
+        await brute_force_service._block_ip(ip)
 
-        blocked = brute_force_service.get_all_blocked_ips()
+        blocked = await brute_force_service.get_all_blocked_ips()
         assert ip in blocked
         assert blocked[ip] is not None
 
-        assert brute_force_service.unblock_ip(ip) is True
-        assert brute_force_service.unblock_ip(ip) is False
-        assert ip not in brute_force_service.get_all_blocked_ips()
+        assert await brute_force_service.unblock_ip(ip) is True
+        assert await brute_force_service.unblock_ip(ip) is False
+        assert ip not in await brute_force_service.get_all_blocked_ips()
 
 
 # ═══════════════════════════ Rate limiter storage ═══════════════════════════
 
 class TestRateLimiterStorageSelection:
 
-    def test_storage_uri_redis_when_available(self, monkeypatch):
-        monkeypatch.setattr(redis_module.redis_client, "is_available", lambda: True)
+    async def test_storage_uri_redis_when_available(self, monkeypatch):
+        monkeypatch.setattr(redis_module.redis_client, "is_available", AsyncMock(return_value=True))
 
-        assert storage_uri_for_limiter() == settings.REDIS_URL
+        assert await storage_uri_for_limiter() == settings.REDIS_URL
 
-    def test_storage_uri_memory_when_unavailable(self, monkeypatch):
-        monkeypatch.setattr(redis_module.redis_client, "is_available", lambda: False)
+    async def test_storage_uri_memory_when_unavailable(self, monkeypatch):
+        monkeypatch.setattr(redis_module.redis_client, "is_available", AsyncMock(return_value=False))
 
-        assert storage_uri_for_limiter() == "memory://"
+        assert await storage_uri_for_limiter() == "memory://"
 
     def test_module_limiter_uses_memory_in_test_env(self):
         """В тестовом окружении (без редиса) limiter создан с memory-хранилищем."""

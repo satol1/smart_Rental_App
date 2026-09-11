@@ -44,7 +44,7 @@ class DashboardService:
         и без кэша каждый запрос дёргает их все. Инвалидация — при
         мутациях резервов/аренд (см. invalidate_dashboard_summary).
         """
-        cached = app_cache.get_json(DASHBOARD_SUMMARY_KEY)
+        cached = await app_cache.get_json(DASHBOARD_SUMMARY_KEY)
         if cached is not None:
             try:
                 return DashboardSummaryResponse.model_validate(cached)
@@ -70,7 +70,7 @@ class DashboardService:
                 popular_equipment=popular_equipment
             )
 
-            app_cache.set_json(
+            await app_cache.set_json(
                 DASHBOARD_SUMMARY_KEY,
                 summary.model_dump(mode="json"),
                 DASHBOARD_SUMMARY_TTL_SECONDS,

@@ -52,9 +52,9 @@ class BruteForceProtectionService:
             "localhost"
         }
 
-    def _redis_is_used(self) -> bool:
+    async def _redis_is_used(self) -> bool:
         """Счётчики хранятся в Redis (иначе in-memory fallback)."""
-        return redis_client.is_available()
+        return await redis_client.is_available()
 
     def _is_whitelisted(self, ip_address: str) -> bool:
         """Проверка, находится ли IP в whitelist."""
@@ -69,29 +69,29 @@ class BruteForceProtectionService:
         while attempts and attempts[0] < window_start:
             attempts.popleft()
 
-    def _get_attempts_count(self, ip_address: str) -> int:
+    async def _get_attempts_count(self, ip_address: str) -> int:
         """Количество неудачных попыток в активном окне (redis или in-memory)."""
-        if self._redis_is_used():
-            raw = redis_client.get(_ATTEMPTS_KEY_PREFIX + ip_address)
+        if await self._redis_is_used():
+            raw = await redis_client.get(_ATTEMPTS_KEY_PREFIX + ip_address)
             return int(raw) if raw is not None else 0
         self._clean_old_attempts(ip_address)
         return len(self.attempts[ip_address])
 
-    def _get_block_until(self, ip_address: str) -> Optional[datetime]:
+    async def _get_block_until(self, ip_address: str) -> Optional[datetime]:
         """Момент окончания блокировки либо None (redis или in-memory)."""
-        if self._redis_is_used():
-            if not self._is_ip_blocked(ip_address):
+        if await self._redis_is_used():
+            if not await self._is_ip_blocked(ip_address):
                 return None
-            ttl = redis_client.ttl(_BLOCK_KEY_PREFIX + ip_address)
+            ttl = await redis_client.ttl(_BLOCK_KEY_PREFIX + ip_address)
             if ttl is None or ttl <= 0:
                 return None
             return datetime.utcnow() + timedelta(seconds=ttl)
         return self.blocked_ips.get(ip_address)
 
-    def _is_ip_blocked(self, ip_address: str) -> bool:
+    async def _is_ip_blocked(self, ip_address: str) -> bool:
         """Проверка, заблокирован ли IP."""
-        if self._redis_is_used():
-            return redis_client.get(_BLOCK_KEY_PREFIX + ip_address) is not None
+        if await self._redis_is_used():
+            return await redis_client.get(_BLOCK_KEY_PREFIX + ip_address) is not None
         if ip_address in self.blocked_ips:
             block_until = self.blocked_ips[ip_address]
             if datetime.utcnow() < block_until:
@@ -101,10 +101,10 @@ class BruteForceProtectionService:
                 del self.blocked_ips[ip_address]
         return False
 
-    def _block_ip(self, ip_address: str):
+    async def _block_ip(self, ip_address: str):
         """Блокировка IP адреса."""
-        if self._redis_is_used():
-            redis_client.setex(
+        if await self._redis_is_used():
+            await redis_client.setex(
                 _BLOCK_KEY_PREFIX + ip_address,
                 self.block_duration_minutes * 60,
                 datetime.utcnow().timestamp(),
@@ -127,13 +127,13 @@ class BruteForceProtectionService:
         if self._is_whitelisted(ip_address):
             return False
 
-        if self._is_ip_blocked(ip_address):
+        if await self._is_ip_blocked(ip_address):
             return True
 
         # Увеличиваем счётчик попыток
-        if self._redis_is_used():
+        if await self._redis_is_used():
             attempts_key = _ATTEMPTS_KEY_PREFIX + ip_address
-            attempt_count = redis_client.incr(attempts_key)
+            attempt_count = await redis_client.incr(attempts_key)
             if attempt_count is None:
                 # Redis сломался посреди операции — фиксируем попытку in-memory
                 self.attempts[ip_address].append(time.time())
@@ -141,7 +141,7 @@ class BruteForceProtectionService:
             else:
                 # TTL ставим на каждую попытку: если expire однажды молча
                 # не сработал, ключ не должен остаться жить без TTL
-                redis_client.expire(attempts_key, self.window_minutes * 60)
+                await redis_client.expire(attempts_key, self.window_minutes * 60)
         else:
             # Очищаем старые попытки
             self._clean_old_attempts(ip_address)
@@ -161,7 +161,7 @@ class BruteForceProtectionService:
 
         if attempt_count >= self.max_attempts:
             # Блокируем IP
-            self._block_ip(ip_address)
+            await self._block_ip(ip_address)
 
             # Логируем блокировку
             await self.security_audit_service.log_brute_force_attempt(
@@ -176,8 +176,8 @@ class BruteForceProtectionService:
 
     async def record_successful_login(self, ip_address: str, user_email: str):
         """Запись успешного входа (очищает счетчик попыток)."""
-        if self._redis_is_used():
-            redis_client.delete(_ATTEMPTS_KEY_PREFIX + ip_address)
+        if await self._redis_is_used():
+            await redis_client.delete(_ATTEMPTS_KEY_PREFIX + ip_address)
         elif ip_address in self.attempts:
             del self.attempts[ip_address]
 
@@ -188,7 +188,7 @@ class BruteForceProtectionService:
             ip_address=ip_address
         )
 
-    def can_attempt_login(self, ip_address: str) -> Tuple[bool, Optional[str]]:
+    async def can_attempt_login(self, ip_address: str) -> Tuple[bool, Optional[str]]:
         """
         Проверка, можно ли пытаться войти с данного IP.
 
@@ -198,12 +198,12 @@ class BruteForceProtectionService:
         if self._is_whitelisted(ip_address):
             return True, None
 
-        if self._is_ip_blocked(ip_address):
-            block_until = self._get_block_until(ip_address)
+        if await self._is_ip_blocked(ip_address):
+            block_until = await self._get_block_until(ip_address)
             until_str = block_until.strftime('%H:%M:%S') if block_until else "истечение TTL"
             return False, f"IP заблокирован до {until_str}"
 
-        attempt_count = self._get_attempts_count(ip_address)
+        attempt_count = await self._get_attempts_count(ip_address)
         if attempt_count >= self.max_attempts:
             return False, f"Превышено максимальное количество попыток ({self.max_attempts})"
 
@@ -213,29 +213,29 @@ class BruteForceProtectionService:
 
         return True, None
 
-    def get_attempt_stats(self, ip_address: str) -> Dict[str, any]:
+    async def get_attempt_stats(self, ip_address: str) -> Dict[str, any]:
         """Получение статистики попыток для IP."""
-        attempt_count = self._get_attempts_count(ip_address)
-        is_blocked = self._is_ip_blocked(ip_address)
+        attempt_count = await self._get_attempts_count(ip_address)
+        is_blocked = await self._is_ip_blocked(ip_address)
 
         return {
             "ip_address": ip_address,
             "attempt_count": attempt_count,
             "max_attempts": self.max_attempts,
             "is_blocked": is_blocked,
-            "blocked_until": self._get_block_until(ip_address) if is_blocked else None,
+            "blocked_until": await self._get_block_until(ip_address) if is_blocked else None,
             "remaining_attempts": max(0, self.max_attempts - attempt_count),
             "is_whitelisted": self._is_whitelisted(ip_address)
         }
 
-    def unblock_ip(self, ip_address: str) -> bool:
+    async def unblock_ip(self, ip_address: str) -> bool:
         """Разблокировка IP адреса (для админов)."""
-        if self._redis_is_used():
-            was_blocked = redis_client.get(_BLOCK_KEY_PREFIX + ip_address) is not None
+        if await self._redis_is_used():
+            was_blocked = await redis_client.get(_BLOCK_KEY_PREFIX + ip_address) is not None
             # Снимаем и блок-ключ, и счётчик попыток: иначе can_attempt_login
             # продолжит видеть counter >= max и вход останется невозможным
-            redis_client.delete(_BLOCK_KEY_PREFIX + ip_address)
-            redis_client.delete(_ATTEMPTS_KEY_PREFIX + ip_address)
+            await redis_client.delete(_BLOCK_KEY_PREFIX + ip_address)
+            await redis_client.delete(_ATTEMPTS_KEY_PREFIX + ip_address)
             if was_blocked:
                 logger.info(f"IP {ip_address} unblocked by admin")
             return was_blocked
@@ -256,13 +256,13 @@ class BruteForceProtectionService:
         self.whitelist.discard(ip_address)
         logger.info(f"IP {ip_address} removed from whitelist")
 
-    def get_all_blocked_ips(self) -> Dict[str, datetime]:
+    async def get_all_blocked_ips(self) -> Dict[str, datetime]:
         """Получение списка всех заблокированных IP."""
-        if self._redis_is_used():
+        if await self._redis_is_used():
             blocked: Dict[str, datetime] = {}
-            for key in redis_client.keys(_BLOCK_KEY_PREFIX + "*"):
+            for key in await redis_client.keys(_BLOCK_KEY_PREFIX + "*"):
                 ip_address = key[len(_BLOCK_KEY_PREFIX):]
-                block_until = self._get_block_until(ip_address)
+                block_until = await self._get_block_until(ip_address)
                 if block_until is not None:
                     blocked[ip_address] = block_until
             return blocked
@@ -279,12 +279,12 @@ class BruteForceProtectionService:
 
         return self.blocked_ips.copy()
 
-    def cleanup_expired_data(self):
+    async def cleanup_expired_data(self):
         """Очистка истекших данных (вызывать периодически).
 
         В redis-пути истечение обрабатывают TTL ключей — чистить нечего.
         """
-        if self._redis_is_used():
+        if await self._redis_is_used():
             logger.debug("Brute force data handled by redis TTL")
             return
 

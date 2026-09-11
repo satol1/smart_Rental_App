@@ -3,8 +3,18 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { DIProvider, useDI, useEquipmentService, createContainer } from '../Container';
+import { DIProvider, useDI, useEquipmentService, createContainer, type DIContainer } from '../Container';
 import { EquipmentService } from '../../services/EquipmentService';
+import { RentalService } from '../../services/RentalService';
+import { ReservationService } from '../../services/ReservationService';
+import { UserService } from '../../services/UserService';
+import { PromoCodeService } from '../../services/PromoCodeService';
+import { AccessoryService } from '../../services/AccessoryService';
+import { AvailabilityService } from '../../services/AvailabilityService';
+import { CalendarService } from '../../services/CalendarService';
+import { DateService } from '../../services/DateService';
+import { HolidayService } from '../../services/HolidayService';
+import { BrandSystemService } from '../../services/BrandSystemService';
 
 import { describe, it, expect, vi } from 'vitest';
 
@@ -36,19 +46,20 @@ describe('DI Container', () => {
     });
 
     it('should use custom container when provided', () => {
-      const customContainer = {
+      // Пустые заглушки сервисов: контейнер нужен только для проверки подстановки
+      const customContainer: DIContainer = {
         equipmentService: {} as EquipmentService,
-        rentalService: {} as any,
-        reservationService: {} as any,
-        userService: {} as any,
-        promoCodeService: {} as any,
-        accessoryService: {} as any,
-        availabilityService: {} as any,
-        calendarService: {} as any,
-        dateService: {} as any,
-        holidayService: {} as any,
-        brandSystemService: {} as any,
-        api: {} as any,
+        rentalService: {} as RentalService,
+        reservationService: {} as ReservationService,
+        userService: {} as UserService,
+        promoCodeService: {} as PromoCodeService,
+        accessoryService: {} as AccessoryService,
+        availabilityService: {} as AvailabilityService,
+        calendarService: {} as CalendarService,
+        dateService: {} as DateService,
+        holidayService: {} as HolidayService,
+        brandSystemService: {} as BrandSystemService,
+        api: {} as DIContainer['api'],
       };
 
       const TestComponent = () => {
@@ -72,7 +83,7 @@ describe('DI Container', () => {
         try {
           useDI();
           return <div data-testid="error">No error</div>;
-        } catch (error) {
+        } catch {
           return <div data-testid="error">Error caught</div>;
         }
       };

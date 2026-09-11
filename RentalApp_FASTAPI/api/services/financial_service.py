@@ -92,8 +92,24 @@ class FinancialService:
             raise ValueError("OrderValidator не инициализирован. Проверьте настройки DI-контейнера.")
         await self.order_validator.validate_dates_and_holidays(start_date, end_date)
 
-    async def get_rental_days(self, start_date: date, end_date: date) -> int:
-        """Рассчитывает количество тарифицируемых суток, исключая выходные дни."""
+    async def get_rental_days(
+        self,
+        start_date: date,
+        end_date: date,
+        holidays: Optional[List[Holiday]] = None
+    ) -> int:
+        """Рассчитывает количество тарифицируемых суток, исключая выходные дни.
+
+        Args:
+            start_date: Дата начала аренды
+            end_date: Дата окончания аренды
+            holidays: Опциональный префетч праздников (диапазон должен покрывать
+                [start_date, end_date]). Если передан — запрос к БД не выполняется
+                (математика та же: праздники считаются в [start, end)).
+
+        Returns:
+            Количество тарифицируемых суток
+        """
         if start_date > end_date:
             return 0
         # Если даты одинаковые, это аренда на 1 день
@@ -103,10 +119,18 @@ class FinancialService:
         # Подсчитываем выходные в тарифицируемом окне: end_date не тарифицируется
         # (аренда заканчивается в этот день), поэтому диапазон праздников —
         # полуоткрытый [start, end): праздник в end_date не уменьшает стоимость
-        holidays = await self.holiday_repo.get_holidays_in_range(
-            start_date, end_date - timedelta(days=1)
-        )
-        holidays_count = len(holidays)
+        if holidays is None:
+            holidays = await self.holiday_repo.get_holidays_in_range(
+                start_date, end_date - timedelta(days=1)
+            )
+            holidays_count = len(holidays)
+        else:
+            # Префетч покрывает более широкий диапазон — фильтруем в памяти
+            end_exclusive = end_date - timedelta(days=1)
+            holidays_count = sum(
+                1 for holiday in holidays
+                if start_date <= holiday.date <= end_exclusive
+            )
         return total_days - holidays_count
 
     async def calculate_final_price(
@@ -186,15 +210,24 @@ class FinancialService:
 
     # --- Методы расчета аренды (из rental_calculation_service) ---
 
-    async def calculate_daily_rate(self, rental: Rental) -> Decimal:
+    async def calculate_daily_rate(
+        self,
+        rental: Rental,
+        holidays: Optional[List[Holiday]] = None
+    ) -> Decimal:
         """
         Рассчитывает дневную ставку аренды на основе общей стоимости и планового количества дней.
+
+        Args:
+            rental: Объект аренды
+            holidays: Опциональный префетч праздников (см. get_rental_days);
+                позволяет избежать запроса праздников на каждую аренду
         """
         total_cost = to_decimal(rental.total_cost)
         if total_cost <= 0:
             return Decimal("0")
 
-        planned_days = await self.get_rental_days(rental.start_date, rental.end_date)
+        planned_days = await self.get_rental_days(rental.start_date, rental.end_date, holidays=holidays)
         if planned_days <= 0:
             return Decimal("0")
 
@@ -209,15 +242,26 @@ class FinancialService:
             
         return (actual_return_date - rental.end_date).days
     
-    async def calculate_overdue_surcharge(self, rental: Rental, actual_return_date: date) -> Decimal:
+    async def calculate_overdue_surcharge(
+        self,
+        rental: Rental,
+        actual_return_date: date,
+        holidays: Optional[List[Holiday]] = None
+    ) -> Decimal:
         """
         Рассчитывает штраф за просроченные дни аренды.
+
+        Args:
+            rental: Объект аренды
+            actual_return_date: Фактическая дата возврата
+            holidays: Опциональный префетч праздников (см. get_rental_days);
+                позволяет избежать запроса праздников на каждую аренду списка
         """
         overdue_days = self.calculate_overdue_days(rental, actual_return_date)
         if overdue_days <= 0:
             return Decimal("0")
 
-        daily_rate = await self.calculate_daily_rate(rental)
+        daily_rate = await self.calculate_daily_rate(rental, holidays=holidays)
         if daily_rate <= 0:
             return Decimal("0")
 

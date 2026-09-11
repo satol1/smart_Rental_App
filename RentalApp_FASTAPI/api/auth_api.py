@@ -168,7 +168,7 @@ async def refresh_token_endpoint(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh токен отсутствует")
 
     # verify_refresh_token проверяет подпись, type="refresh" и denylist (logout)
-    payload = auth_service.verify_refresh_token(refresh_token)
+    payload = await auth_service.verify_refresh_token(refresh_token)
     subject = payload.get("sub")
     if not subject:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Некорректный refresh токен")
@@ -195,7 +195,7 @@ async def logout(
     # Отзываем refresh-токен по jti (с TTL до момента его истечения)
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token:
-        auth_service.revoke_refresh_token(refresh_token)
+        await auth_service.revoke_refresh_token(refresh_token)
 
     secure_cookie = not settings.DEBUG
     cookie_domain = _resolve_cookie_domain(request)

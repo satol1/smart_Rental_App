@@ -657,21 +657,23 @@ class TestBillingFinancialChain:
         balance_service.add_transaction.assert_not_called()
 
     # -------------------------------------------------------------------------
-    # 8. Relationship Lazy Loading Safety (lazy='joined')
+    # 8. Relationship Lazy Loading Safety (eager-стратегии)
     # -------------------------------------------------------------------------
     def test_model_lazy_joined_relationships(self):
         """
-        Тест: Проверяет наличие lazy='joined' для ключевых связей,
+        Тест: Проверяет eager-загрузку ключевых связей (joined/selectin),
         чтобы исключить DetachedInstanceError в асинхронных моделях.
+        Скалярные связи — joined; коллекции — selectin (без декартова
+        произведения строк на списковых выборках).
         """
         from sqlalchemy.orm import class_mapper
 
         reservation_mapper = class_mapper(Reservation)
         assert reservation_mapper.relationships["user"].lazy == "joined"
         assert reservation_mapper.relationships["applied_promo_code"].lazy == "joined"
-        assert reservation_mapper.relationships["equipment"].lazy == "joined"
+        assert reservation_mapper.relationships["equipment"].lazy == "selectin"
 
         rental_mapper = class_mapper(Rental)
         assert rental_mapper.relationships["user"].lazy == "joined"
-        assert rental_mapper.relationships["equipment"].lazy == "joined"
+        assert rental_mapper.relationships["equipment"].lazy == "selectin"
 

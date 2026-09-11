@@ -6,13 +6,11 @@ import { Calendar, User, Package, ArrowRight } from "lucide-react";
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
 import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAccessoriesList";
 
-import type { AccessoryLink } from "@/types/reservation";
-import type { AdminReservationOut } from "@/types/reservation";
-import type { AdminRentalOut } from "@/types/rental";
+import type { AccessoryLink, CalendarEventOrder } from "@/types/reservation";
 
 // Унифицированный тип для данных события
 export interface CalendarEventDetails {
-    order: AdminReservationOut | AdminRentalOut | any; // Поддерживаем как полные, так и публичные данные
+    order: CalendarEventOrder; // Поддерживаем как полные, так и публичные данные
     orderType: 'reservation' | 'rental';
     isOwner?: boolean;
     hasExtendedAccess?: boolean;
@@ -37,8 +35,8 @@ export default function CalendarEventDetailsModal({
 
     const handleNavigate = () => {
         // Для публичных данных у нас может не быть userId
-        if (hasExtendedAccess && ('user' in order ? order.user?.id : order.user_info?.id)) {
-            const userId = 'user' in order ? order.user.id : order.user_info.id;
+        const userId = 'user' in order ? order.user?.id : order.user_info?.id;
+        if (hasExtendedAccess && userId) {
             onNavigateToOrder(orderType, order.id, userId);
         }
         onClose();
@@ -61,7 +59,7 @@ export default function CalendarEventDetailsModal({
                         {hasExtendedAccess && ('user' in order ? order.user?.full_name : order.user_info?.full_name) ? (
                             <div className="flex items-center gap-2">
                                 <User className="w-4 h-4 text-gray-500" />
-                                <span>{'user' in order ? order.user.full_name : order.user_info.full_name}</span>
+                                <span>{'user' in order ? order.user?.full_name : order.user_info?.full_name}</span>
                             </div>
                         ) : isOwner ? (
                             <div className="flex items-center gap-2">
@@ -96,7 +94,7 @@ export default function CalendarEventDetailsModal({
                             </div>
                         ) : hasExtendedAccess && 'equipment' in order ? (
                             <EquipmentWithAccessoriesList
-                                equipment={order.equipment}
+                                equipment={order.equipment ?? []}
                                 accessoryLinks={order.accessory_links as AccessoryLink[]}
                                 title=""
                                 showTitle={false}

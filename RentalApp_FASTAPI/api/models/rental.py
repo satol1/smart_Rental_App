@@ -56,14 +56,16 @@ class Rental(Base):
     reservation = relationship("Reservation", back_populates="rental")
     # --- КОНЕЦ ИСПРАВЛЕНИЙ ---
 
-    equipment = relationship("Equipment", secondary=rental_equipment_association, lazy="joined")
+    # Коллекции грузим selectin-ом (отдельный IN-запрос): joined давал
+    # декартово произведение строк на выборках списка аренд
+    equipment = relationship("Equipment", secondary=rental_equipment_association, lazy="selectin")
     balance_history = relationship("BalanceHistory", back_populates="rental")
     payments = relationship("Payment", back_populates="rental", cascade="all, delete-orphan")
     accessory_links = relationship(
         "RentalAccessory",
         back_populates="rental",
         cascade="all, delete-orphan",
-        lazy="joined"
+        lazy="selectin"
     )
 
     # ✅ Метод копирования аксессуаров удален - логика перенесена в репозиторий

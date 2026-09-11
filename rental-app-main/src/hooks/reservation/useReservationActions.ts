@@ -80,13 +80,13 @@ export function useReservationActions({
             });
             // clearReserveStore() и onFinishEditing теперь вызываются в onSuccess колбэке мутации
             return true;
-        } catch (error) {
+        } catch {
             toast.error("Ошибка при сохранении изменений.");
             return false;
         }
     }, [
         reservation.id, reservation.start_date, state, finalHasChanges, hasConflicts,
-        appliedPromoCode, editApiMutation, clearReserveStore, isAdminContext, onFinishEditing, currentUser
+        appliedPromoCode, editApiMutation, isAdminContext, currentUser
     ]);
 
     const [isCancelling, setIsCancelling] = useState(false);
@@ -96,7 +96,7 @@ export function useReservationActions({
         setIsCancelling(true);
         try {
             await onFullCancellation();
-        } catch (error) {
+        } catch {
             toast.error("Не удалось отменить резерв.");
         } finally {
             setIsCancelling(false);

@@ -1,6 +1,6 @@
 // src/lib/balanceUtils.ts
 
-import { formatMoney } from "@/components/ui/money-text";
+import { formatMoney } from "@/lib/money";
 
 /**
  * Централизованные утилиты для работы с балансом пользователя

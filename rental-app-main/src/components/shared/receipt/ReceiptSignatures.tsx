@@ -1,8 +1,3 @@
-interface ReceiptSignaturesProps {
-    /** @deprecated Kept for backward compatibility; the block uses a single responsive design. */
-    isCompact?: boolean;
-}
-
 function SignatureField({ label }: { label: string }) {
     return (
         <div className="receipt-sign-field flex items-end gap-2">
@@ -12,7 +7,7 @@ function SignatureField({ label }: { label: string }) {
     );
 }
 
-export default function ReceiptSignatures({ }: ReceiptSignaturesProps) {
+export default function ReceiptSignatures() {
     return (
         <section className="receipt-section receipt-signatures mt-6">
             <p className="receipt-signatures-statement mb-5 text-sm text-foreground">

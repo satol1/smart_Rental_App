@@ -48,7 +48,7 @@ export default function EquipmentCopyDialog({ isOpen, onClose, sourceEquipment }
                 copyData: data,
             });
             onClose();
-        } catch (error) {
+        } catch {
             // Ошибки обрабатываются в хуке
         }
     };

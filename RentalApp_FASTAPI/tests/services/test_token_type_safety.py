@@ -126,12 +126,12 @@ class TestTokenTypeSafety:
         assert user is None
         mock_user_repo.get_by_email.assert_not_awaited()
 
-    def test_verify_refresh_token_rejects_access_token(self, auth_service):
+    async def test_verify_refresh_token_rejects_access_token(self, auth_service):
         """verify_refresh_token(access) -> 401."""
         access_token = auth_service.create_access_token({"sub": "typesafety@example.com"})
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.verify_refresh_token(access_token)
+            await auth_service.verify_refresh_token(access_token)
 
         assert exc_info.value.status_code == 401
 
@@ -139,31 +139,31 @@ class TestTokenTypeSafety:
 class TestRefreshTokenDenylist:
     """Refresh-токен после logout отклоняется через denylist."""
 
-    def test_denylist_deny_and_check(self, clean_denylist):
-        clean_denylist.deny("jti-1", expires_at=time_offset(seconds=3600))
+    async def test_denylist_deny_and_check(self, clean_denylist):
+        await clean_denylist.deny("jti-1", expires_at=time_offset(seconds=3600))
 
-        assert clean_denylist.is_denied("jti-1") is True
-        assert clean_denylist.is_denied("jti-unknown") is False
+        assert await clean_denylist.is_denied("jti-1") is True
+        assert await clean_denylist.is_denied("jti-unknown") is False
 
-    def test_denylist_entry_expires(self, clean_denylist):
+    async def test_denylist_entry_expires(self, clean_denylist):
         """Запись с истёкшим TTL автоматически удаляется."""
-        clean_denylist.deny("jti-expired", expires_at=time_offset(seconds=-10))
+        await clean_denylist.deny("jti-expired", expires_at=time_offset(seconds=-10))
 
-        assert clean_denylist.is_denied("jti-expired") is False
+        assert await clean_denylist.is_denied("jti-expired") is False
 
-    def test_denied_refresh_token_rejected_by_verify(self, auth_service, clean_denylist):
+    async def test_denied_refresh_token_rejected_by_verify(self, auth_service, clean_denylist):
         """verify_refresh_token отозванного токена -> 401."""
         refresh_token = auth_service.create_refresh_token({"sub": "typesafety@example.com"})
         payload = decode_token(refresh_token)
 
-        clean_denylist.deny(payload["jti"], expires_at=payload["exp"])
+        await clean_denylist.deny(payload["jti"], expires_at=payload["exp"])
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.verify_refresh_token(refresh_token)
+            await auth_service.verify_refresh_token(refresh_token)
 
         assert exc_info.value.status_code == 401
 
-    def test_logout_adds_refresh_jti_to_denylist(self, clean_denylist):
+    async def test_logout_adds_refresh_jti_to_denylist(self, clean_denylist):
         """API: logout декодирует refresh из cookie и отзывает его по jti."""
         auth_service = AuthService(
             AsyncMock(spec=UserRepository), MagicMock(spec=SecurityAuditService),
@@ -181,9 +181,9 @@ class TestRefreshTokenDenylist:
         response = client.post("/api/auth/logout", headers=headers)
 
         assert response.status_code == 200
-        assert clean_denylist.is_denied(payload["jti"]) is True
+        assert await clean_denylist.is_denied(payload["jti"]) is True
 
-    def test_refresh_after_logout_rejected(self, clean_denylist):
+    async def test_refresh_after_logout_rejected(self, clean_denylist):
         """API: использованный после logout refresh-токен -> 401."""
         auth_service = AuthService(
             AsyncMock(spec=UserRepository), MagicMock(spec=SecurityAuditService),

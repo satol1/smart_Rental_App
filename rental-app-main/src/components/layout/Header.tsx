@@ -15,20 +15,9 @@ import { cn } from '@/lib/utils';
 import { listItem, motionSafeVariants, springs, transitionFast } from '@/lib/motion';
 import UserNav from './UserNav';
 import ThemeSwitcher from './ThemeSwitcher';
+import { useHeaderScrolled } from './useHeaderScrolled';
 
 const MotionButton = motion(Button);
-
-/** Компактное состояние шапки включается после небольшого скролла. */
-export function useHeaderScrolled(threshold = 12) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > threshold);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [threshold]);
-  return scrolled;
-}
 
 const menuPanelVariants: Variants = {
   hidden: { opacity: 0, y: -6, scale: 0.98 },

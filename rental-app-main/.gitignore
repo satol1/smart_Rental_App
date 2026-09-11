@@ -35,3 +35,7 @@ receipt-*.png
 .venv/
 .pytest_cache/
 src/**/*.js
+
+# Playwright
+test-results/
+playwright-report/

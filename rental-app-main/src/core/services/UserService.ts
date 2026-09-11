@@ -40,8 +40,8 @@ export class UserService {
     /**
      * Преобразует camelCase поля в snake_case для API
      */
-    private static toApiFormat(input: Partial<UserCreateInput>): Record<string, any> {
-        const apiPayload: Record<string, any> = {};
+    private static toApiFormat(input: Partial<UserCreateInput>): Record<string, string | boolean> {
+        const apiPayload: Record<string, string | boolean> = {};
 
         if (input.full_name !== undefined) apiPayload.full_name = input.full_name;
         if (input.email !== undefined) apiPayload.email = input.email;
@@ -271,11 +271,7 @@ export class UserService {
      * Удаляет запись из истории баланса (только для администраторов).
      */
     static async deleteBalanceHistoryEntry(historyId: number): Promise<void> {
-        try {
-            await api.delete(`/admin/users/balance-history/${historyId}`);
-        } catch (error: unknown) {
-            throw error;
-        }
+        await api.delete(`/admin/users/balance-history/${historyId}`);
     }
 
     /**

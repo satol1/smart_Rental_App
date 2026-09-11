@@ -29,13 +29,11 @@ export function isEquipmentAvailableForReservation(equipment: Equipment): boolea
 /**
  * Получает CSS классы для карточки оборудования в зависимости от состояния
  * @param equipment - объект оборудования
- * @param status - статус резервирования
  * @param isSelected - выбрано ли оборудование пользователем
  * @returns объект с CSS классами
  */
 export function getEquipmentCardStyles(
     equipment: Equipment,
-    _status: string = "available",
     isSelected: boolean = false
 ) {
     const isUnderRepair = isEquipmentUnderRepair(equipment);

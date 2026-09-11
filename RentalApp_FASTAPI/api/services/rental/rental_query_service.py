@@ -7,11 +7,13 @@ from api.services.financial_service import to_decimal
 from typing import Optional, List, Tuple
 import logging
 
+from api.models.holiday import Holiday
 from api.models.rental import Rental
 from api.models.user import User
 from shared.schemas.rental_schema import RentalOut
 from api.services.financial_service import FinancialService
 from api.repositories import RentalRepository
+from api.repositories.holiday_repository import HolidayRepository
 from shared.constants.order_status import OrderStatus
 
 logger = logging.getLogger(__name__)
@@ -28,8 +30,18 @@ class RentalQueryService:
         self.rental_repo = rental_repo
 
 
-    async def enrich_rental_with_dynamic_fields(self, rental: Rental) -> RentalOut:
-        """Обогащает объект аренды динамическими полями через FinancialService."""
+    async def enrich_rental_with_dynamic_fields(
+        self,
+        rental: Rental,
+        holidays: Optional[List[Holiday]] = None
+    ) -> RentalOut:
+        """Обогащает объект аренды динамическими полями через FinancialService.
+
+        Args:
+            rental: Объект аренды
+            holidays: Опциональный префетч праздников для страницы (один запрос
+                вместо запроса на каждую просроченную аренду); см. get_rental_days
+        """
         rental_out = RentalOut.model_validate(rental)
         today = date.today()
 
@@ -40,7 +52,7 @@ class RentalQueryService:
             rental_out.overdue_days = self.financial_service.calculate_overdue_days(rental, today)
             # Расчёты FinancialService возвращают Decimal; поля схемы — float
             rental_out.overdue_surcharge = float(
-                await self.financial_service.calculate_overdue_surcharge(rental, today)
+                await self.financial_service.calculate_overdue_surcharge(rental, today, holidays=holidays)
             )
         elif rental.status == OrderStatus.ACTIVE:
             rental_out.days_remaining = (rental.end_date - today).days
@@ -55,17 +67,44 @@ class RentalQueryService:
 
         return rental_out
 
+    async def _prefetch_page_holidays(self, rentals_orm: List[Rental]) -> Optional[List[Holiday]]:
+        """Префетчит праздники ОДНИМ запросом на диапазон страницы аренд.
+
+        Нужен только если на странице есть просроченные аренды (для них
+        enrichment считает overdue_surcharge -> get_rental_days -> праздники).
+        Возвращает None, если запрос не нужен — тогда enrichment работает
+        как раньше (без обращений к таблице праздников).
+        """
+        if not rentals_orm:
+            return None
+
+        today = date.today()
+        # Условие зеркалит enrich: OVERDUE из БД либо ACTIVE с прошедшей end_date
+        surcharge_rentals = [
+            r for r in rentals_orm
+            if r.status == OrderStatus.OVERDUE
+            or (r.status == OrderStatus.ACTIVE and r.end_date < today)
+        ]
+        if not surcharge_rentals:
+            return None
+
+        min_start = min(r.start_date for r in surcharge_rentals)
+        max_end = max(r.end_date for r in surcharge_rentals)
+
+        holiday_repo = HolidayRepository(self.db)
+        return await holiday_repo.get_holidays_in_range(min_start, max_end)
+
     async def get_rentals_for_user(
-        self, 
-        user: User, 
-        skip: int, 
+        self,
+        user: User,
+        skip: int,
         limit: int,
         status: Optional[str] = None,
         search: Optional[str] = None,
         sort: Optional[str] = None
     ) -> Tuple[List[RentalOut], int]:
         """Получает отфильтрованный и пагинированный список аренд для конкретного пользователя."""
-        
+
         # Делегируем получение данных репозиторию
         rentals_orm, total = await self.rental_repo.get_paginated_for_user(
             user_id=user.id,
@@ -75,10 +114,14 @@ class RentalQueryService:
             search=search,
             sort=sort
         )
-        
-        # Обогащаем данные через FinancialService
+
+        # Обогащаем данные через FinancialService (праздники — одним запросом на страницу)
         try:
-            enriched_rentals = [await self.enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
+            prefetched_holidays = await self._prefetch_page_holidays(rentals_orm)
+            enriched_rentals = [
+                await self.enrich_rental_with_dynamic_fields(r, holidays=prefetched_holidays)
+                for r in rentals_orm
+            ]
             return enriched_rentals, total
         except Exception as e:
             logger.error(f"Ошибка в enrich_rental_with_dynamic_fields: {e}", exc_info=True)
@@ -88,7 +131,7 @@ class RentalQueryService:
 
     async def get_paginated_rentals(self, skip: int, limit: int, status_filter: Optional[str], search: Optional[str], period_type: Optional[str] = None, period_offset: int = 0) -> Tuple[List[RentalOut], int]:
         """Получает отфильтрованный и пагинированный список всех аренд."""
-        
+
         # Делегируем получение данных репозиторию
         rentals_orm, total = await self.rental_repo.get_paginated_for_admin(
             skip=skip,
@@ -99,8 +142,13 @@ class RentalQueryService:
             period_offset=period_offset
         )
 
+        # Обогащаем данные через FinancialService (праздники — одним запросом на страницу)
         try:
-            enriched_rentals = [await self.enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
+            prefetched_holidays = await self._prefetch_page_holidays(rentals_orm)
+            enriched_rentals = [
+                await self.enrich_rental_with_dynamic_fields(r, holidays=prefetched_holidays)
+                for r in rentals_orm
+            ]
             return enriched_rentals, total
         except Exception as e:
             logger.error(f"Ошибка в enrich_rental_with_dynamic_fields: {e}", exc_info=True)

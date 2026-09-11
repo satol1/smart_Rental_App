@@ -8,7 +8,6 @@ import UserTable from "@/components/admin/UserTable";
 import { Button } from "@/components/ui/button";
 import { Shield, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { UserOut } from "@/types/user";
 
 export default function UserManagementPage() {
     const { data: currentUser } = useCurrentUser();
@@ -38,7 +37,7 @@ export default function UserManagementPage() {
     const isManager = currentUser?.role === "manager" || isAdmin;
 
     // Обработчик обновления пользователя
-    const handleUserUpdated = (_updatedUser: UserOut) => {
+    const handleUserUpdated = () => {
         // Принудительно обновляем кэш пользователей
         void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     };

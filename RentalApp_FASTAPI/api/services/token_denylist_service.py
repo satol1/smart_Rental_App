@@ -30,7 +30,7 @@ class TokenDenylistService:
         self._denied: Dict[str, float] = {}
         self._lock = threading.Lock()
 
-    def deny(self, jti: str, expires_at: float) -> None:
+    async def deny(self, jti: str, expires_at: float) -> None:
         """Отзывает токен: jti вносится в denylist до момента его истечения.
 
         :param jti: уникальный идентификатор токена (claim "jti")
@@ -41,9 +41,9 @@ class TokenDenylistService:
         # Нет смысла денонсировать уже истёкший токен
         ttl_until = max(float(expires_at), time.time())
 
-        if redis_client.is_available():
+        if await redis_client.is_available():
             ttl_seconds = max(1, int(ttl_until - time.time()))
-            redis_client.setex(_REDIS_KEY_PREFIX + jti, ttl_seconds, ttl_until)
+            await redis_client.setex(_REDIS_KEY_PREFIX + jti, ttl_seconds, ttl_until)
             logger.debug("Refresh-токен отозван в redis (jti=%s, ttl=%ss)", jti, ttl_seconds)
             return
 
@@ -53,13 +53,13 @@ class TokenDenylistService:
             self._cleanup_locked()
         logger.debug("Refresh-токен отозван in-memory (jti=%s, до %s)", jti, ttl_until)
 
-    def is_denied(self, jti: str) -> bool:
+    async def is_denied(self, jti: str) -> bool:
         """Проверяет, отозван ли токен с данным jti."""
         if not jti:
             return False
 
-        if redis_client.is_available():
-            return redis_client.get(_REDIS_KEY_PREFIX + jti) is not None
+        if await redis_client.is_available():
+            return await redis_client.get(_REDIS_KEY_PREFIX + jti) is not None
 
         with self._lock:
             expires_at = self._denied.get(jti)

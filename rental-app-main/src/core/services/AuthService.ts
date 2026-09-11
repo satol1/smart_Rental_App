@@ -48,7 +48,7 @@ export class AuthService {
                 setAccessToken(newAccessToken);
                 return newAccessToken;
             }
-        } catch (_) {
+        } catch {
             // Молча игнорируем, если refresh недоступен/просрочен
         }
         return null;
@@ -136,7 +136,7 @@ export class AuthService {
             // При наличии эндпоинта разлогина — инвалидируем refresh cookie на сервере
             try {
                 await baseApi.post("/auth/logout");
-            } catch (_) {
+            } catch {
                 // Игнорируем, если эндпоинт отсутствует
             }
         } catch (error: unknown) {
@@ -228,7 +228,7 @@ export class AuthService {
         try {
             await this.getCurrentUser();
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     }

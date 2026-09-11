@@ -132,12 +132,12 @@ export default function HomePage() {
     const {
         editingReservationId,
         intent,
-    } = useReservationManagement(equipment, availabilityMap, availableOnly);
+    } = useReservationManagement(equipment, availabilityMap);
 
     // Получаем логику управления резервами для модального окна пачки
     const {
         getEquipmentStatus: getEquipmentStatusForModal,
-    } = useReservationManagement(equipmentForModal, availabilityMapForModal, availableOnly);
+    } = useReservationManagement(equipmentForModal, availabilityMapForModal);
 
     // +++ НАЧАЛО: ДОБАВЛЕНА ЛОГИКА ИНИЦИАЛИЗАЦИИ ДАТ +++
     // 1. Инициализируем даты, как только выходные загружены

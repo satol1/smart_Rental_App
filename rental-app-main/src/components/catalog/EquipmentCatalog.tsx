@@ -112,7 +112,7 @@ export default function EquipmentCatalog({ onOpenPackDetails, collections }: Equ
     // 5. Вызываем хук для логики управления резервами (только для оборудования)
     const {
         getEquipmentStatus
-    } = useReservationManagement(equipmentOnly, availabilityMap, false);
+    } = useReservationManagement(equipmentOnly, availabilityMap);
 
     return (
         <section id="equipment-catalog" className="catalog-workspace" tabIndex={-1} aria-labelledby="catalog-heading">

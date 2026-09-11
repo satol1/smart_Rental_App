@@ -8,7 +8,8 @@ import { FileText } from "lucide-react";
 import ConfirmItemRemovalDialog from "./ConfirmItemRemovalDialog";
 import { useReservationListViewModel } from "@/hooks/features/useReservationListViewModel";
 import type { RefObject } from "react";
-import EmptyStateWithActions, { useEmptyStateActions } from "./shared/EmptyStateWithActions";
+import EmptyStateWithActions from "./shared/EmptyStateWithActions";
+import { useEmptyStateActions } from "./shared/useEmptyStateActions";
 import { SkeletonList } from "@/components/ui/skeleton-list";
 import { listItem, staggerContainer } from "@/lib/motion";
 import { formatDateEuropean } from "@/lib/utils";
@@ -28,7 +29,6 @@ const LoadingState = () => (
 const MyReservationListComponent = (props: MyReservationListProps) => {
     const {
         continueEditingReservationId,
-        getHighlightClasses: _getHighlightClasses,
         elementRef,
     } = props;
 

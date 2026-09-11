@@ -32,8 +32,7 @@ repos:
         language: system
         pass_filenames: false
         files: ^rental-app-main/src/.*\.(js|jsx|ts|tsx)$
-        # TODO: сделать блокирующим, когда eslint в src/ будет чистым (~329 ошибок легаси)
+        # Этап 5.3 аудита: src чист (0 ошибок) — хук блокирующий
         entry: >-
           bash -c 'cd rental-app-main &&
-          npx --no-install eslint src --max-warnings=0 ||
-          echo "ADVISORY: eslint нашёл ошибки — см. TODO в .pre-commit-config.yaml"'
+          npx --no-install eslint src --max-warnings=0'

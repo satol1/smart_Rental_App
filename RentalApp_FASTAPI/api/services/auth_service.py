@@ -115,7 +115,7 @@ class AuthService:
         
         # Проверяем защиту от брутфорса
         if ip_address:
-            can_attempt, reason = self.brute_force_protection.can_attempt_login(ip_address)
+            can_attempt, reason = await self.brute_force_protection.can_attempt_login(ip_address)
             if not can_attempt:
                 # Логируем попытку обхода защиты
                 await self.security_audit_service.log_suspicious_activity(
@@ -181,7 +181,7 @@ class AuthService:
         to_encode.update({"exp": expire, "type": "refresh", "jti": uuid.uuid4().hex})
         return jwt.encode(to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM)
 
-    def verify_refresh_token(self, token: str) -> dict:
+    async def verify_refresh_token(self, token: str) -> dict:
         """Проверка и декодирование refresh-токена (type=refresh, не отозван). Бросает HTTPException."""
         try:
             payload = jwt.decode(token, settings.SECRET_KEY.get_secret_value(), algorithms=[ALGORITHM])
@@ -192,7 +192,7 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Недействительный тип токена")
 
         jti = payload.get("jti")
-        if jti and self.token_denylist.is_denied(jti):
+        if jti and await self.token_denylist.is_denied(jti):
             raise HTTPException(status_code=401, detail="Refresh токен отозван (logout)")
 
         return payload
@@ -211,7 +211,7 @@ class AuthService:
             return None
         return payload
 
-    def revoke_refresh_token(self, token: str) -> bool:
+    async def revoke_refresh_token(self, token: str) -> bool:
         """Отзывает refresh-токен: jti вносится в denylist с TTL до истечения.
 
         Вызывается при logout — работает даже если access-токен уже истёк,
@@ -225,6 +225,6 @@ class AuthService:
         if not jti or not exp:
             # Токен без jti/exp нельзя точечно отозвать (легаси-формат)
             return False
-        self.token_denylist.deny(jti, expires_at=float(exp))
+        await self.token_denylist.deny(jti, expires_at=float(exp))
         return True
 

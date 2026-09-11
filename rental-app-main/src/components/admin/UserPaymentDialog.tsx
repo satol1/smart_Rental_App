@@ -1,5 +1,5 @@
 // path: rental-app-main/src/components/admin/UserPaymentDialog.tsx
-import { formatMoney } from "@/components/ui/money-text";
+import { formatMoney } from "@/lib/money";
 
 import { useState, useEffect } from "react"; // ✅ ИЗМЕНЕНИЕ: Добавлен импорт useState и useEffect
 import { toast } from "sonner";

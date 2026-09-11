@@ -66,38 +66,6 @@ export function useReservationEditState(
         return datesChanged || equipmentChanged || accessoriesChanged;
     }, [state, initialValues]);
 
-    // Обработка добавления оборудования из reserveStore
-    useEffect(() => {
-        const { addToReservationMode } = useReserveStore.getState();
-        
-        if (addToReservationMode === reservation.id && itemsFromStore.length > 0 && !state.hasProcessedEquipmentAddition) {
-            if (allEquipment.length > 0) {
-                
-                const newItemsData = itemsFromStore.map(itemInStore => 
-                    allEquipment.find((eq: Equipment) => eq.id === itemInStore.id) || itemInStore
-                );
-                
-                
-                addEquipmentItems(newItemsData);
-                
-                // 🔧 ИСПРАВЛЕНИЕ: Переносим аксессуары из стора в локальное состояние
-                if (Object.keys(selectedAccessoriesFromStore).length > 0) {
-                    setState(prev => ({
-                        ...prev,
-                        localSelectedAccessories: {
-                            ...prev.localSelectedAccessories,
-                            ...selectedAccessoriesFromStore
-                        },
-                        hasProcessedEquipmentAddition: true
-                    }));
-                } else {
-                    setState(prev => ({ ...prev, hasProcessedEquipmentAddition: true }));
-                }
-                
-            }
-        }
-    }, [allEquipment, reservation.id, itemsFromStore, selectedAccessoriesFromStore, state.hasProcessedEquipmentAddition]);
-
     const updateDates = useCallback((newStartDate: Date, newEndDate: Date) => {
         setState(prev => ({ ...prev, startDate: newStartDate, endDate: newEndDate }));
     }, []);
@@ -133,6 +101,39 @@ export function useReservationEditState(
             return newState;
         });
     }, [initialValues.equipmentIds]);
+
+    // Обработка добавления оборудования из reserveStore.
+    // Эффект объявлен ПОСЛЕ addEquipmentItems, чтобы сослаться на него в deps
+    // (react-hooks/exhaustive-deps) без обращения до инициализации.
+    useEffect(() => {
+        const { addToReservationMode } = useReserveStore.getState();
+
+        if (addToReservationMode === reservation.id && itemsFromStore.length > 0 && !state.hasProcessedEquipmentAddition) {
+            if (allEquipment.length > 0) {
+
+                const newItemsData = itemsFromStore.map(itemInStore =>
+                    allEquipment.find((eq: Equipment) => eq.id === itemInStore.id) || itemInStore
+                );
+
+                addEquipmentItems(newItemsData);
+
+                // 🔧 ИСПРАВЛЕНИЕ: Переносим аксессуары из стора в локальное состояние
+                if (Object.keys(selectedAccessoriesFromStore).length > 0) {
+                    setState(prev => ({
+                        ...prev,
+                        localSelectedAccessories: {
+                            ...prev.localSelectedAccessories,
+                            ...selectedAccessoriesFromStore
+                        },
+                        hasProcessedEquipmentAddition: true
+                    }));
+                } else {
+                    setState(prev => ({ ...prev, hasProcessedEquipmentAddition: true }));
+                }
+
+            }
+        }
+    }, [allEquipment, reservation.id, itemsFromStore, selectedAccessoriesFromStore, state.hasProcessedEquipmentAddition, addEquipmentItems]);
 
     const removeEquipmentItem = useCallback((idToRemove: number) => {
         setState(prev => {
