@@ -7,7 +7,7 @@ import { useDateStore } from "@/store/dateStore";
 import { useReserveStore } from "@/store/reserveStore";
 import { useViewModeStore } from "@/store/viewModeStore";
 import { useHolidayStore } from "@/store/holidayStore";
-import { usePromoCodeStore } from "@/store/promoCodeStore";
+import { usePromoCodeStore, RESERVE_PROMO_SCOPE } from "@/store/promoCodeStore";
 
 /**
  * Хук для сброса всех состояний главной страницы к значениям по умолчанию
@@ -18,7 +18,8 @@ export const useHomePageReset = () => {
     const dateStore = useDateStore();
     const reserveStore = useReserveStore();
     const viewModeStore = useViewModeStore();
-    const promoCodeStore = usePromoCodeStore();
+    // Действие стора промокодов получаем селектором — без подписки на чужие скоупы
+    const clearPromoCodeAction = usePromoCodeStore((s) => s.clearPromoCode);
     const { holidays } = useHolidayStore();
 
     const resetHomePage = useCallback(() => {
@@ -37,9 +38,9 @@ export const useHomePageReset = () => {
         // Сбрасываем режим отображения
         viewModeStore.setViewMode('default');
         
-        // Сбрасываем промокод
-        promoCodeStore.clearPromoCode();
-    }, [searchStore, filterStore, dateStore, reserveStore, viewModeStore, promoCodeStore, holidays]);
+        // Сбрасываем промокод скоупа страницы оформления (каталог/главная)
+        clearPromoCodeAction(RESERVE_PROMO_SCOPE);
+    }, [searchStore, filterStore, dateStore, reserveStore, viewModeStore, clearPromoCodeAction, holidays]);
 
     return { resetHomePage };
 };

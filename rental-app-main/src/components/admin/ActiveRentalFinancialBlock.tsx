@@ -18,6 +18,8 @@ interface ActiveRentalFinancialBlockProps {
     applyPromoCode: () => void;
     removePromoCode?: () => void;
     promoCodeMessage?: string;
+    // Структурный флаг успеха применения промокода
+    promoCodeValid: boolean;
 
     // Состояния загрузки
     isLoading?: boolean;
@@ -39,6 +41,7 @@ export default function ActiveRentalFinancialBlock({
     applyPromoCode,
     removePromoCode,
     promoCodeMessage = "",
+    promoCodeValid = false,
     isLoading = false,
     isApplyingPromoCode = false,
     className
@@ -146,6 +149,7 @@ export default function ActiveRentalFinancialBlock({
                     applyPromoCode={applyPromoCode}
                     removePromoCode={removePromoCode}
                     promoCodeMessage={displayPromoCodeMessage}
+                    promoCodeValid={promoCodeValid}
                     disabled={isLoading}
                     isLoading={isApplyingPromoCode}
                 />

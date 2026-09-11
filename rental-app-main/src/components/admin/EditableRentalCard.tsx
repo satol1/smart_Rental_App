@@ -32,6 +32,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
         applyPromoCode,
         removePromoCode,
         promoCodeMessage,
+        promoCodeValid,
         isApplyingPromoCode
     } = useAdminRentalEdit({
         rental,
@@ -100,6 +101,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                     applyPromoCode={applyPromoCode}
                                     removePromoCode={removePromoCode}
                                     promoCodeMessage={promoCodeMessage}
+                                    promoCodeValid={promoCodeValid}
                                     isLoading={isCalculatingPrice}
                                     isApplyingPromoCode={isApplyingPromoCode}
                                 />

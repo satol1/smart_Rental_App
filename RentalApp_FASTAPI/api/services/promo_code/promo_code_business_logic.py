@@ -66,7 +66,8 @@ class PromoCodeBusinessLogic(IPromoCodeBusinessLogic):
             await self.promo_code_repo.record_promo_code_usage(
                 user.id,
                 promo_code.id,
-                datetime.now(timezone.utc)
+                datetime.now(timezone.utc),
+                max_uses_per_user=promo_code.max_uses_per_user,
             )
 
     async def release_promo_code_usage(self, promo_code_id: int, user_id: Optional[int]) -> None:

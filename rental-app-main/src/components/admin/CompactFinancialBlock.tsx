@@ -21,6 +21,8 @@ interface CompactFinancialBlockProps<TFieldValues extends FieldValues & Finaliza
     applyPromoCode: () => void;
     removePromoCode?: () => void;
     promoCodeMessage: string;
+    // Структурный флаг успеха применения промокода
+    promoCodeValid: boolean;
     isApplyingPromoCode?: boolean;
     className?: string;
 }
@@ -35,6 +37,7 @@ export default function CompactFinancialBlock<TFieldValues extends FieldValues &
     applyPromoCode,
     removePromoCode,
     promoCodeMessage,
+    promoCodeValid,
     isApplyingPromoCode = false,
     className = ""
 }: CompactFinancialBlockProps<TFieldValues>) {
@@ -117,6 +120,7 @@ export default function CompactFinancialBlock<TFieldValues extends FieldValues &
                         applyPromoCode={applyPromoCode}
                         removePromoCode={removePromoCode}
                         promoCodeMessage={promoCodeMessage}
+                        promoCodeValid={promoCodeValid}
                         isLoading={isApplyingPromoCode}
                     />
                 </div>

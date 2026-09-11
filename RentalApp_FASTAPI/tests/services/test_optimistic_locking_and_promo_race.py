@@ -75,30 +75,20 @@ class TestPromoCodeUsageRace:
 
     @pytest.mark.asyncio
     async def test_repeated_usage_raises_domain_error(self, repo):
-        """Конфликт PK (повторное использование) -> PromoCodeUserUsageLimitError,
-        а не голый IntegrityError -> 500."""
-        from sqlalchemy.exc import IntegrityError
+        """Условный upsert: RETURNING пуст (лимит на пользователя исчерпан)
+        -> PromoCodeUserUsageLimitError, а не молчаливое превышение."""
         from datetime import datetime, timezone
 
         repo.db = AsyncMock()
-
-        real_begin_nested = repo.db.begin_nested
-
-        class _Ctx:
-            async def __aenter__(self):
-                # INSERT падает внутри savepoint
-                repo.db.execute = AsyncMock(
-                    side_effect=IntegrityError("stmt", {}, Exception("duplicate key"))
-                )
-                return self
-
-            async def __aexit__(self, exc_type, exc, tb):
-                return False
-
-        repo.db.begin_nested = MagicMock(return_value=_Ctx())
+        # Пустой RETURNING = условие usage_count < max не выполнилось
+        empty_returning = MagicMock()
+        empty_returning.first.return_value = None
+        repo.db.execute = AsyncMock(return_value=empty_returning)
 
         with pytest.raises(PromoCodeUserUsageLimitError):
-            await repo.record_promo_code_usage(1, 2, datetime.now(timezone.utc))
+            await repo.record_promo_code_usage(
+                1, 2, datetime.now(timezone.utc), max_uses_per_user=1
+            )
 
     @pytest.mark.asyncio
     async def test_increment_returns_false_when_limit_reached(self, repo):

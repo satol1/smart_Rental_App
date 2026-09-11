@@ -7,7 +7,7 @@ import { transitionFast } from '@/lib/motion';
 import { useSandboxCalculatorStore } from '@/store/sandboxCalculatorStore';
 import { combinedDiscountPercentage } from '@/constants/discount';
 import { useDateStore } from '@/store/dateStore';
-import { usePromoCodeStore } from '@/store/promoCodeStore';
+import { usePromoCodeStore, RESERVE_PROMO_SCOPE, EMPTY_PROMO_SCOPE_STATE } from '@/store/promoCodeStore';
 import { useReserveStore } from '@/store/reserveStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from "@/components/ui/label";
@@ -26,15 +26,27 @@ export default function DiscountCalculator() {
         syncWithDateStore
     } = useSandboxCalculatorStore();
 
+    // Промокод — только скоуп страницы оформления (калькулятор скидок каталога)
     const {
         promoCodeInput,
-        setPromoCodeInput,
-        applyPromoCode,
-        removePromoCode,
         promoCodePercentage,
         promoCodeMessage,
-        setPromoCodeResult,
-    } = usePromoCodeStore();
+        promoCodeValid,
+    } = usePromoCodeStore((s) => s.scopes[RESERVE_PROMO_SCOPE] ?? EMPTY_PROMO_SCOPE_STATE);
+    const setPromoCodeInputAction = usePromoCodeStore((s) => s.setPromoCodeInput);
+    const applyPromoCodeAction = usePromoCodeStore((s) => s.applyPromoCode);
+    const removePromoCodeAction = usePromoCodeStore((s) => s.removePromoCode);
+    const setPromoCodeResult = usePromoCodeStore((s) => s.setPromoCodeResult);
+
+    // Привязка действий к скоупу резерва
+    const setPromoCodeInput = useCallback(
+        (code: string) => setPromoCodeInputAction(RESERVE_PROMO_SCOPE, code),
+        [setPromoCodeInputAction]
+    );
+    const removePromoCode = useCallback(
+        () => removePromoCodeAction(RESERVE_PROMO_SCOPE),
+        [removePromoCodeAction]
+    );
 
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -75,14 +87,14 @@ export default function DiscountCalculator() {
                 order_amount: orderAmount,
                 equipment_ids: currentItems.map(item => item.id)
             });
-            setPromoCodeResult(response.data.discount_percentage, response.data.message);
+            setPromoCodeResult(RESERVE_PROMO_SCOPE, response.data.discount_percentage, response.data.message, true);
             // Фиксируем введенный код как примененный для всех расчетов
-            applyPromoCode();
+            applyPromoCodeAction(RESERVE_PROMO_SCOPE);
             toast.success(response.data.message);
         } catch (error: unknown) {
             const apiError = error as { response?: { data?: { detail?: string } } }
             const errorMessage = apiError.response?.data?.detail || "Не удалось применить промокод";
-            setPromoCodeResult(0, errorMessage);
+            setPromoCodeResult(RESERVE_PROMO_SCOPE, 0, errorMessage, false);
             toast.error(errorMessage);
         } finally {
             setIsApplyingPromoCode(false);
@@ -152,6 +164,7 @@ export default function DiscountCalculator() {
                             applyPromoCode={handleApplyPromoCode}
                             removePromoCode={removePromoCode}
                             promoCodeMessage={promoCodeMessage}
+                            promoCodeValid={promoCodeValid}
                             isLoading={isApplyingPromoCode}
                         />
                     </div>

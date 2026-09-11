@@ -24,7 +24,8 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 // ✅ ИЗМЕНЕНИЕ: Импортируем новый компонент и иконку
-import { UserBalanceHistoryDialog } from "./UserBalanceHistoryDialog"; 
+import { UserBalanceHistoryDialog } from "./UserBalanceHistoryDialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { History, Minus, Plus } from "lucide-react";
 
 const PAYMENT_METHODS = ["Наличные", "Карта", "Перевод"];
@@ -46,7 +47,10 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
     // ✅ ИЗМЕНЕНИЕ: Добавляем состояние для отслеживания текущего баланса
     const [currentUser, setCurrentUser] = useState<UserOut | null>(user);
     // ✅ НОВОЕ: Добавляем состояние для режима диалога
-    const [dialogMode, setDialogMode] = useState<DialogMode>('payment'); 
+    const [dialogMode, setDialogMode] = useState<DialogMode>('payment');
+    // Отложенная корректировка-списание: перед mutate показываем подтверждение
+    // с суммой и итоговым балансом (задача 1.8 аудита)
+    const [pendingDebit, setPendingDebit] = useState<AdminBalanceAdjustmentSchema | null>(null);
 
     const paymentForm = useForm<UserPaymentSchema>({
         resolver: zodResolver(userPaymentSchema),
@@ -82,7 +86,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
         });
     };
 
-    const onAdjustmentSubmit = (data: AdminBalanceAdjustmentSchema) => {
+    const performAdjustment = (data: AdminBalanceAdjustmentSchema) => {
         if (!user) return;
 
         adjustmentMutation.mutate({ userId: user.id, data }, {
@@ -101,6 +105,26 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                 // НЕ закрываем диалог автоматически - пользователь сам решит когда закончить
             },
         });
+    };
+
+    const onAdjustmentSubmit = (data: AdminBalanceAdjustmentSchema) => {
+        if (!user) return;
+
+        // Списание (отрицательная сумма) — необратимая операция: сначала шаг
+        // подтверждения. Положительные начисления и пополнения идут без подтверждения.
+        if (data.amount < 0) {
+            setPendingDebit(data);
+            return;
+        }
+
+        performAdjustment(data);
+    };
+
+    // Подтверждение списания: сумму и балансы показываем в диалоге, mutate — только после явного согласия
+    const confirmPendingDebit = () => {
+        if (!pendingDebit) return;
+        performAdjustment(pendingDebit);
+        setPendingDebit(null);
     };
 
     const handleDialogClose = () => {
@@ -279,10 +303,31 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
             </Dialog>
 
             {/* ✅ ИЗМЕНЕНИЕ: Встроенный диалог истории платежей */}
-            <UserBalanceHistoryDialog 
-                user={displayUser} 
-                open={isHistoryOpen} 
-                onClose={() => setHistoryOpen(false)} 
+            <UserBalanceHistoryDialog
+                user={displayUser}
+                open={isHistoryOpen}
+                onClose={() => setHistoryOpen(false)}
+            />
+
+            {/* Подтверждение списания: сумма, текущий и итоговый баланс (задача 1.8) */}
+            <ConfirmationDialog
+                open={pendingDebit !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPendingDebit(null);
+                }}
+                title="Подтвердите списание"
+                description={
+                    <span>
+                        С баланса пользователя <strong>{displayUser.full_name}</strong> будет списано{" "}
+                        <strong>{formatMoney(Math.abs(pendingDebit?.amount ?? 0))}</strong>.<br />
+                        Текущий баланс: {formatMoney(displayUser.balance)}.<br />
+                        Итоговый баланс после списания: <strong>{formatMoney((displayUser.balance ?? 0) + (pendingDebit?.amount ?? 0))}</strong>.
+                    </span>
+                }
+                confirmText="Списать"
+                cancelText="Отмена"
+                variant="destructive"
+                onConfirm={confirmPendingDebit}
             />
         </>
     );

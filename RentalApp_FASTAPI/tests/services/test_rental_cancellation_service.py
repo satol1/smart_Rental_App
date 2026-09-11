@@ -409,3 +409,118 @@ class TestRentalCancellationService:
         # Проверяем, что были созданы обе транзакции: возврат основной суммы и возврат аванса
         assert rental_cancellation_service.balance_service.add_transaction.call_count == 2
 
+
+
+class TestRevertPromoCodeRelease:
+    """Revert аренды освобождает использование промокода, записанного на аренду."""
+
+    @pytest.fixture
+    def sample_rental(self):
+        rental = Rental()
+        rental.id = 1
+        rental.user_id = 1
+        rental.reservation_id = 1
+        rental.start_date = date.today()
+        rental.end_date = date.today() + timedelta(days=3)
+        rental.total_cost = 1000.0
+        rental.prepayment_amount = 0.0
+        rental.status = "active"
+        rental.created_at = datetime.now(timezone.utc)
+        return rental
+
+    @pytest.fixture
+    def sample_reservation(self):
+        reservation = Reservation()
+        reservation.id = 1
+        reservation.user_id = 1
+        reservation.status = "active"
+        return reservation
+
+    @pytest.fixture
+    def sample_manager(self):
+        manager = User()
+        manager.id = 2
+        manager.email = "manager@example.com"
+        manager.role = "admin"
+        return manager
+
+    @pytest.fixture
+    def revert_request(self):
+        return RentalRevertRequest(refund_prepayment=False)
+
+    @pytest.fixture
+    def service(self, mock_db_session):
+        from api.repositories.rental_repository import RentalRepository
+        from api.services.order.order_validator import OrderValidator
+        from api.services.balance_service import BalanceService
+        from api.services.order.system_repository import SystemService
+        from api.services.promo_code import PromoCodeBusinessLogic
+
+        return RentalCancellationService(
+            db=mock_db_session,
+            rental_repo=MagicMock(spec=RentalRepository),
+            validator=MagicMock(spec=OrderValidator),
+            balance_service=MagicMock(spec=BalanceService),
+            system_service=MagicMock(spec=SystemService),
+            promo_code_logic=MagicMock(spec=PromoCodeBusinessLogic),
+        )
+
+    @pytest.fixture
+    def base_fixtures(self, service, sample_rental, sample_reservation, sample_manager,
+                      mock_db_session):
+        mock_context = AsyncMock()
+        mock_context.__aenter__ = AsyncMock(return_value=None)
+        mock_context.__aexit__ = AsyncMock(return_value=None)
+        mock_db_session.begin_nested = MagicMock(return_value=mock_context)
+
+        service.rental_repo.get_rental_by_id_or_fail = AsyncMock(return_value=sample_rental)
+        service.validator.validate_rental_for_revert = MagicMock()
+        service.rental_repo.revert_rental_status_to_active = MagicMock(return_value=sample_reservation)
+        service.balance_service.add_transaction = AsyncMock()
+        service.rental_repo.delete_rental = AsyncMock()
+        return service, sample_rental, sample_reservation
+
+    @pytest.mark.asyncio
+    async def test_same_promo_as_reservation_not_released(self, base_fixtures, sample_manager,
+                                                          revert_request):
+        """Промокод аренды совпадает с промокодом резерва — использование не трогаем."""
+        service, rental, reservation = base_fixtures
+        rental.promo_code = "SUMMER10"
+        reservation.promo_code_id = 7
+        reservation_promo = MagicMock()
+        reservation_promo.code = "SUMMER10"
+        service.system_service.get_promo_code_by_id = AsyncMock(return_value=reservation_promo)
+
+        await service.revert_rental_to_reservation(1, sample_manager, revert_request)
+
+        service.promo_code_logic.release_promo_code_usage.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_rental_specific_promo_released(self, base_fixtures, sample_manager,
+                                                  revert_request):
+        """Промокод аренды отличается от промокода резерва — лишнее использование освобождается."""
+        service, rental, reservation = base_fixtures
+        rental.promo_code = "WINTER20"
+        reservation.promo_code_id = 7
+        reservation_promo = MagicMock()
+        reservation_promo.code = "SUMMER10"
+        rental_promo = MagicMock()
+        rental_promo.id = 9
+        service.system_service.get_promo_code_by_id = AsyncMock(return_value=reservation_promo)
+        service.system_service.get_promo_code_by_name = AsyncMock(return_value=rental_promo)
+
+        await service.revert_rental_to_reservation(1, sample_manager, revert_request)
+
+        service.promo_code_logic.release_promo_code_usage.assert_awaited_once_with(9, rental.user_id)
+
+    @pytest.mark.asyncio
+    async def test_rental_without_promo_no_calls(self, base_fixtures, sample_manager,
+                                                 revert_request):
+        """Аренда без промокода — никаких обращений к промокод-сервису."""
+        service, rental, reservation = base_fixtures
+        rental.promo_code = None
+
+        await service.revert_rental_to_reservation(1, sample_manager, revert_request)
+
+        service.system_service.get_promo_code_by_name.assert_not_called()
+        service.promo_code_logic.release_promo_code_usage.assert_not_called()

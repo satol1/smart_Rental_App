@@ -54,6 +54,11 @@ class RentalCancellationService:
                 # Создаем транзакции отмены
                 await self._create_revert_balance_transactions(rental, request)
 
+                # Промокод аренды, отличающийся от промокода резерва, был записан
+                # отдельно (смена промокода на аренде) — освобождаем именно его.
+                # Совпадающий с резервом промокод принадлежит резерву и остаётся.
+                await self._release_rental_specific_promo_usage(rental, reservation)
+
                 # Удаляем аренду
                 await self.rental_repo.delete_rental(rental)
 
@@ -98,6 +103,29 @@ class RentalCancellationService:
 
     # Приватные методы для отмены и удаления аренды
     
+    async def _release_rental_specific_promo_usage(self, rental: Rental, reservation) -> None:
+        """Освобождает использование промокода, записанное на аренду, а не на резерв.
+
+        При смене промокода на аренде A→B использование B записывается отдельно
+        (A принадлежит резерву). Revert восстанавливает резерв с промокодом A —
+        если не освободить B, times_used по B остаётся навсегда завышенным.
+        """
+        if not rental.promo_code:
+            return
+
+        if reservation.promo_code_id:
+            reservation_promo = await self.system_service.get_promo_code_by_id(
+                reservation.promo_code_id
+            )
+            if reservation_promo and reservation_promo.code == rental.promo_code:
+                return  # одно и то же использование — принадлежит резерву
+
+        rental_promo = await self.system_service.get_promo_code_by_name(rental.promo_code)
+        if rental_promo:
+            await self.promo_code_logic.release_promo_code_usage(
+                rental_promo.id, rental.user_id
+            )
+
     async def _create_revert_balance_transactions(self, rental: Rental, request: RentalRevertRequest) -> None:
         """Создает транзакции баланса при отмене аренды."""
         # Возврат основной суммы аренды

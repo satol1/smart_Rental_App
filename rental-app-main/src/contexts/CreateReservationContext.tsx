@@ -44,6 +44,8 @@ export interface CreateReservationContextValue {
         applyPromoCode: () => void;
         removePromoCode: () => void;
         promoCodeMessage: string;
+        // Структурный флаг успеха применения промокода
+        promoCodeValid: boolean;
         isCalculatingPrice: boolean;
         isApplyingPromoCode: boolean;
         appliedPromoCode: string;

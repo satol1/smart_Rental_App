@@ -40,6 +40,7 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
         applyPromoCode,
         removePromoCode,
         promoCodeMessage,
+        promoCodeValid,
     } = useCreateRentalFromScratchDialog({ isOpen: open, onClose });
 
     const renderStepContent = () => {
@@ -71,6 +72,7 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
                             applyPromoCode={applyPromoCode}
                             removePromoCode={removePromoCode}
                             promoCodeMessage={promoCodeMessage}
+                            promoCodeValid={promoCodeValid}
                         />
                         
                         {/* Список выбранного оборудования с подсветкой новых позиций */}

@@ -6,7 +6,7 @@ import { useAdminReservationCalculator } from "./useAdminReservationCalculator";
 import { formatDate } from "@/lib/utils";
 import { useCreateReservationData } from "./create-reservation/useCreateReservationData";
 import { useCreateReservationForm, type CreateReservationFormData } from "./create-reservation/useCreateReservationForm";
-import { usePromoCodeStore } from "@/store/promoCodeStore";
+import { usePromoCodeStore, ADMIN_CREATE_RENTAL_PROMO_SCOPE, EMPTY_PROMO_SCOPE_STATE } from "@/store/promoCodeStore";
 import type { RentalCreateFromScratchData } from "@/types/rental";
 
 const todayDate = new Date();
@@ -52,18 +52,36 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
         watchedEquipmentIds,
     });
 
-    // 4. Расчет финансов
-    const financialData = useAdminReservationCalculator(watch, allEquipment);
+    // 4. Расчет финансов (промокод — в скоупе создания аренды, отдельном от диалога резерва)
+    const financialData = useAdminReservationCalculator(watch, allEquipment, ADMIN_CREATE_RENTAL_PROMO_SCOPE);
 
     // 5. Промокод стор для работы с промокодами
-    const { 
+    const {
         promoCodeInput,
         promoCodeMessage,
-        setPromoCodeInput,
-        applyPromoCode,
-        removePromoCode,
-        clearPromoCode 
-    } = usePromoCodeStore();
+    } = usePromoCodeStore((s) => s.scopes[ADMIN_CREATE_RENTAL_PROMO_SCOPE] ?? EMPTY_PROMO_SCOPE_STATE);
+    const setPromoCodeInputAction = usePromoCodeStore((s) => s.setPromoCodeInput);
+    const applyPromoCodeAction = usePromoCodeStore((s) => s.applyPromoCode);
+    const removePromoCodeAction = usePromoCodeStore((s) => s.removePromoCode);
+    const clearPromoCodeAction = usePromoCodeStore((s) => s.clearPromoCode);
+
+    // Привязываем действия стора к скоупу создания аренды
+    const setPromoCodeInput = useCallback(
+        (code: string) => setPromoCodeInputAction(ADMIN_CREATE_RENTAL_PROMO_SCOPE, code),
+        [setPromoCodeInputAction]
+    );
+    const applyPromoCode = useCallback(
+        () => applyPromoCodeAction(ADMIN_CREATE_RENTAL_PROMO_SCOPE),
+        [applyPromoCodeAction]
+    );
+    const removePromoCode = useCallback(
+        () => removePromoCodeAction(ADMIN_CREATE_RENTAL_PROMO_SCOPE),
+        [removePromoCodeAction]
+    );
+    const clearPromoCode = useCallback(
+        () => clearPromoCodeAction(ADMIN_CREATE_RENTAL_PROMO_SCOPE),
+        [clearPromoCodeAction]
+    );
 
     // 6. Логика отправки формы
     const createRentalMutation = useCreateAdminRentalFromScratch();
@@ -181,5 +199,6 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
         applyPromoCode,
         removePromoCode,
         promoCodeMessage,
+        promoCodeValid: financialData.promoCodeValid, // Структурный флаг успеха (задача 1.5)
     };
 };

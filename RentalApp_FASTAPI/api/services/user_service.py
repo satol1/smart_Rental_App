@@ -292,22 +292,22 @@ class UserService:
 
             user_id = history_entry.user_id
 
-            # 2. Удалить запись из истории
-            await self.balance_history_repo.db.delete(history_entry)
-            
-            # Принудительно отправляем изменения в БД, чтобы запись была удалена
-            await self.db.flush()
-            
-            # 3. Пересчитать итоговый баланс пользователя
-            new_balance = await self.balance_history_repo.get_user_balance_sum(user_id)
-
-            # 4. Обновить баланс в модели User
-            user_to_update = await self.user_repo.get_by_id(user_id)
+            # 2. Заблокировать строку пользователя ДО пересчёта: параллельная
+            # транзакция баланса (add_transaction) идёт под FOR UPDATE — без лока
+            # здесь её вклад в сумму терялся (lost update на деньгах)
+            user_to_update = await self.user_repo.get_by_id_for_update(user_id)
             if not user_to_update:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Пользователь с ID {user_id} для обновления баланса не найден.")
-            
+
+            # 3. Удалить запись из истории
+            await self.balance_history_repo.db.delete(history_entry)
+
+            # Принудительно отправляем изменения в БД, чтобы запись была удалена
+            await self.db.flush()
+
+            # 4. Пересчитать итоговый баланс пользователя
+            new_balance = await self.balance_history_repo.get_user_balance_sum(user_id)
             user_to_update.balance = new_balance
-            self.db.add(user_to_update)
             
             # НЕ коммитим транзакцию - это делает middleware
             logging.info(f"Запись истории баланса #{history_id} удалена. Баланс пользователя #{user_id} пересчитан.")

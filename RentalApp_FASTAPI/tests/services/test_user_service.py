@@ -382,9 +382,10 @@ class TestUserService:
         mock_user = MagicMock(spec=User)
         mock_user.balance = 1000.0
         
-        # Настраиваем моки в фикстуре user_service
+        # Настраиваем моки в фикстуре user_service.
+        # Баланс пересчитывается под FOR UPDATE (get_by_id_for_update)
         user_service.balance_history_repo.get_by_id.return_value = mock_history_entry
-        user_service.user_repo.get_by_id.return_value = mock_user
+        user_service.user_repo.get_by_id_for_update.return_value = mock_user
         
         # Мокируем async context manager для begin_nested
         mock_context = AsyncMock()
@@ -395,7 +396,7 @@ class TestUserService:
         await user_service.delete_balance_history_entry(history_id)
         
         user_service.balance_history_repo.get_by_id.assert_called_once_with(history_id)
-        user_service.user_repo.get_by_id.assert_called_once_with(user_id)
+        user_service.user_repo.get_by_id_for_update.assert_called_once_with(user_id)
 
     @pytest.mark.asyncio
     async def test_delete_balance_history_entry_not_found(self, user_service, mock_db):

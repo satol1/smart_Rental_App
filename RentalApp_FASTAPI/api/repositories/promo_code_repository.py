@@ -24,20 +24,28 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         return result.scalar_one_or_none()
     
     async def get_all_with_creator(self) -> List[PromoCode]:
-        """Получает все промокоды с загрузкой создателя"""
+        """Получает все промокоды с загрузкой создателя и применимости"""
         result = await self.db.execute(
             select(PromoCode)
-            .options(joinedload(PromoCode.creator))
+            .options(
+                joinedload(PromoCode.creator),
+                selectinload(PromoCode.applicable_equipment),
+                selectinload(PromoCode.applicable_types),
+            )
             .order_by(PromoCode.created_at.desc())
         )
         return result.unique().scalars().all()
     
     async def get_by_id_with_creator(self, promo_code_id: int) -> Optional[PromoCode]:
-        """Получает промокод по ID с загрузкой создателя"""
+        """Получает промокод по ID с загрузкой создателя и применимости"""
         result = await self.db.execute(
             select(PromoCode)
             .filter(PromoCode.id == promo_code_id)
-            .options(joinedload(PromoCode.creator))
+            .options(
+                joinedload(PromoCode.creator),
+                selectinload(PromoCode.applicable_equipment),
+                selectinload(PromoCode.applicable_types),
+            )
         )
         return result.unique().scalars().first()
     
@@ -57,7 +65,9 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         await self.db.flush()
         await self.db.refresh(new_promo_code)
         
-        # Устанавливаем связи с оборудованием
+        # Устанавливаем связи с оборудованием. Присваиваем коллекции безусловно
+        # (в т.ч. пустые): неприсвоенное отношение на persistent-объекте при
+        # сериализации PromoCodeOut уходит в синхронный lazy load -> MissingGreenlet
         if promo_data.applicable_to_equipment_ids:
             equipment_result = await self.db.execute(
                 select(Equipment).filter(Equipment.id.in_(promo_data.applicable_to_equipment_ids))
@@ -66,12 +76,16 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
             if len(equipment) != len(promo_data.applicable_to_equipment_ids):
                 raise ValueError("Некоторые виды оборудования не найдены")
             new_promo_code.applicable_equipment = equipment
-        
+        else:
+            new_promo_code.applicable_equipment = []
+
         # Устанавливаем связи с типами оборудования
         if promo_data.applicable_to_equipment_types:
             new_promo_code.applicable_types = [
                 PromoCodeApplicableType(type_name=t) for t in promo_data.applicable_to_equipment_types
             ]
+        else:
+            new_promo_code.applicable_types = []
         
         # Возвращаем объект без дополнительной загрузки
         return new_promo_code
@@ -141,42 +155,69 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         result = await self.db.execute(
             select(PromoCode)
             .filter(PromoCode.id == promo_code.id)
-            .options(joinedload(PromoCode.creator))
+            .options(
+                joinedload(PromoCode.creator),
+                selectinload(PromoCode.applicable_equipment),
+                selectinload(PromoCode.applicable_types),
+            )
         )
         return result.unique().scalars().first()
     
     async def get_user_usage_count(self, user_id: int, promo_code_id: int) -> int:
-        """Получает количество использований промокода пользователем"""
+        """Количество использований промокода пользователем (счётчик в строке usages)"""
         from api.models.promo_code import promo_code_usages
-        
+
         result = await self.db.execute(
-            select(promo_code_usages)
-            .filter_by(user_id=user_id, promo_code_id=promo_code_id)
+            select(promo_code_usages.c.usage_count)
+            .where(
+                promo_code_usages.c.user_id == user_id,
+                promo_code_usages.c.promo_code_id == promo_code_id,
+            )
         )
-        return len(result.all())
+        return result.scalar() or 0
     
-    async def record_promo_code_usage(self, user_id: int, promo_code_id: int, used_at: datetime) -> None:
+    async def record_promo_code_usage(
+        self,
+        user_id: int,
+        promo_code_id: int,
+        used_at: datetime,
+        max_uses_per_user: Optional[int] = None,
+    ) -> None:
         """Записывает использование промокода пользователем.
 
-        Бросает PromoCodeUserUsageLimitError при повторном использовании
-        тем же пользователем (конфликт PK) вместо голого IntegrityError -> 500.
+        Upsert по PK (user_id, promo_code_id): первая запись создаёт строку,
+        повторные использования инкрементируют счётчик usage_count — так
+        max_uses_per_user > 1 физически возможен. Инкремент условный:
+        при исчерпанном лимите строка не меняется, RETURNING пуст — бросаем
+        PromoCodeUserUsageLimitError (защита от гонки мимо валидатора).
         """
-        from sqlalchemy.exc import IntegrityError
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
         from api.models.promo_code import promo_code_usages
         from api.services.promo_code.exceptions import PromoCodeUserUsageLimitError
 
-        # Savepoint: конфликт PK (повторное использование тем же пользователем)
-        # откатывает только этот INSERT, не внешнюю транзакцию запроса
-        try:
-            async with self.db.begin_nested():
-                await self.db.execute(
-                    promo_code_usages.insert().values(
-                        user_id=user_id,
-                        promo_code_id=promo_code_id,
-                        used_at=used_at
-                    )
-                )
-        except IntegrityError:
+        stmt = pg_insert(promo_code_usages).values(
+            user_id=user_id,
+            promo_code_id=promo_code_id,
+            usage_count=1,
+            used_at=used_at,
+        ).returning(promo_code_usages.c.usage_count)
+
+        conflict_where = (
+            promo_code_usages.c.usage_count < max_uses_per_user
+            if max_uses_per_user is not None
+            else None
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[promo_code_usages.c.user_id, promo_code_usages.c.promo_code_id],
+            set_={
+                "usage_count": promo_code_usages.c.usage_count + 1,
+                "used_at": used_at,
+            },
+            where=conflict_where,
+        )
+
+        result = await self.db.execute(stmt)
+        if result.first() is None:
             raise PromoCodeUserUsageLimitError()
     
     async def increment_usage_counter(self, promo_code_id: int) -> bool:
@@ -215,23 +256,30 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         )
 
     async def remove_latest_promo_code_usage(self, user_id: int, promo_code_id: int) -> None:
-        """Удаляет последнюю запись об использовании промокода пользователем."""
-        from sqlalchemy import select
+        """Освобождает одно использование промокода пользователем.
+
+        Счётчик usage_count уменьшается; строка удаляется, когда счётчик
+        достигает нуля. UPDATE по несуществующей строке даёт rowcount=0 —
+        в этом случае DELETE просто no-op.
+        """
+        from sqlalchemy import update
         from api.models.promo_code import promo_code_usages
 
         result = await self.db.execute(
-            select(promo_code_usages.c.id)
+            update(promo_code_usages)
             .where(
                 promo_code_usages.c.user_id == user_id,
                 promo_code_usages.c.promo_code_id == promo_code_id,
+                promo_code_usages.c.usage_count > 1,
             )
-            .order_by(promo_code_usages.c.used_at.desc())
-            .limit(1)
+            .values(usage_count=promo_code_usages.c.usage_count - 1)
         )
-        row = result.first()
-        if row is not None:
+        if (result.rowcount or 0) == 0:
             await self.db.execute(
-                promo_code_usages.delete().where(promo_code_usages.c.id == row[0])
+                promo_code_usages.delete().where(
+                    promo_code_usages.c.user_id == user_id,
+                    promo_code_usages.c.promo_code_id == promo_code_id,
+                )
             )
 
     async def delete(self, promo_code_id: int) -> bool:

@@ -41,6 +41,8 @@ export type ReservationEditContextValue = {
         promoDiscountAmount: number;
         promoCodePercentage: number;
         promoCodeMessage: string;
+        // Структурный флаг успеха применения промокода
+        promoCodeValid: boolean;
         promoCode: string;
     };
     priceDetails?: PriceDetails | null; // Добавляем priceDetails из usePriceCalculator

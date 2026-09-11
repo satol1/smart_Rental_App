@@ -86,7 +86,7 @@ describe('UserPaymentDialog', () => {
         expect(screen.getByRole('button', { name: /пополнить баланс/i })).toBeDisabled();
     });
 
-    it('валидная форма корректировки вызывает mutate', async () => {
+    it('валидная форма корректировки-списания вызывает mutate только после подтверждения', async () => {
         const user = userEvent.setup();
         renderDialog();
 
@@ -98,6 +98,15 @@ describe('UserPaymentDialog', () => {
         await waitFor(() => expect(submit).toBeEnabled());
         await user.click(submit);
 
+        // Списание требует шага подтверждения: mutate ещё не вызван
+        expect(mutateAdjustment).not.toHaveBeenCalled();
+
+        // В подтверждении показываем сумму списания и итоговый баланс (1500 - 250)
+        expect(screen.getByRole('button', { name: 'Списать' })).toBeInTheDocument();
+        expect(screen.getByText(/1\s*250/i)).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Списать' }));
+
         await waitFor(() => {
             expect(mutateAdjustment).toHaveBeenCalledTimes(1);
         });
@@ -105,6 +114,46 @@ describe('UserPaymentDialog', () => {
         expect(payload.userId).toBe(5);
         expect(payload.data.amount).toBe(-250);
         expect(payload.data.description).toBe('Штраф за просрочку');
+    });
+
+    it('отмена подтверждения списания не вызывает mutate', async () => {
+        const user = userEvent.setup();
+        renderDialog();
+
+        await user.click(screen.getByRole('button', { name: /корректировка/i }));
+        await user.type(screen.getByLabelText(/сумма/i), '-100');
+        await user.type(screen.getByLabelText(/описание операции/i), 'Штраф');
+
+        const submit = screen.getByRole('button', { name: /выполнить корректировку/i });
+        await waitFor(() => expect(submit).toBeEnabled());
+        await user.click(submit);
+
+        await user.click(screen.getByRole('button', { name: 'Отмена' }));
+
+        await waitFor(() => {
+            expect(screen.queryByRole('button', { name: 'Списать' })).not.toBeInTheDocument();
+        });
+        expect(mutateAdjustment).not.toHaveBeenCalled();
+    });
+
+    it('положительная корректировка применяется без подтверждения', async () => {
+        const user = userEvent.setup();
+        renderDialog();
+
+        await user.click(screen.getByRole('button', { name: /корректировка/i }));
+        await user.type(screen.getByLabelText(/сумма/i), '300');
+        await user.type(screen.getByLabelText(/описание операции/i), 'Бонус за лояльность');
+
+        const submit = screen.getByRole('button', { name: /выполнить корректировку/i });
+        await waitFor(() => expect(submit).toBeEnabled());
+        await user.click(submit);
+
+        await waitFor(() => {
+            expect(mutateAdjustment).toHaveBeenCalledTimes(1);
+        });
+        expect(mutateAdjustment.mock.calls[0][0].data.amount).toBe(300);
+        // Диалог подтверждения не появляется
+        expect(screen.queryByRole('button', { name: 'Списать' })).not.toBeInTheDocument();
     });
 
     it('отрицательная сумма блокирует сабмит', async () => {

@@ -234,6 +234,7 @@ export default function EditableReservationCard() {
                                 applyPromoCode={applyPromoCode}
                                 removePromoCode={removePromoCode}
                                 promoCodeMessage={financials.promoCodeMessage}
+                                promoCodeValid={financials.promoCodeValid}
                                 isLoading={isCheckingAvailability}
                                 hasConflicts={hasConflicts}
                                 variant="inline"

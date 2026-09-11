@@ -118,6 +118,8 @@ export function useReserveSubmission() {
         accessoriesDailyTotal,
         promoCode: promoCodeInput,
         promoCodeMessage: priceCalculator.promoCodeMessage,
+        // Структурный флаг успеха: примененный код + скидка из расчета бэкенда (задача 1.5)
+        promoCodeValid: Boolean(appliedPromoCode) && priceCalculator.promoDiscountPercentage > 0,
         setStartDate,
         setEndDate,
         clearReserveStore,

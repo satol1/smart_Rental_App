@@ -15,6 +15,8 @@ interface FinancialSummaryBlockProps {
     applyPromoCode: () => void;
     removePromoCode?: () => void;
     promoCodeMessage?: string;
+    // Структурный флаг успеха применения промокода
+    promoCodeValid: boolean;
     isLoading?: boolean;
     isApplyingPromoCode?: boolean;
     isSubmitting?: boolean;
@@ -32,7 +34,7 @@ interface FinancialSummaryBlockProps {
 
 export default function FinancialSummaryBlock({
     priceDetails, accessoriesDailyTotal = 0, promoCode, setPromoCode, applyPromoCode, removePromoCode,
-    promoCodeMessage = '', isLoading = false, isApplyingPromoCode = false, isSubmitting = false,
+    promoCodeMessage = '', promoCodeValid, isLoading = false, isApplyingPromoCode = false, isSubmitting = false,
     isFormValid = true, hasConflicts = false, formInvalidReason = null, cancellationPolicyNote,
     onCancel, onAddMore, onSubmit, variant = 'default', className, showActions = true,
 }: FinancialSummaryBlockProps) {
@@ -93,7 +95,7 @@ export default function FinancialSummaryBlock({
             )}
             <div className="border-t border-border pt-4">
                 <PromoCodeInput promoCode={promoCode} setPromoCode={setPromoCode} applyPromoCode={applyPromoCode}
-                    removePromoCode={removePromoCode} promoCodeMessage={displayPromoCodeMessage}
+                    removePromoCode={removePromoCode} promoCodeMessage={displayPromoCodeMessage} promoCodeValid={promoCodeValid}
                     disabled={isSubmitting || isLoading} isLoading={isApplyingPromoCode} />
             </div>
             {hasConflicts && (

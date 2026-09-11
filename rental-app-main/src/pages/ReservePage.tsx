@@ -43,6 +43,7 @@ export default function ReservePage() {
         accessoriesDailyTotal,
         promoCode,
         promoCodeMessage,
+        promoCodeValid,
         applyPromoCode,
         setPromoCode,
         removePromoCode,
@@ -207,7 +208,7 @@ export default function ReservePage() {
                         <FinancialSummaryBlock
                             priceDetails={priceDetails} accessoriesDailyTotal={accessoriesDailyTotal}
                             promoCode={promoCode} setPromoCode={setPromoCode} applyPromoCode={applyPromoCode}
-                            removePromoCode={removePromoCode} promoCodeMessage={promoCodeMessage}
+                            removePromoCode={removePromoCode} promoCodeMessage={promoCodeMessage} promoCodeValid={promoCodeValid}
                             isLoading={isLoadingAvailability} isApplyingPromoCode={isApplyingPromoCode}
                             isSubmitting={isSubmitting} isFormValid={isFormValid}
                             formInvalidReason={formInvalidReason} cancellationPolicyNote={cancellationPolicyNote}

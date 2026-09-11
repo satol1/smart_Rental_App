@@ -33,8 +33,8 @@ class PromoCodeUpdate(BaseModel):
     max_uses_per_user: Optional[int] = Field(None, gt=0)
     min_order_amount: Optional[float] = Field(None, gt=0)
     specific_to_user_id: Optional[int] = None
-    # applicable_to_equipment_ids: Optional[List[int]] = None
-    # applicable_to_equipment_types: Optional[List[str]] = None
+    applicable_to_equipment_ids: Optional[List[int]] = None
+    applicable_to_equipment_types: Optional[List[str]] = None
 
 class PromoCodeOut(PromoCodeBase):
     id: int

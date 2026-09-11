@@ -100,6 +100,8 @@ export function useAdminRentalEdit({ rental, onSuccess }: UseAdminRentalEditProp
             setAppliedPromoCode("");
         },
         promoCodeMessage: priceCalculator.promoCodeMessage || "",
+        // Структурный флаг успеха: примененный код + скидка из расчета бэкенда (задача 1.5)
+        promoCodeValid: Boolean(appliedPromoCode) && priceCalculator.promoDiscountPercentage > 0,
         isApplyingPromoCode: priceCalculator.isApplyingPromoCode,
     };
 }

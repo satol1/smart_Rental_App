@@ -8,7 +8,7 @@ const priceDetails = {
     day_count: 3, full_total: 9000, final_total: 7200, discount_amount: 1800,
     duration_discount_percentage: 10, promo_discount_percentage: 10,
 };
-const baseProps = { priceDetails, promoCode: '', setPromoCode: vi.fn(), applyPromoCode: vi.fn() };
+const baseProps = { priceDetails, promoCode: '', setPromoCode: vi.fn(), applyPromoCode: vi.fn(), promoCodeValid: false };
 
 describe('FinancialSummaryBlock checkout', () => {
     it('renders the server total and included accessories without adding them again', () => {

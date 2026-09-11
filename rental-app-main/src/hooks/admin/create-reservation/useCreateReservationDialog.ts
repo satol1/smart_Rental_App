@@ -6,7 +6,7 @@ import { useAdminReservationCalculator } from "../useAdminReservationCalculator"
 import { formatDate } from "@/lib/utils";
 import { useCreateReservationData } from "./useCreateReservationData";
 import { useCreateReservationForm, type CreateReservationFormData } from "./useCreateReservationForm";
-import { usePromoCodeStore } from "@/store/promoCodeStore";
+import { usePromoCodeStore, ADMIN_CREATE_RESERVATION_PROMO_SCOPE } from "@/store/promoCodeStore";
 import { USER_STATUS } from "@/constants/userStatusConstants";
 
 const todayDate = new Date();
@@ -50,8 +50,12 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
     // 4. Расчет финансов
     const financialData = useAdminReservationCalculator(watch, allEquipment);
 
-    // 5. Промокод стор для сброса при закрытии
-    const { clearPromoCode } = usePromoCodeStore();
+    // 5. Промокод стор для сброса при закрытии (селектор действия — без подписки на состояние)
+    const clearPromoCodeAction = usePromoCodeStore((s) => s.clearPromoCode);
+    const clearPromoCode = useCallback(
+        () => clearPromoCodeAction(ADMIN_CREATE_RESERVATION_PROMO_SCOPE),
+        [clearPromoCodeAction]
+    );
 
     // 6. Логика отправки формы
     const createReservationMutation = useCreateAdminReservation();

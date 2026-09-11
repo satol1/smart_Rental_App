@@ -198,7 +198,7 @@ class TestPromoCodeBusinessLogicFinal:
         # Проверяем, что методы были вызваны
         mock_promo_code_repo.increment_usage_counter.assert_called_once_with(sample_promo_code.id)
         from unittest.mock import ANY
-        mock_promo_code_repo.record_promo_code_usage.assert_called_once_with(sample_user.id, sample_promo_code.id, ANY)
+        mock_promo_code_repo.record_promo_code_usage.assert_called_once_with(sample_user.id, sample_promo_code.id, ANY, max_uses_per_user=sample_promo_code.max_uses_per_user)
 
     @pytest.mark.asyncio
     async def test_record_promo_code_usage_anonymous_user(self, promo_code_logic, mock_promo_code_repo, sample_promo_code):

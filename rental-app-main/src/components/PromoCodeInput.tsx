@@ -16,6 +16,8 @@ interface PromoCodeInputProps {
     applyPromoCode: () => void;
     removePromoCode?: () => void;
     promoCodeMessage: string;
+    // Структурный флаг успеха применения — вместо разбора текста сообщения
+    promoCodeValid: boolean;
     disabled?: boolean;
     isLoading?: boolean;
     requirementMessage?: string;
@@ -27,6 +29,7 @@ export default function PromoCodeInput({
    applyPromoCode,
    removePromoCode,
    promoCodeMessage,
+   promoCodeValid,
    disabled = false,
    isLoading = false,
    requirementMessage,
@@ -50,7 +53,8 @@ export default function PromoCodeInput({
     };
 
     const isApplied = promoCodeMessage && promoCodeMessage.length > 0;
-    const isSuccess = isApplied && promoCodeMessage.includes("успешно");
+    // Успех определяем структурным флагом, а не подстрокой в тексте ответа
+    const isSuccess = isApplied && promoCodeValid;
     const isDisabledByRequirement = !!requirementMessage;
     const reducedMotion = useReducedMotion();
     const isApplyDisabled = disabled || isLoading || isSuccess || isDisabledByRequirement;

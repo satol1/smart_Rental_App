@@ -71,6 +71,7 @@ const CreateReservationDialogContent = () => {
                             applyPromoCode={financialData.applyPromoCode}
                             removePromoCode={financialData.removePromoCode}
                             promoCodeMessage={financialData.promoCodeMessage}
+                            promoCodeValid={financialData.promoCodeValid}
                             isLoading={isLoadingAvailability || financialData.isCalculatingPrice}
                             isApplyingPromoCode={financialData.isApplyingPromoCode}
                             isSubmitting={isSubmitting}
@@ -96,6 +97,7 @@ const CreateReservationDialogContent = () => {
                             applyPromoCode={financialData.applyPromoCode}
                             removePromoCode={financialData.removePromoCode}
                             promoCodeMessage={financialData.promoCodeMessage}
+                            promoCodeValid={financialData.promoCodeValid}
                             isLoading={isLoadingAvailability || financialData.isCalculatingPrice}
                             isApplyingPromoCode={financialData.isApplyingPromoCode}
                             isSubmitting={isSubmitting}

@@ -7,11 +7,14 @@ from api.database_models import Base
 # ✅ Импортируем timezone
 from datetime import datetime, timezone
 
-# Промежуточная таблица для отслеживания использований промокодов пользователями
+# Промежуточная таблица для отслеживания использований промокодов пользователями.
+# usage_count: PK (user_id, promo_code_id) допускает одну строку на пару, поэтому
+# лимит max_uses_per_user > 1 реализован счётчиком в этой строке
 promo_code_usages = Table(
     'promo_code_usages', Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('promo_code_id', Integer, ForeignKey('promo_codes.id'), primary_key=True),
+    Column('usage_count', Integer, nullable=False, server_default='1'),
     # ✅ ИЗМЕНЕНИЕ: Добавляем timezone=True
     Column('used_at', DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 )
@@ -80,14 +83,15 @@ class PromoCode(Base):
     )
 
     # --- Вспомогательные свойства ---
-    # Закомментированы для избежания проблем с ленивой загрузкой в асинхронном контексте
-    # @property
-    # def applicable_to_equipment_ids(self) -> list[int]:
-    #     return [item.id for item in self.applicable_equipment] if self.applicable_equipment else []
+    # Безопасны только при загруженных связях (selectinload в репозитории) —
+    # иначе async-контекст упадёт на ленивой загрузке
+    @property
+    def applicable_to_equipment_ids(self) -> list[int]:
+        return [item.id for item in self.applicable_equipment] if self.applicable_equipment else []
 
-    # @property
-    # def applicable_to_equipment_types(self) -> list[str]:
-    #     return [item.type_name for item in self.applicable_types] if self.applicable_types else []
+    @property
+    def applicable_to_equipment_types(self) -> list[str]:
+        return [item.type_name for item in self.applicable_types] if self.applicable_types else []
     
     @property
     def creator_email(self) -> str | None:

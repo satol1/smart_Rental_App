@@ -128,7 +128,7 @@ async def calculate_price(
         )
         try:
             promo_code_obj = await promo_code_service.validate_promo_code_for_use(
-                request.promo_code, preliminary_price_details.full_total,
+                request.promo_code, preliminary_price_details.final_total,
                 request.equipment_ids, None
             )
             promo_message = "Промокод успешно применен!"
