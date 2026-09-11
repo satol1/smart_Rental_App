@@ -19,4 +19,6 @@ class SettingsService:
         
         settings_dict = [s.model_dump() for s in settings_data]
         await self.system_service.upsert_settings(settings_dict)
-        await self.db.commit()
+        # Транзакцию держит DIContainerMiddleware: здесь только flush,
+        # чтобы настройки были видны в текущей сессии до конца запроса.
+        await self.db.flush()

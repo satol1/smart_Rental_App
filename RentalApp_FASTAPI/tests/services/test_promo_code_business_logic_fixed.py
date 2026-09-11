@@ -201,7 +201,7 @@ class TestPromoCodeBusinessLogicFixed:
     async def test_record_promo_code_usage_success(self, promo_code_logic, mock_promo_code_repo, mock_db_session, sample_promo_code, sample_user):
         """Тест записи использования промокода"""
         # Настраиваем моки
-        mock_promo_code_repo.increment_usage_counter = AsyncMock()
+        mock_promo_code_repo.increment_usage_counter = AsyncMock(return_value=True)
         mock_promo_code_repo.record_promo_code_usage = AsyncMock()
 
         # Выполняем тест
@@ -216,7 +216,7 @@ class TestPromoCodeBusinessLogicFixed:
     async def test_record_promo_code_usage_anonymous_user(self, promo_code_logic, mock_promo_code_repo, sample_promo_code):
         """Тест записи использования промокода анонимным пользователем"""
         # Настраиваем мок
-        mock_promo_code_repo.increment_usage_counter.return_value = None
+        mock_promo_code_repo.increment_usage_counter.return_value = True
         
         # Выполняем тест
         await promo_code_logic.record_promo_code_usage(sample_promo_code, None)
@@ -230,7 +230,7 @@ class TestPromoCodeBusinessLogicFixed:
         """Каждое применение промокода записывается отдельной строкой истории:
         лимит max_uses_per_user проверяет валидатор до применения, а не запись"""
         # Настраиваем моки
-        mock_promo_code_repo.increment_usage_counter = AsyncMock()
+        mock_promo_code_repo.increment_usage_counter = AsyncMock(return_value=True)
         mock_promo_code_repo.record_promo_code_usage = AsyncMock()
 
         # Выполняем тест

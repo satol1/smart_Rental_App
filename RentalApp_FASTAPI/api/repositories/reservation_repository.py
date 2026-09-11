@@ -123,25 +123,39 @@ class ReservationRepository(ReservationBaseRepository):
     async def update_reservation_end_date(self, reservation_id: int, new_end_date: date) -> bool:
         """
         Обновляет дату окончания резерва.
-        
+
         Args:
             reservation_id: ID резерва
             new_end_date: Новая дата окончания
-            
+
         Returns:
             True если обновление прошло успешно, False если резерв не найден
         """
+        import logging
         from sqlalchemy import update
         from api.models.reservation import Reservation
-        
+
+        # TODO(этап 2.7 аудита): метод меняет дату БЕЗ анти-овербукинг проверки.
+        # Потребитель — HolidayService._auto_extend_orders_on_holiday_creation
+        # (продление резервов при создании выходного). Продление может создать
+        # пересечение с другим резервом/арендой на это же оборудование.
+        # Нужно прогонять новый интервал через OrderValidator.validate_equipment_availability
+        # (с pg_advisory_xact_lock) и отклонять/разрешать конфликт явно.
+        logging.getLogger(__name__).warning(
+            "[anti-overbooking] update_reservation_end_date(reservation_id=%s, new_end_date=%s): "
+            "дата меняется без проверки пересечений (см. TODO этапа 2.7)",
+            reservation_id, new_end_date,
+        )
+
         result = await self.db.execute(
             update(Reservation)
             .where(Reservation.id == reservation_id)
             .values(end_date=new_end_date)
         )
-        
+
         if result.rowcount > 0:
-            await self.db.commit()
+            # Коммитит DIContainerMiddleware; здесь только фиксируем в транзакции
+            await self.db.flush()
             return True
         return False
     

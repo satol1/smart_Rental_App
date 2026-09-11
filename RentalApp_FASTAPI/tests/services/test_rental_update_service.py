@@ -525,19 +525,31 @@ class TestRentalUpdateService:
         assert kwargs.get('code') == "EXISTING"
 
     @pytest.mark.asyncio
-    async def test_resolve_promo_invalid_code_dropped(self, rental_update_service, active_rental):
-        """Невалидный промокод отбрасывается без падения изменения дат."""
+    async def test_resolve_promo_invalid_code_raises(self, rental_update_service, active_rental):
+        """Невалидный промокод — явный отказ, а не молчаливый пересчёт без скидки."""
+        from fastapi import HTTPException
+
         update_data = {'promo_code': 'INVALID'}
 
+        # Ошибки домена (HTTPException) пробрасываются как есть
         rental_update_service.promo_code_logic.validate_and_get_promo_code = AsyncMock(
-            side_effect=Exception("Invalid promo code")
+            side_effect=HTTPException(status_code=400, detail="Промокод истёк")
         )
+        with pytest.raises(HTTPException) as domain_exc:
+            await rental_update_service._resolve_promo_code_for_recalculation(
+                update_data, active_rental, [1], 1000.0
+            )
+        assert domain_exc.value.status_code == 400
 
-        result = await rental_update_service._resolve_promo_code_for_recalculation(
-            update_data, active_rental, [1], 1000.0
+        # Неожиданные ошибки конвертируются в 409 с внятным текстом
+        rental_update_service.promo_code_logic.validate_and_get_promo_code = AsyncMock(
+            side_effect=Exception("boom")
         )
-
-        assert result is None
+        with pytest.raises(HTTPException) as unexpected_exc:
+            await rental_update_service._resolve_promo_code_for_recalculation(
+                update_data, active_rental, [1], 1000.0
+            )
+        assert unexpected_exc.value.status_code == 409
 
     @pytest.mark.asyncio
     async def test_resolve_promo_no_promo_code(self, rental_update_service, active_rental):

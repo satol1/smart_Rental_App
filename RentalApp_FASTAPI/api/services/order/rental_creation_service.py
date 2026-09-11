@@ -260,8 +260,21 @@ class RentalCreationService:
                         user=reservation.user,
                         skip_usage_limits=True
                     )
-                except Exception:
-                    re_validated_promo_obj = None
+                except HTTPException:
+                    # Промокод стал недействительным к моменту конвертации:
+                    # отказываем явно, а не создаём аренду без скидки молча —
+                    # клиент рассчитывает на другую сумму
+                    raise
+                except Exception as e:
+                    logger.error(
+                        f"Промокод #{reservation.promo_code_id} не удалось перепроверить "
+                        f"при конвертации резерва #{reservation.id}: {e}",
+                        exc_info=True,
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Не удалось подтвердить промокод для аренды. Повторите позже или создайте аренду без промокода."
+                    )
         
         # Финальный расчет
         final_price = await self.financial_service.calculate_final_price(

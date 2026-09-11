@@ -1,6 +1,7 @@
 # api/models/reservation.py
 
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table, Float, String, Date
+from decimal import Decimal
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table, Float, String, Date, Numeric
 from sqlalchemy.orm import relationship
 from api.database_models import Base
 from typing import Optional, Dict, List
@@ -31,9 +32,11 @@ class Reservation(Base):
     end_date = Column(Date, nullable=False)
     status = Column(String, default='active', nullable=False, index=True)
     promo_code_id = Column(Integer, ForeignKey("promo_codes.id"), nullable=True)
-    total_cost = Column(Float, nullable=False, default=0.0)
-    discount_amount = Column(Float, nullable=False, default=0.0)
+    total_cost = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))
+    discount_amount = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    # Оптимистичная блокировка: параллельный апдейт по устаревшей версии -> 409
+    version = Column(Integer, nullable=False, default=1, server_default="1")
 
     user = relationship("User", back_populates="reservations", lazy="joined")
     applied_promo_code = relationship("PromoCode", lazy="joined")

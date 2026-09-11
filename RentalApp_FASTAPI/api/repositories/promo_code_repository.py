@@ -156,27 +156,48 @@ class PromoCodeRepository(BaseRepository[PromoCode, PromoCodeCreate, PromoCodeUp
         return len(result.all())
     
     async def record_promo_code_usage(self, user_id: int, promo_code_id: int, used_at: datetime) -> None:
-        """Записывает использование промокода пользователем"""
+        """Записывает использование промокода пользователем.
+
+        Бросает PromoCodeUserUsageLimitError при повторном использовании
+        тем же пользователем (конфликт PK) вместо голого IntegrityError -> 500.
+        """
+        from sqlalchemy.exc import IntegrityError
         from api.models.promo_code import promo_code_usages
-        
-        await self.db.execute(
-            promo_code_usages.insert().values(
-                user_id=user_id,
-                promo_code_id=promo_code_id,
-                used_at=used_at
-            )
-        )
+        from api.services.promo_code.exceptions import PromoCodeUserUsageLimitError
+
+        # Savepoint: конфликт PK (повторное использование тем же пользователем)
+        # откатывает только этот INSERT, не внешнюю транзакцию запроса
+        try:
+            async with self.db.begin_nested():
+                await self.db.execute(
+                    promo_code_usages.insert().values(
+                        user_id=user_id,
+                        promo_code_id=promo_code_id,
+                        used_at=used_at
+                    )
+                )
+        except IntegrityError:
+            raise PromoCodeUserUsageLimitError()
     
-    async def increment_usage_counter(self, promo_code_id: int) -> None:
-        """Увеличивает счетчик использований промокода (атомарно на стороне БД)."""
+    async def increment_usage_counter(self, promo_code_id: int) -> bool:
+        """Увеличивает счетчик использований промокода (атомарно на стороне БД).
+
+        Инкремент условный: не выходит за max_uses. Возвращает False, если
+        лимит исчерпан (параллельные заказы больше не могут «протолкнуться»
+        мимо предварительной валидации).
+        """
         from sqlalchemy import update
         from api.models.promo_code import PromoCode
 
-        await self.db.execute(
+        result = await self.db.execute(
             update(PromoCode)
-            .where(PromoCode.id == promo_code_id)
+            .where(
+                PromoCode.id == promo_code_id,
+                (PromoCode.max_uses.is_(None)) | (PromoCode.times_used < PromoCode.max_uses),
+            )
             .values(times_used=PromoCode.times_used + 1)
         )
+        return (result.rowcount or 0) > 0
 
     async def decrement_usage_counter(self, promo_code_id: int) -> None:
         """Уменьшает счетчик использований промокода (не ниже нуля, атомарно).

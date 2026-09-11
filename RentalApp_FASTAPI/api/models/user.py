@@ -1,7 +1,8 @@
 # api/models/user.py
 
+from decimal import Decimal
 from sqlalchemy import (Column, Integer, String, Boolean, DateTime,
-                        Float, Text)
+                        Float, Text, Numeric)
 from sqlalchemy.orm import relationship
 from api.database_models import Base
 from datetime import datetime, timezone
@@ -22,7 +23,7 @@ class User(Base):
     phone = Column(String)
     status = Column(String, default="Новый")  # Новый статус по умолчанию для новых пользователей
     status_changed_manually = Column(Boolean, default=False)  # Флаг ручного изменения статуса (приоритет над автоматическим)
-    balance = Column(Float, default=0.0)
+    balance = Column(Numeric(12, 2), default=Decimal("0.00"))
     notes = Column(Text)
 
     privacy_policy_accepted = Column(Boolean, default=False)

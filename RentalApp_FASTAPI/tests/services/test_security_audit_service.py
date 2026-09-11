@@ -20,6 +20,7 @@ class TestSecurityAuditService:
         db = AsyncMock()
         db.add = MagicMock()
         db.commit = AsyncMock()
+        db.flush = AsyncMock()
         db.refresh = AsyncMock()
         db.rollback = AsyncMock()
         return db
@@ -49,7 +50,7 @@ class TestSecurityAuditService:
     async def test_log_event_success(self, security_audit_service, mock_db_session, sample_audit_log):
         """Тест успешного логирования события."""
         mock_db_session.refresh = AsyncMock(return_value=None)
-        
+
         result = await security_audit_service.log_event(
             event_type="test_event",
             event_category="test",
@@ -59,10 +60,13 @@ class TestSecurityAuditService:
             user_email="user@example.com",
             ip_address="192.168.1.1"
         )
-        
+
         assert isinstance(result, SecurityAuditLog)
         mock_db_session.add.assert_called_once()
-        mock_db_session.commit.assert_called_once()
+        # Транзакцию коммитит DIContainerMiddleware: сервис делает только flush
+        mock_db_session.flush.assert_called_once()
+        mock_db_session.commit.assert_not_called()
+        mock_db_session.rollback.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_log_event_with_all_fields(self, security_audit_service, mock_db_session):
@@ -94,8 +98,8 @@ class TestSecurityAuditService:
     @pytest.mark.asyncio
     async def test_log_event_error_handling(self, security_audit_service, mock_db_session):
         """Тест обработки ошибки при логировании."""
-        mock_db_session.commit.side_effect = Exception("Database error")
-        
+        mock_db_session.flush.side_effect = Exception("Database error")
+
         with pytest.raises(Exception):
             await security_audit_service.log_event(
                 event_type="test_event",
@@ -103,8 +107,10 @@ class TestSecurityAuditService:
                 severity="low",
                 description="Test"
             )
-        
-        mock_db_session.rollback.assert_called_once()
+
+        # Сервис не делает commit/rollback: откат внешней транзакции выполняет middleware
+        mock_db_session.rollback.assert_not_called()
+        mock_db_session.commit.assert_not_called()
 
     # === ТЕСТЫ ДЛЯ log_login_attempt ===
 

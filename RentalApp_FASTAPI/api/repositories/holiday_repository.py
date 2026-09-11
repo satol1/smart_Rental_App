@@ -75,33 +75,32 @@ class HolidayRepository:
         return list(conflicting_result.scalars().all())
     
     async def save_holiday(self, holiday: Holiday) -> Holiday:
-        """Сохраняет один объект Holiday."""
+        """Сохраняет один объект Holiday (flush без commit — транзакцию держит middleware)."""
         self.db.add(holiday)
-        await self.db.commit()
-        await self.db.refresh(holiday)
+        await self.db.flush()
         return holiday
-    
+
     async def save_rule(self, rule: HolidayRule) -> HolidayRule:
         """Сохраняет один объект HolidayRule."""
         self.db.add(rule)
         await self.db.flush()  # Используем flush для получения ID без коммита
         return rule
-    
+
     async def bulk_save_holidays(self, holidays: List[Holiday]):
-        """Сохраняет список объектов Holiday с помощью db.add_all()."""
+        """Сохраняет список объектов Holiday с помощью db.add_all() единым flush."""
         if holidays:
             self.db.add_all(holidays)
-            await self.db.commit()
-    
+            await self.db.flush()
+
     async def delete_holiday(self, holiday: Holiday):
         """Удаляет объект Holiday."""
         await self.db.delete(holiday)
-        await self.db.commit()
-    
+        await self.db.flush()
+
     async def delete_rule(self, rule: HolidayRule):
         """Удаляет объект HolidayRule."""
         await self.db.delete(rule)
-        await self.db.commit()
+        await self.db.flush()
     
     async def is_holiday(self, date: date) -> bool:
         """Проверяет, является ли дата выходным днем."""

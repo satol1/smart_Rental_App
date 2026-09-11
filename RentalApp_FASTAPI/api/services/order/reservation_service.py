@@ -135,6 +135,31 @@ class ReservationLifecycleService:
             )
             raise
 
+    async def _ensure_reservation_version(self, reservation) -> None:
+        """Оптимистичная блокировка резерва.
+
+        Условный инкремент version: если параллельная транзакция уже изменила
+        резерв (версия не совпала), отказываем с 409 вместо last-writer-wins.
+        """
+        from sqlalchemy import update
+        from api.models.reservation import Reservation
+        current_version = reservation.version or 1
+        result = await self.db.execute(
+            update(Reservation)
+            .where(
+                Reservation.id == reservation.id,
+                Reservation.version == current_version,
+            )
+            .values(version=current_version + 1)
+        )
+        if result.rowcount is not None and result.rowcount == 0:
+            from fastapi import HTTPException, status
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Резерв был изменён другим пользователем. Обновите страницу и повторите изменения.",
+            )
+        reservation.version = current_version + 1
+
     async def update_user_reservation(
         self, reservation_id: int, request: ReservationUpdateRequest, user: User
     ) -> Reservation:
@@ -164,6 +189,9 @@ class ReservationLifecycleService:
 
                 # Выданный (fulfilled) резерв редактировать нельзя — он уже аренда
                 self.validator.validate_reservation_is_editable(reservation)
+
+                # Оптимистичная блокировка: отказ при параллельном изменении
+                await self._ensure_reservation_version(reservation)
 
                 # confirm_date_adjustment: пользователь подтвердил дату на выходной
                 # (после диалога подтверждения) — не отбиваем её повторным 409
@@ -449,6 +477,9 @@ class ReservationLifecycleService:
             async with self.db.begin_nested():
                 # Выданный (fulfilled) резерв редактировать нельзя — он уже аренда
                 self.validator.validate_reservation_is_editable(reservation)
+
+                # Оптимистичная блокировка: отказ при параллельном изменении
+                await self._ensure_reservation_version(reservation)
 
                 # Пропускаем валидацию прав на редактирование для менеджера;
                 # confirm_date_adjustment прокидываем как подтверждение даты-выходного

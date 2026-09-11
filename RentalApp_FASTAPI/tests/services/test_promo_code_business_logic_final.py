@@ -188,7 +188,7 @@ class TestPromoCodeBusinessLogicFinal:
     async def test_record_promo_code_usage_success(self, promo_code_logic, mock_promo_code_repo, sample_promo_code, sample_user):
         """Тест записи использования промокода"""
         # Настраиваем мок
-        mock_promo_code_repo.increment_usage_counter.return_value = None
+        mock_promo_code_repo.increment_usage_counter.return_value = True
         mock_promo_code_repo.record_promo_code_usage.return_value = None
         mock_promo_code_repo.get_user_usage_count.return_value = 0
         
@@ -204,7 +204,7 @@ class TestPromoCodeBusinessLogicFinal:
     async def test_record_promo_code_usage_anonymous_user(self, promo_code_logic, mock_promo_code_repo, sample_promo_code):
         """Тест записи использования промокода анонимным пользователем"""
         # Настраиваем мок
-        mock_promo_code_repo.increment_usage_counter.return_value = None
+        mock_promo_code_repo.increment_usage_counter.return_value = True
         
         # Выполняем тест
         await promo_code_logic.record_promo_code_usage(sample_promo_code, None)
@@ -217,7 +217,7 @@ class TestPromoCodeBusinessLogicFinal:
     async def test_record_promo_code_usage_existing_usage(self, promo_code_logic, mock_promo_code_repo, sample_promo_code, sample_user):
         """Тест записи использования промокода при существующем использовании"""
         # Настраиваем мок
-        mock_promo_code_repo.increment_usage_counter.return_value = None
+        mock_promo_code_repo.increment_usage_counter.return_value = True
         mock_promo_code_repo.record_promo_code_usage.return_value = None
         mock_promo_code_repo.get_user_usage_count.return_value = 1  # Уже использован
         

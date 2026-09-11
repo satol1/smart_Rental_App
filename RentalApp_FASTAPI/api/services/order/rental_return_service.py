@@ -4,6 +4,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any, Optional
 from datetime import date
+from decimal import Decimal
 import logging
 
 from api.models.user import User
@@ -102,10 +103,10 @@ class RentalReturnService:
     
     async def _calculate_return_adjustments(
         self, rental: Rental, actual_return_date: date
-    ) -> tuple[float, float]:
+    ) -> tuple[Decimal, Decimal]:
         """Рассчитывает дополнительные платежи или возвраты при возврате аренды."""
-        credit_amount = 0.0
-        surcharge_amount = 0.0
+        credit_amount = Decimal("0")
+        surcharge_amount = Decimal("0")
 
         if actual_return_date > rental.end_date:
             # Просрочка - рассчитываем штраф
@@ -124,7 +125,7 @@ class RentalReturnService:
         return credit_amount, surcharge_amount
     
     async def _create_return_balance_transactions(
-        self, rental: Rental, credit_amount: float, surcharge_amount: float
+        self, rental: Rental, credit_amount: Decimal, surcharge_amount: Decimal
     ) -> None:
         """Создает транзакции баланса при возврате аренды."""
         if surcharge_amount > 0:

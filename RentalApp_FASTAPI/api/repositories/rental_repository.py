@@ -209,25 +209,38 @@ class RentalRepository(RentalBaseRepository):
     async def update_rental_end_date(self, rental_id: int, new_end_date: date) -> bool:
         """
         Обновляет дату окончания аренды.
-        
+
         Args:
             rental_id: ID аренды
             new_end_date: Новая дата окончания
-            
+
         Returns:
             True если обновление прошло успешно, False если аренда не найдена
         """
         from sqlalchemy import update
         from api.models.rental import Rental
-        
+
+        # TODO(этап 2.7 аудита): метод меняет дату БЕЗ анти-овербукинг проверки.
+        # Потребитель — HolidayService._auto_extend_orders_on_holiday_creation
+        # (продление аренд при создании выходного). Продление может создать
+        # пересечение с другим резервом/арендой на это же оборудование.
+        # Нужно прогонять новый интервал через OrderValidator.validate_equipment_availability
+        # (с pg_advisory_xact_lock) и отклонять/разрешать конфликт явно.
+        logger.warning(
+            "[anti-overbooking] update_rental_end_date(rental_id=%s, new_end_date=%s): "
+            "дата меняется без проверки пересечений (см. TODO этапа 2.7)",
+            rental_id, new_end_date,
+        )
+
         result = await self.db.execute(
             update(Rental)
             .where(Rental.id == rental_id)
             .values(end_date=new_end_date)
         )
-        
+
         if result.rowcount > 0:
-            await self.db.commit()
+            # Коммитит DIContainerMiddleware; здесь только фиксируем в транзакции
+            await self.db.flush()
             return True
         return False
     

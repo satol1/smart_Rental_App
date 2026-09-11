@@ -242,13 +242,16 @@ class TestBaseRepository:
     async def test_save_success(self, base_repository, mock_db_session):
         """Тест успешного сохранения изменений."""
         # Arrange
+        mock_db_session.flush = AsyncMock()
         mock_db_session.commit = AsyncMock()
 
         # Act
         await base_repository.save()
 
         # Assert
-        mock_db_session.commit.assert_called_once()
+        # save() — alias к flush: commit делает DIContainerMiddleware
+        mock_db_session.flush.assert_called_once()
+        mock_db_session.commit.assert_not_called()
 
     def test_repository_initialization(self, mock_db_session):
         """Тест инициализации репозитория."""
@@ -302,7 +305,7 @@ class TestBaseRepository:
     async def test_save_database_error(self, base_repository, mock_db_session):
         """Тест обработки ошибки базы данных при сохранении."""
         # Arrange
-        mock_db_session.commit = AsyncMock(side_effect=Exception("Database error"))
+        mock_db_session.flush = AsyncMock(side_effect=Exception("Database error"))
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:

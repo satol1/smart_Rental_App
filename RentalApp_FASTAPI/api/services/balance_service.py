@@ -1,11 +1,14 @@
 # api/services/balance_service.py
 
+from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 import logging
 
 from api.models.balance_history import BalanceHistory
 from api.repositories.user_repository import UserRepository
+
+from api.services.financial_service import to_decimal
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +20,7 @@ class BalanceService:
     async def add_transaction(
             self,
             user_id: int,
-            amount: float,
+            amount: float | Decimal,
             operation_type: str,
             description: str,
             rental_id: int | None = None
@@ -35,10 +38,13 @@ class BalanceService:
             logger.error(f"Попытка провести транзакцию для несуществующего пользователя ID={user_id}")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден.")
 
+        # Баланс — Numeric(12,2): арифметика в Decimal, без накопления float-погрешности
+        decimal_amount = to_decimal(amount)
+
         # 1. Создаем запись в истории
         new_history_entry = BalanceHistory(
             user_id=user_id,
-            amount=amount,
+            amount=decimal_amount,
             operation_type=operation_type,
             description=description,
             rental_id=rental_id
@@ -46,7 +52,7 @@ class BalanceService:
         self.db.add(new_history_entry)
 
         # 2. Атомарно обновляем кэшированное значение баланса
-        user.balance += amount
+        user.balance = to_decimal(user.balance) + decimal_amount
 
         logger.info(f"Транзакция для пользователя ID={user_id} на сумму {amount} ({operation_type}) добавлена в сессию. Новый баланс: {user.balance}")
         return new_history_entry

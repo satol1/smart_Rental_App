@@ -193,13 +193,13 @@ class TestBillingFinancialChain:
     # 2. Promo Code Dropped When Criteria Fail During Conversion
     # -------------------------------------------------------------------------
     @pytest.mark.asyncio
-    async def test_convert_reservation_drops_promo_if_invalid_on_conversion(
+    async def test_convert_reservation_rejected_if_promo_invalid_on_conversion(
         self, rental_creation_service, sample_user, sample_manager,
         sample_equipment, sample_promo_code
     ):
         """
         Тест: Если промокод стал невалидным (например, истек или сумма ниже порога),
-        он не передается в аренду, и итоговая цена рассчитывается без скидки.
+        конвертация явно отклоняется — вместо молчаливого создания аренды без скидки.
         """
         reservation = Reservation()
         reservation.id = 51
@@ -256,14 +256,15 @@ class TestBillingFinancialChain:
         rental_creation_service.balance_service.add_transaction = AsyncMock()
         rental_creation_service.rental_repo.get_rental_by_id_or_fail = AsyncMock(return_value=created_rental)
 
-        result = await rental_creation_service.convert_reservation_to_rental(
-            reservation.id, convert_request, sample_manager
-        )
+        # Промокод стал невалидным к моменту конвертации: аренда НЕ создаётся
+        # молча без скидки, а отказывает явно (клиент ожидает сумму со скидкой)
+        with pytest.raises(HTTPException) as exc_info:
+            await rental_creation_service.convert_reservation_to_rental(
+                reservation.id, convert_request, sample_manager
+            )
 
-        call_kwargs = rental_creation_service.rental_repo.create_rental_from_reservation.call_args[1]
-        assert call_kwargs["promo_code"] is None
-        assert call_kwargs["recalculated_discount"] == 0.0
-        assert call_kwargs["recalculated_cost"] == 1000.0
+        assert exc_info.value.status_code in (400, 409)
+        rental_creation_service.rental_repo.create_rental_from_reservation.assert_not_called()
 
     # -------------------------------------------------------------------------
     # 3. Rental Return & Promo Code Retention
@@ -578,13 +579,13 @@ class TestBillingFinancialChain:
     # 7. Promo Validation & Drop on End Date Change
     # -------------------------------------------------------------------------
     @pytest.mark.asyncio
-    async def test_admin_update_rental_dates_drops_promo_if_below_min_amount(
+    async def test_admin_update_rental_dates_rejected_if_promo_below_min_amount(
         self, mock_db, sample_user, sample_manager, sample_equipment, sample_promo_code
     ):
         """
         Тест: При изменении менеджером даты окончания аренды, если сумма заказа
-        падает ниже min_order_amount промокода, промокод сбрасывается,
-        пересчитывается стоимость без скидки, а дельта зачисляется на баланс.
+        падает ниже min_order_amount промокода, обновление явно отклоняется —
+        вместо молчаливого сброса промокода и пересчёта без скидки.
         """
         from api.repositories.rental_repository import RentalRepository
         from api.services.order.order_validator import OrderValidator
@@ -644,20 +645,16 @@ class TestBillingFinancialChain:
         rental_repo.save_rental = AsyncMock(return_value=rental)
         balance_service.add_transaction = AsyncMock()
 
-        await update_service.update_rental_details_by_admin(
-            rental.id, update_request, sample_manager
-        )
+        # Сумма упала ниже min_order_amount: обновление явно отклоняется,
+        # а не пересчитывается молча без скидки
+        with pytest.raises(HTTPException) as exc_info:
+            await update_service.update_rental_details_by_admin(
+                rental.id, update_request, sample_manager
+            )
 
-        assert rental.promo_code is None
-        assert rental.discount_amount == 0.0
-        assert rental.total_cost == 1000.0
-        balance_service.add_transaction.assert_called_once_with(
-            user_id=sample_user.id,
-            amount=8000.0,
-            operation_type=BalanceOperationType.EARLY_RETURN_CREDIT,
-            description="Возврат за уменьшение стоимости аренды #104 на 8000.0 ₽",
-            rental_id=rental.id
-        )
+        assert exc_info.value.status_code in (400, 409)
+        rental_repo.save_rental.assert_not_called()
+        balance_service.add_transaction.assert_not_called()
 
     # -------------------------------------------------------------------------
     # 8. Relationship Lazy Loading Safety (lazy='joined')

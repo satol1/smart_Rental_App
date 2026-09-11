@@ -1,5 +1,6 @@
 # api/services/financial_service.py
 
+from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -28,11 +29,28 @@ from shared.constants.order_status import OrderStatus
 logger = logging.getLogger(__name__)
 
 
+# Деньги считаются в Decimal (колонки БД — Numeric(12,2)); на границе API-схем
+# значения конвертируются во float, чтобы не менять контракт фронтенда.
+TWO_PLACES = Decimal("0.01")
+
+
+def to_decimal(value) -> Decimal:
+    """Конвертирует денежное значение (float/int/str/Decimal) в Decimal.
+
+    Decimal(str(x)) для float исключает двоичную погрешность представления.
+    """
+    if isinstance(value, Decimal):
+        return value
+    if value is None:
+        return Decimal("0")
+    return Decimal(str(value))
+
+
 class PriceDetails(NamedTuple):
     """Структура для возврата детализированной информации о цене."""
-    full_total: float
-    discount_amount: float
-    final_total: float
+    full_total: Decimal
+    discount_amount: Decimal
+    final_total: Decimal
 
 
 class FinancialService:
@@ -101,11 +119,11 @@ class FinancialService:
     ) -> PriceDetails:
         """Рассчитывает полную, финальную стоимость заказа, включая все скидки."""
         if not equipment_ids:
-            return PriceDetails(full_total=0.0, discount_amount=0.0, final_total=0.0)
+            return PriceDetails(full_total=Decimal("0"), discount_amount=Decimal("0"), final_total=Decimal("0"))
 
         rental_days = await self.get_rental_days(start_date, end_date)
         if rental_days <= 0:
-            return PriceDetails(full_total=0.0, discount_amount=0.0, final_total=0.0)
+            return PriceDetails(full_total=Decimal("0"), discount_amount=Decimal("0"), final_total=Decimal("0"))
 
         # Получаем оборудование по ID
         selected_equipment = await self.equipment_repo.get_by_ids(equipment_ids)
@@ -114,9 +132,11 @@ class FinancialService:
             found_ids = {eq.id for eq in selected_equipment}
             missing_ids = set(equipment_ids) - found_ids
             raise HTTPException(status_code=404, detail=f"Equipment with IDs {list(missing_ids)} not found.")
-        base_equipment_cost = sum(item.daily_rate for item in selected_equipment)
+        base_equipment_cost = sum(
+            (to_decimal(item.daily_rate) for item in selected_equipment), Decimal("0")
+        )
 
-        accessories_cost = 0.0
+        accessories_cost = Decimal("0")
         if selected_accessories:
             all_accessory_ids = [acc_id for equip_accs in selected_accessories.values() for acc_id in equip_accs]
             if all_accessory_ids:
@@ -130,7 +150,9 @@ class FinancialService:
                         status_code=404,
                         detail=f"Accessory with IDs {list(missing_ids)} not found.",
                     )
-                accessories_cost = sum(acc.price for acc in found_accessories)
+                accessories_cost = sum(
+                    (to_decimal(acc.price) for acc in found_accessories), Decimal("0")
+                )
 
         full_total = (base_equipment_cost + accessories_cost) * rental_days
         if self.discount_service:
@@ -141,39 +163,42 @@ class FinancialService:
             duration_discount = 0  # Без скидки по длительности, если discount_service недоступен
         
         # Используем новую архитектуру промокодов для расчета скидки
-        promo_discount = 0
+        promo_discount = Decimal("0")
         if promo_code:
-            promo_discount = promo_code.discount_percentage
+            promo_discount = to_decimal(promo_code.discount_percentage)
             # Используем метод валидации комбинированной скидки
-            total_discount_percentage = self.promo_code_logic.validate_combined_discount(
-                duration_discount, promo_discount
+            total_discount_percentage = to_decimal(
+                self.promo_code_logic.validate_combined_discount(
+                    to_decimal(duration_discount), promo_discount
+                )
             )
         else:
-            total_discount_percentage = duration_discount
+            total_discount_percentage = to_decimal(duration_discount)
 
-        discount_amount = full_total * (total_discount_percentage / 100)
-        final_total = full_total - discount_amount
+        discount_amount = (full_total * total_discount_percentage / Decimal("100")).quantize(TWO_PLACES, ROUND_HALF_UP)
+        final_total = (full_total - discount_amount).quantize(TWO_PLACES, ROUND_HALF_UP)
 
         return PriceDetails(
-            full_total=round(full_total, 2),
-            discount_amount=round(discount_amount, 2),
-            final_total=round(final_total, 2)
+            full_total=full_total.quantize(TWO_PLACES, ROUND_HALF_UP),
+            discount_amount=discount_amount,
+            final_total=final_total
         )
 
     # --- Методы расчета аренды (из rental_calculation_service) ---
 
-    async def calculate_daily_rate(self, rental: Rental) -> float:
+    async def calculate_daily_rate(self, rental: Rental) -> Decimal:
         """
         Рассчитывает дневную ставку аренды на основе общей стоимости и планового количества дней.
         """
-        if rental.total_cost <= 0:
-            return 0.0
-            
+        total_cost = to_decimal(rental.total_cost)
+        if total_cost <= 0:
+            return Decimal("0")
+
         planned_days = await self.get_rental_days(rental.start_date, rental.end_date)
         if planned_days <= 0:
-            return 0.0
-            
-        return rental.total_cost / planned_days
+            return Decimal("0")
+
+        return (total_cost / planned_days).quantize(TWO_PLACES, ROUND_HALF_UP)
     
     def calculate_overdue_days(self, rental: Rental, actual_return_date: date) -> int:
         """
@@ -184,40 +209,40 @@ class FinancialService:
             
         return (actual_return_date - rental.end_date).days
     
-    async def calculate_overdue_surcharge(self, rental: Rental, actual_return_date: date) -> float:
+    async def calculate_overdue_surcharge(self, rental: Rental, actual_return_date: date) -> Decimal:
         """
         Рассчитывает штраф за просроченные дни аренды.
         """
         overdue_days = self.calculate_overdue_days(rental, actual_return_date)
         if overdue_days <= 0:
-            return 0.0
-            
+            return Decimal("0")
+
         daily_rate = await self.calculate_daily_rate(rental)
         if daily_rate <= 0:
-            return 0.0
-            
-        surcharge_amount = daily_rate * overdue_days
-        return round(surcharge_amount, 2)
+            return Decimal("0")
+
+        surcharge_amount = to_decimal(daily_rate) * overdue_days
+        return surcharge_amount.quantize(TWO_PLACES, ROUND_HALF_UP)
     
-    async def calculate_early_return_credit(self, rental: Rental, actual_return_date: date, planned_days: int) -> float:
+    async def calculate_early_return_credit(self, rental: Rental, actual_return_date: date, planned_days: int) -> Decimal:
         """
         Рассчитывает кредит за досрочный возврат аренды.
         """
         if actual_return_date >= rental.end_date or planned_days <= 0:
-            return 0.0
+            return Decimal("0")
 
         daily_rate = await self.calculate_daily_rate(rental)
         if daily_rate <= 0:
-            return 0.0
-            
+            return Decimal("0")
+
         # Рассчитываем именно тарифицируемые дни в оставшемся периоде
         unused_billable_days = await self.get_rental_days(actual_return_date, rental.end_date)
         if unused_billable_days <= 0:
-            return 0.0
+            return Decimal("0")
 
         # Кредит не может превышать списанную стоимость аренды
-        credit_amount = min(unused_billable_days * daily_rate, rental.total_cost)
-        return round(credit_amount, 2)
+        credit_amount = min(unused_billable_days * to_decimal(daily_rate), to_decimal(rental.total_cost))
+        return credit_amount.quantize(TWO_PLACES, ROUND_HALF_UP)
     
     async def get_rental_calculation_summary(self, rental: Rental, actual_return_date: date, planned_days: int) -> dict:
         """
@@ -237,21 +262,21 @@ class FinancialService:
             'is_early_return': actual_return_date < rental.end_date and credit_amount > 0
         }
 
-    def calculate_remaining_amount(self, rental: Rental) -> float:
+    def calculate_remaining_amount(self, rental: Rental) -> Decimal:
         """
         Рассчитывает остаток к оплате по аренде.
-        
+
         Это единственный авторитетный источник для расчета remaining_amount.
         Формула: total_cost - prepayment_amount
         (total_cost уже содержит стоимость с учётом скидки)
-        
+
         Args:
             rental: Объект аренды
-            
+
         Returns:
             Остаток к оплате (может быть отрицательным, если предоплата превышает стоимость)
         """
-        return rental.total_cost - rental.prepayment_amount
+        return to_decimal(rental.total_cost) - to_decimal(rental.prepayment_amount)
 
     # --- Универсальный метод обогащения данных ---
 
@@ -283,19 +308,19 @@ class FinancialService:
         # Расчет просрочки или оставшихся дней
         if rental_out.status == OrderStatus.OVERDUE:
             rental_out.overdue_days = self.calculate_overdue_days(rental, today)
-            rental_out.overdue_surcharge = await self.calculate_overdue_surcharge(rental, today)
+            rental_out.overdue_surcharge = float(await self.calculate_overdue_surcharge(rental, today))
         elif rental.status == OrderStatus.ACTIVE:
             rental_out.days_remaining = (rental.end_date - today).days
 
-        # Расчет стоимости аксессуаров
-        accessories_cost = 0.0
+        # Расчет стоимости аксессуаров (Decimal внутри, float на границе схемы)
+        accessories_cost = Decimal("0")
         for accessory_link in rental.accessory_links:
             if accessory_link.accessory and accessory_link.accessory.price:
-                accessories_cost += accessory_link.accessory.price
-        rental_out.accessories_cost = accessories_cost
+                accessories_cost += to_decimal(accessory_link.accessory.price)
+        rental_out.accessories_cost = float(accessories_cost)
 
         # Расчет остатка к оплате через централизованный метод
-        rental_out.remaining_amount = self.calculate_remaining_amount(rental)
+        rental_out.remaining_amount = float(self.calculate_remaining_amount(rental))
 
         return rental_out
 

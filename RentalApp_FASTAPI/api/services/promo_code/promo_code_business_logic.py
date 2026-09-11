@@ -55,7 +55,12 @@ class PromoCodeBusinessLogic(IPromoCodeBusinessLogic):
 
         Вызывается в той же транзакции, что и создание заказа (коммитит middleware).
         """
-        await self.promo_code_repo.increment_usage_counter(promo_code.id)
+        from .exceptions import PromoCodeUsageLimitExceededError
+
+        incremented = await self.promo_code_repo.increment_usage_counter(promo_code.id)
+        if not incremented:
+            # Лимит исчерпан между валидацией и записью (параллельный заказ)
+            raise PromoCodeUsageLimitExceededError()
 
         if user:
             await self.promo_code_repo.record_promo_code_usage(

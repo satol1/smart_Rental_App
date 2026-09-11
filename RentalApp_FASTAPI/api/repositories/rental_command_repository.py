@@ -147,7 +147,8 @@ class RentalCommandRepository(RentalBaseRepository):
         rental.status = OrderStatus.COMPLETED
         rental.actual_return_date = return_date
         rental.notes_on_return = notes
-        rental.final_cost = rental.total_cost - credit + surcharge
+        from api.services.financial_service import to_decimal
+        rental.final_cost = to_decimal(rental.total_cost) - to_decimal(credit) + to_decimal(surcharge)
 
     def update_rental_instance(self, rental: Rental, update_data: dict):
         """

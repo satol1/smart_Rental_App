@@ -293,8 +293,9 @@ class TestHolidayRepositoryFinal:
         # Проверяем результат
         assert result == sample_holiday
         mock_db_session.add.assert_called_once_with(sample_holiday)
-        mock_db_session.commit.assert_called_once()
-        mock_db_session.refresh.assert_called_once_with(sample_holiday)
+        # commit не делаем: транзакцию держит DIContainerMiddleware
+        mock_db_session.flush.assert_called_once()
+        mock_db_session.commit.assert_not_called()
 
     # Тесты для save_rule
     @pytest.mark.asyncio
@@ -313,13 +314,14 @@ class TestHolidayRepositoryFinal:
     async def test_bulk_save_holidays_success(self, holiday_repository, mock_db_session, sample_holiday):
         """Тест успешного массового сохранения выходных дней"""
         holidays = [sample_holiday]
-        
+
         # Выполняем тест
         await holiday_repository.bulk_save_holidays(holidays)
 
         # Проверяем результат
         mock_db_session.add_all.assert_called_once_with(holidays)
-        mock_db_session.commit.assert_called_once()
+        mock_db_session.flush.assert_called_once()
+        mock_db_session.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_bulk_save_holidays_empty_list(self, holiday_repository, mock_db_session):
@@ -329,7 +331,7 @@ class TestHolidayRepositoryFinal:
 
         # Проверяем результат
         mock_db_session.add_all.assert_not_called()
-        mock_db_session.commit.assert_not_called()
+        mock_db_session.flush.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_bulk_save_holidays_none_list(self, holiday_repository, mock_db_session):
@@ -339,7 +341,7 @@ class TestHolidayRepositoryFinal:
 
         # Проверяем результат
         mock_db_session.add_all.assert_not_called()
-        mock_db_session.commit.assert_not_called()
+        mock_db_session.flush.assert_not_called()
 
     # Тесты для delete_holiday
     @pytest.mark.asyncio
@@ -350,7 +352,7 @@ class TestHolidayRepositoryFinal:
 
         # Проверяем результат
         mock_db_session.delete.assert_called_once_with(sample_holiday)
-        mock_db_session.commit.assert_called_once()
+        mock_db_session.flush.assert_called_once()
 
     # Тесты для delete_rule
     @pytest.mark.asyncio
@@ -361,7 +363,7 @@ class TestHolidayRepositoryFinal:
 
         # Проверяем результат
         mock_db_session.delete.assert_called_once_with(sample_holiday_rule)
-        mock_db_session.commit.assert_called_once()
+        mock_db_session.flush.assert_called_once()
 
     # Тесты обработки ошибок
     @pytest.mark.asyncio
@@ -393,7 +395,7 @@ class TestHolidayRepositoryFinal:
     async def test_database_error_handling_save_holiday(self, holiday_repository, mock_db_session, sample_holiday):
         """Тест обработки ошибок базы данных при сохранении выходного дня"""
         # Настраиваем мок для выброса исключения
-        mock_db_session.commit.side_effect = Exception("Database connection error")
+        mock_db_session.flush.side_effect = Exception("Database connection error")
 
         # Проверяем, что исключение пробрасывается
         with pytest.raises(Exception, match="Database connection error"):
@@ -413,7 +415,7 @@ class TestHolidayRepositoryFinal:
     async def test_database_error_handling_bulk_save(self, holiday_repository, mock_db_session, sample_holiday):
         """Тест обработки ошибок базы данных при массовом сохранении"""
         # Настраиваем мок для выброса исключения
-        mock_db_session.commit.side_effect = Exception("Database connection error")
+        mock_db_session.flush.side_effect = Exception("Database connection error")
 
         # Проверяем, что исключение пробрасывается
         with pytest.raises(Exception, match="Database connection error"):
@@ -423,7 +425,7 @@ class TestHolidayRepositoryFinal:
     async def test_database_error_handling_delete_holiday(self, holiday_repository, mock_db_session, sample_holiday):
         """Тест обработки ошибок базы данных при удалении выходного дня"""
         # Настраиваем мок для выброса исключения
-        mock_db_session.commit.side_effect = Exception("Database connection error")
+        mock_db_session.flush.side_effect = Exception("Database connection error")
 
         # Проверяем, что исключение пробрасывается
         with pytest.raises(Exception, match="Database connection error"):
@@ -433,7 +435,7 @@ class TestHolidayRepositoryFinal:
     async def test_database_error_handling_delete_rule(self, holiday_repository, mock_db_session, sample_holiday_rule):
         """Тест обработки ошибок базы данных при удалении правила"""
         # Настраиваем мок для выброса исключения
-        mock_db_session.commit.side_effect = Exception("Database connection error")
+        mock_db_session.flush.side_effect = Exception("Database connection error")
 
         # Проверяем, что исключение пробрасывается
         with pytest.raises(Exception, match="Database connection error"):

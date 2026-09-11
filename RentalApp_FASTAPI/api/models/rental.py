@@ -1,7 +1,8 @@
 # api/models/rental.py
 
+from decimal import Decimal
 from sqlalchemy import (Column, Integer, DateTime, ForeignKey, Float,
-                        String, Text, Table, Boolean, Date)
+                        String, Text, Table, Boolean, Date, Numeric)
 from sqlalchemy.orm import relationship
 from api.database_models import Base
 from datetime import datetime, timezone
@@ -31,12 +32,12 @@ class Rental(Base):
     end_date = Column(Date, nullable=False)
     actual_return_date = Column(Date, nullable=True)
     status = Column(String, default="active", nullable=False, index=True)
-    total_cost = Column(Float, nullable=False, default=0.0)
-    discount_amount = Column(Float, nullable=False, default=0.0)
+    total_cost = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))
+    discount_amount = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))
     promo_code = Column(String, nullable=True)
-    final_cost = Column(Float, nullable=True)
-    deposit_amount = Column(Float, default=0.0)
-    prepayment_amount = Column(Float, nullable=False, default=0.0)  # Сумма предоплаты, внесенная при создании аренды
+    final_cost = Column(Numeric(12, 2), nullable=True)
+    deposit_amount = Column(Numeric(12, 2), default=Decimal("0.00"))
+    prepayment_amount = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))  # Сумма предоплаты, внесенная при создании аренды
     notes_on_issue = Column(Text, nullable=True)
     notes_on_return = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

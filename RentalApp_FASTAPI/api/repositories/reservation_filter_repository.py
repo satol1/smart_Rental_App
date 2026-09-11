@@ -57,10 +57,19 @@ class ReservationFilterRepository(ReservationBaseRepository):
         if search:
             query = self._apply_equipment_search(query, search)
         
-        # Добавляем необходимые JOIN'ы
+        # Получаем общее количество.
+        # ВАЖНО: count строится от базового select БЕЗ eager-опций:
+        # joinedload коллекций (accessory_links) размножает строки, и total завышается.
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        total = count_result.scalar_one()
+        
+        # Добавляем eager-загрузку: скалярные связи — joinedload,
+        # коллекции (accessory_links, equipment) — selectinload, чтобы избежать
+        # декартова произведения в списковом запросе.
         query = query.options(
             joinedload(Reservation.applied_promo_code),
-            joinedload(Reservation.accessory_links).joinedload(ReservationAccessory.accessory),
+            selectinload(Reservation.accessory_links).selectinload(ReservationAccessory.accessory),
             selectinload(Reservation.equipment).options(
                 selectinload(Equipment.accessories),
                 selectinload(Equipment.associations)
@@ -70,11 +79,6 @@ class ReservationFilterRepository(ReservationBaseRepository):
         
         # Применяем сортировку
         query = self._apply_sorting(query, sort)
-        
-        # Получаем общее количество
-        count_query = select(func.count()).select_from(query.subquery())
-        count_result = await self.db.execute(count_query)
-        total = count_result.scalar_one()
         
         # Применяем пагинацию
         query = query.offset(skip).limit(limit)
@@ -108,17 +112,8 @@ class ReservationFilterRepository(ReservationBaseRepository):
         Returns:
             Кортеж (список резервов, общее количество)
         """
-        # Создаем базовый запрос
-        query = select(Reservation).options(
-            joinedload(Reservation.user),
-            joinedload(Reservation.applied_promo_code),
-            joinedload(Reservation.accessory_links).joinedload(ReservationAccessory.accessory),
-            selectinload(Reservation.equipment).options(
-                selectinload(Equipment.accessories),
-                selectinload(Equipment.associations)
-            ),
-            joinedload(Reservation.rental)
-        )
+        # Создаем базовый запрос (без eager-опций — см. count ниже)
+        query = select(Reservation)
         
         # Применяем поиск по пользователю
         if search_query:
@@ -148,10 +143,24 @@ class ReservationFilterRepository(ReservationBaseRepository):
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Ошибка в параметрах периода: {e}")
         
-        # Получаем общее количество
+        # Получаем общее количество.
+        # ВАЖНО: count строится от базового select БЕЗ eager-опций:
+        # joinedload коллекций (accessory_links) размножает строки, и total завышается.
         count_query = select(func.count()).select_from(query.subquery())
         count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
+        
+        # Eager-загрузка: скалярные связи — joinedload, коллекции — selectinload.
+        query = query.options(
+            joinedload(Reservation.user),
+            joinedload(Reservation.applied_promo_code),
+            selectinload(Reservation.accessory_links).selectinload(ReservationAccessory.accessory),
+            selectinload(Reservation.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
+            joinedload(Reservation.rental)
+        )
         
         # Применяем сортировку и пагинацию
         query = query.order_by(Reservation.id.desc()).offset(skip).limit(limit)

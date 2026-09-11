@@ -48,16 +48,8 @@ class RentalQueryRepository(RentalBaseRepository):
         Returns:
             Кортеж (список аренд, общее количество)
         """
-        # Создаем базовый запрос с предзагрузкой связей
-        base_query = select(Rental).options(
-            joinedload(Rental.user),
-            joinedload(Rental.created_by),
-            selectinload(Rental.equipment).options(
-                selectinload(Equipment.accessories),
-                selectinload(Equipment.associations)
-            ),
-            joinedload(Rental.accessory_links).joinedload(RentalAccessory.accessory)
-        )
+        # Создаем базовый запрос (без eager-опций — см. count ниже)
+        base_query = select(Rental)
 
         # Применяем фильтрацию по статусу
         if status:
@@ -100,10 +92,25 @@ class RentalQueryRepository(RentalBaseRepository):
                 # Логируем ошибку, но продолжаем без фильтрации по периоду
                 logger.warning(f"Ошибка в параметрах периода: {e}")
 
-        # Получаем общее количество
+        # Получаем общее количество.
+        # ВАЖНО: count строится от базового select БЕЗ eager-опций:
+        # joinedload коллекций (accessory_links) размножает строки, и total завышается.
         count_query = select(func.count()).select_from(base_query.subquery())
         count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
+
+        # Eager-загрузка: скалярные связи (user, created_by) — joinedload,
+        # коллекции (equipment, accessory_links) — selectinload, чтобы избежать
+        # декартова произведения в списковом запросе.
+        base_query = base_query.options(
+            joinedload(Rental.user),
+            joinedload(Rental.created_by),
+            selectinload(Rental.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
+            selectinload(Rental.accessory_links).selectinload(RentalAccessory.accessory)
+        )
 
         # Применяем пагинацию и сортировку
         # Сначала просроченные, затем по ID в убывающем порядке
@@ -111,7 +118,7 @@ class RentalQueryRepository(RentalBaseRepository):
             (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
             else_=1
         ).asc()
-        
+
         base_query = base_query.order_by(overdue_case, Rental.id.desc())
         base_query = base_query.offset(skip).limit(limit)
 
@@ -145,16 +152,8 @@ class RentalQueryRepository(RentalBaseRepository):
         Returns:
             Кортеж (список аренд, общее количество)
         """
-        # Создаем базовый запрос с предзагрузкой связей
-        base_query = select(Rental).options(
-            joinedload(Rental.user),
-            joinedload(Rental.created_by),
-            selectinload(Rental.equipment).options(
-                selectinload(Equipment.accessories),
-                selectinload(Equipment.associations)
-            ),
-            joinedload(Rental.accessory_links).joinedload(RentalAccessory.accessory)
-        ).filter(Rental.user_id == user_id)
+        # Создаем базовый запрос (без eager-опций — см. count ниже)
+        base_query = select(Rental).filter(Rental.user_id == user_id)
 
         # Применяем фильтрацию по статусу
         if status:
@@ -183,10 +182,25 @@ class RentalQueryRepository(RentalBaseRepository):
             )
             base_query = base_query.filter(search_filter)
 
-        # Получаем общее количество
+        # Получаем общее количество.
+        # ВАЖНО: count строится от базового select БЕЗ eager-опций:
+        # joinedload коллекций (accessory_links) размножает строки, и total завышается.
         count_query = select(func.count()).select_from(base_query.subquery())
         count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
+
+        # Eager-загрузка: скалярные связи (user, created_by) — joinedload,
+        # коллекции (equipment, accessory_links) — selectinload, чтобы избежать
+        # декартова произведения в списковом запросе.
+        base_query = base_query.options(
+            joinedload(Rental.user),
+            joinedload(Rental.created_by),
+            selectinload(Rental.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
+            selectinload(Rental.accessory_links).selectinload(RentalAccessory.accessory)
+        )
 
         # Применяем сортировку
         if sort:

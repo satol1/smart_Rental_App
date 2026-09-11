@@ -1,4 +1,5 @@
 # api/repositories/balance_history_repository.py
+from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from api.models.balance_history import BalanceHistory
@@ -9,9 +10,9 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, None, None]):
     def __init__(self, db: AsyncSession):
         super().__init__(db, model=BalanceHistory)
     
-    async def get_user_balance_sum(self, user_id: int) -> float:
-        """Получает сумму всех транзакций пользователя."""
+    async def get_user_balance_sum(self, user_id: int) -> Decimal:
+        """Получает сумму всех транзакций пользователя (Decimal — сумма Numeric)."""
         result = await self.db.execute(
             select(func.sum(BalanceHistory.amount)).where(BalanceHistory.user_id == user_id)
         )
-        return float(result.scalar_one_or_none() or 0.0)
+        return result.scalar_one_or_none() or Decimal("0")

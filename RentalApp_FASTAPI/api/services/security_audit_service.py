@@ -65,15 +65,17 @@ class SecurityAuditService:
             )
             
             self.db.add(audit_log)
-            await self.db.commit()
-            await self.db.refresh(audit_log)
-            
+            # Единую транзакцию запроса держит DIContainerMiddleware (main_api.py):
+            # здесь только flush, чтобы получить PK записи без коммита.
+            # Раньше commit/rollback здесь ломали внешнюю транзакцию (например, при каждом логине).
+            await self.db.flush()
+
             logger.info(f"Security audit logged: {event_type} - {description}")
             return audit_log
-            
+
         except Exception as e:
+            # Rollback не делаем: сессию откатит middleware, если запрос завершится ошибкой.
             logger.error(f"Failed to log security event: {e}")
-            await self.db.rollback()
             raise
     
     async def log_login_attempt(

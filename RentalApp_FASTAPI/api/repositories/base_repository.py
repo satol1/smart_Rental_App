@@ -127,8 +127,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def save(self) -> None:
         """
-        Сохранение изменений в базе данных.
-        Выполняет коммит транзакции.
+        Сохранение изменений в текущей транзакции: flush без commit.
+        Коммит единой транзакции запроса выполняет DIContainerMiddleware (api/main_api.py).
+        Метод оставлен как alias к flush для совместимости существующих вызовов
+        (discount_service, accessory_service, brand_system_service).
         """
-        await self.db.commit()
+        await self.db.flush()
 

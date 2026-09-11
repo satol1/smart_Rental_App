@@ -80,7 +80,9 @@ class TestSettingsService:
 
         # Assert
         settings_service.system_service.upsert_settings.assert_called_once()
-        settings_service.db.commit.assert_called_once()
+        # Транзакцию коммитит DIContainerMiddleware: сервис делает только flush
+        settings_service.db.flush.assert_called_once()
+        settings_service.db.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_update_settings_empty_list(self, settings_service):
@@ -93,7 +95,7 @@ class TestSettingsService:
 
         # Assert
         settings_service.system_service.upsert_settings.assert_not_called()
-        settings_service.db.commit.assert_not_called()
+        settings_service.db.flush.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_update_settings_multiple_settings(self, settings_service):
@@ -116,7 +118,9 @@ class TestSettingsService:
         assert call_args[0]["key"] == "key1"
         assert call_args[1]["key"] == "key2"
         assert call_args[2]["key"] == "key3"
-        settings_service.db.commit.assert_called_once()
+        # Транзакцию коммитит DIContainerMiddleware: сервис делает только flush
+        settings_service.db.flush.assert_called_once()
+        settings_service.db.commit.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_update_settings_repository_error(self, settings_service, sample_setting_update):
@@ -130,15 +134,15 @@ class TestSettingsService:
             await settings_service.update_settings(settings_data)
 
         assert "Database error" in str(exc_info.value)
-        settings_service.db.commit.assert_not_called()
+        settings_service.db.flush.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_update_settings_commit_error(self, settings_service, sample_setting_update):
-        """Тест обновления настроек с ошибкой коммита."""
+        """Тест обновления настроек с ошибкой flush (commit выполняет middleware)."""
         # Arrange
         settings_data = [sample_setting_update]
         settings_service.system_service.upsert_settings.return_value = None
-        settings_service.db.commit.side_effect = Exception("Commit error")
+        settings_service.db.flush.side_effect = Exception("Commit error")
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:

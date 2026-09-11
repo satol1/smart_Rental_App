@@ -2,6 +2,8 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
+from decimal import Decimal
+from api.services.financial_service import to_decimal
 from typing import Optional, List, Tuple
 import logging
 
@@ -36,16 +38,20 @@ class RentalQueryService:
 
         if rental_out.status == OrderStatus.OVERDUE:
             rental_out.overdue_days = self.financial_service.calculate_overdue_days(rental, today)
-            rental_out.overdue_surcharge = await self.financial_service.calculate_overdue_surcharge(rental, today)
+            # Расчёты FinancialService возвращают Decimal; поля схемы — float
+            rental_out.overdue_surcharge = float(
+                await self.financial_service.calculate_overdue_surcharge(rental, today)
+            )
         elif rental.status == OrderStatus.ACTIVE:
             rental_out.days_remaining = (rental.end_date - today).days
 
         accessories_cost = sum(
-            link.accessory.price for link in rental.accessory_links if link.accessory and link.accessory.price
+            (to_decimal(link.accessory.price) for link in rental.accessory_links if link.accessory and link.accessory.price),
+            Decimal("0"),
         )
-        rental_out.accessories_cost = accessories_cost
+        rental_out.accessories_cost = float(accessories_cost)
         # Используем централизованный метод из FinancialService
-        rental_out.remaining_amount = self.financial_service.calculate_remaining_amount(rental)
+        rental_out.remaining_amount = float(self.financial_service.calculate_remaining_amount(rental))
 
         return rental_out
 

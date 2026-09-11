@@ -5,6 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any
 import logging
 
+from fastapi import HTTPException, status
+
+from api.services.financial_service import to_decimal
+
 from api.models.user import User
 from api.models.rental import Rental
 from api.repositories.rental_repository import RentalRepository
@@ -198,7 +202,7 @@ class RentalUpdateService:
 
         # Дельта стоимости отражается на балансе: при создании аренды списывался
         # полный total_cost, значит продление — доплата, сокращение — возврат
-        difference = round(price_details.final_total - old_total_cost, 2)
+        difference = to_decimal(price_details.final_total) - to_decimal(old_total_cost)
         if difference > 0:
             await self.balance_service.add_transaction(
                 user_id=rental.user_id,
@@ -222,7 +226,7 @@ class RentalUpdateService:
         current_prepayment_amount = rental.prepayment_amount
 
         if new_prepayment_amount != current_prepayment_amount:
-            difference = round(new_prepayment_amount - current_prepayment_amount, 2)
+            difference = to_decimal(new_prepayment_amount) - to_decimal(current_prepayment_amount)
 
             if difference > 0:
                 # Увеличение предоплаты
@@ -287,9 +291,16 @@ class RentalUpdateService:
                 user=rental.user,
                 skip_usage_limits=skip_usage_limits
             )
+        except HTTPException:
+            # Явный отказ вместо молчаливого пересчёта без скидки:
+            # клиент ожидает сумму с промокодом
+            raise
         except Exception as e:
-            logger.warning(
-                f"Промокод '{code}' при пересчете аренды #{rental.id} отклонен и "
-                f"не будет применен: {e}"
+            logger.error(
+                f"Промокод '{code}' при пересчете аренды #{rental.id} не удалось проверить: {e}",
+                exc_info=True,
             )
-            return None
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Не удалось подтвердить промокод '{code}'. Повторите позже или уберите промокод."
+            )

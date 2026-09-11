@@ -43,7 +43,7 @@ class DiscountService:
         Создать новую скидку.
         """
         new_discount = await self.discount_repo.create(data)
-        await self.discount_repo.save()  # Транзакция коммитится здесь
+        await self.discount_repo.save()  # flush в общей транзакции; commit выполняет middleware
         return new_discount
 
     async def update_discount(self, discount_id: int, data: DiscountUpdate) -> DurationDiscount:
@@ -56,7 +56,7 @@ class DiscountService:
             raise HTTPException(status_code=404, detail="Скидка не найдена.")
 
         updated_discount = await self.discount_repo.update(discount, data)
-        await self.discount_repo.save()  # Транзакция коммитится здесь
+        await self.discount_repo.save()  # flush в общей транзакции; commit выполняет middleware
         return updated_discount
 
     async def delete_discount(self, discount_id: int) -> None:
@@ -69,4 +69,4 @@ class DiscountService:
             raise HTTPException(status_code=404, detail="Скидка не найдена.")
 
         await self.discount_repo.delete(discount_id)
-        await self.discount_repo.save()  # Транзакция коммитится здесь
+        await self.discount_repo.save()  # flush в общей транзакции; commit выполняет middleware

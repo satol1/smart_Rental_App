@@ -310,6 +310,18 @@ class OrderValidator:
                     detail="Заблокированный пользователь не может создавать резервы самостоятельно. Обратитесь к менеджеру."
                 )
         
+        # Сериализация конкурентных созданий одним пользователем: иначе два
+        # параллельных заказа оба проходят проверку лимита ниже. Двухключевой
+        # advisory-лок (92001, user_id) живёт в отдельном пространстве имён от
+        # одинарного лок'а оборудования в _lock_equipment_ids.
+        # AsyncSession.get_bind() — корутина, поэтому читаем атрибут bind
+        if getattr(self.db.bind, "dialect", None) is not None and self.db.bind.dialect.name == "postgresql":
+            from sqlalchemy import text as _text
+            await self.db.execute(
+                _text("SELECT pg_advisory_xact_lock(92001, :user_id)"),
+                {"user_id": int(user.id)},
+            )
+
         # Проверяем лимит активных резервов
         max_reservations = await service.get_user_max_reservations(user)
         if max_reservations > 0:
