@@ -66,8 +66,13 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --start-interval=10s 
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"
 
 # exec — чтобы uvicorn был PID 1 и получал SIGTERM (graceful shutdown).
+# Перед стартом применяется alembic-миграции: без этого пересобранный образ
+# с новыми моделями стартует со старой схемой БД и каждый запрос к изменённым
+# таблицам падает 500 (например, каталог при добавлении колонки version).
+# Идемпотентно (на актуальной БД — no-op); при ошибке миграции контейнер
+# не стартует — отказ явный, а не рантайм-500.
 # WORKERS/MAX_REQUESTS задаются окружением. Флаг добавляется ТОЛЬКО когда
 # MAX_REQUESTS непустой: uvicorn считает явный 0 «лимит исчерпан» и сразу
 # завершается (0/unset = без лимита). NB: флаг называется --limit-max-requests;
 # jitter-флага у uvicorn нет (это опция gunicorn).
-CMD ["sh", "-c", "exec uvicorn api.main_api:app --host 0.0.0.0 --port 8000 --workers ${WORKERS:-1} ${MAX_REQUESTS:+--limit-max-requests $MAX_REQUESTS}"]
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn api.main_api:app --host 0.0.0.0 --port 8000 --workers ${WORKERS:-1} ${MAX_REQUESTS:+--limit-max-requests $MAX_REQUESTS}"]
