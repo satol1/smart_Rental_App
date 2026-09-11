@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Cookie, FileText, Shield, Lock, Database, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { Cookie, FileText, Shield, Lock, Database, AlertTriangle, CheckCircle, Info, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CookiePolicyModalProps {
@@ -17,10 +17,21 @@ export default function CookiePolicyModal({ open, onOpenChange }: CookiePolicyMo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-4 flex items-center justify-center gap-3">
-            <Cookie className="w-7 h-7 text-blue-600" />
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center flex items-center justify-center gap-2.5">
+            <Cookie className="w-6 h-6 text-primary" />
             Политика в отношении файлов cookie
           </DialogTitle>
+          <div className="text-center pt-1 mb-2">
+            <a
+              href="/cookies"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Открыть на отдельной странице (/cookies)
+            </a>
+          </div>
         </DialogHeader>
         
         <div className="space-y-6">

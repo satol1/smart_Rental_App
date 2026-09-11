@@ -19,6 +19,7 @@ interface AuthFormState {
     isRegister: boolean;
     showPassword: boolean;
     isPrivacyModalOpen: boolean;
+    isConsentModalOpen: boolean;
     isTermsModalOpen: boolean;
     loading: boolean;
     error: string | null;
@@ -29,6 +30,8 @@ interface AuthFormActions {
     togglePasswordVisibility: () => void;
     openPrivacyModal: () => void;
     closePrivacyModal: () => void;
+    openConsentModal: () => void;
+    closeConsentModal: () => void;
     openTermsModal: () => void;
     closeTermsModal: () => void;
     handleSubmit: (data: LoginSchema | RegisterSchema) => Promise<void>;
@@ -65,6 +68,7 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
     const [isRegister, setIsRegister] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -126,6 +130,14 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
 
     const closePrivacyModal = () => {
         setIsPrivacyModalOpen(false);
+    };
+
+    const openConsentModal = () => {
+        setIsConsentModalOpen(true);
+    };
+
+    const closeConsentModal = () => {
+        setIsConsentModalOpen(false);
     };
 
     const openTermsModal = () => {
@@ -239,6 +251,7 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
             isRegister,
             showPassword,
             isPrivacyModalOpen,
+            isConsentModalOpen,
             isTermsModalOpen,
             loading,
             error,
@@ -248,6 +261,8 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
             togglePasswordVisibility,
             openPrivacyModal,
             closePrivacyModal,
+            openConsentModal,
+            closeConsentModal,
             openTermsModal,
             closeTermsModal,
             handleSubmit,

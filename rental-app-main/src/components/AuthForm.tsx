@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus, Phone, Calendar, Send } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, LogIn, UserPlus, Phone, Calendar, Send, ExternalLink } from "lucide-react";
 import PrivacyPolicyModal from "@/components/shared/PrivacyPolicyModal";
 import TermsOfServiceModal from "@/components/shared/TermsOfServiceModal";
+import ConsentModal from "@/components/shared/ConsentModal";
 
 interface AuthFormProps {
     embedded?: boolean;
-    onSuccess?: () => void; // <<< ИЗМЕНЕНИЕ: Добавлен пропс для callback при успешной авторизации
+    onSuccess?: () => void;
 }
 
 export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps = {}) {
@@ -36,6 +37,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
         isRegister,
         showPassword,
         isPrivacyModalOpen,
+        isConsentModalOpen,
         isTermsModalOpen,
         loading,
         error,
@@ -46,6 +48,8 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
         togglePasswordVisibility,
         openPrivacyModal,
         closePrivacyModal,
+        openConsentModal,
+        closeConsentModal,
         openTermsModal,
         closeTermsModal,
         handleSubmit: handleFormSubmit,
@@ -122,6 +126,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                 </div>
             </div>
 
+            {/* Блок согласий и ссылок на правовые документы (152-ФЗ) */}
             <div className="space-y-3 pt-2">
                 <Controller
                     control={control}
@@ -131,13 +136,40 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                             <Checkbox id="privacy" checked={field.value ?? false} onCheckedChange={field.onChange} />
                             <div className="grid gap-1.5 leading-none">
                                 <Label htmlFor="privacy" className="text-sm font-normal leading-relaxed cursor-pointer">
-                                    {t("auth.consent.privacyText")} <button type="button" onClick={openPrivacyModal} className="text-primary hover:underline">{t("auth.consent.privacyLink")}</button> *
+                                    Я даю{" "}
+                                    <button
+                                        type="button"
+                                        onClick={openConsentModal}
+                                        className="text-primary hover:underline font-medium inline"
+                                    >
+                                        согласие на обработку данных
+                                    </button>{" "}
+                                    и ознакомлен с{" "}
+                                    <button
+                                        type="button"
+                                        onClick={openPrivacyModal}
+                                        className="text-primary hover:underline font-medium inline"
+                                    >
+                                        политикой конфиденциальности
+                                    </button>{" "}
+                                    <a
+                                        href="/privacy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 ml-1"
+                                        title="Открыть политику в новой вкладке"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <ExternalLink className="w-3 h-3 inline" />
+                                    </a>
+                                    {" "}*
                                 </Label>
                                 {isRegister && 'privacyPolicyAccepted' in errors && errors.privacyPolicyAccepted && <p className="text-xs text-destructive">{errors.privacyPolicyAccepted.message}</p>}
                             </div>
                         </div>
                     )}
                 />
+
                 <Controller
                     control={control}
                     name="termsAccepted"
@@ -146,13 +178,50 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                             <Checkbox id="terms" checked={field.value ?? false} onCheckedChange={field.onChange} />
                             <div className="grid gap-1.5 leading-none">
                                 <Label htmlFor="terms" className="text-sm font-normal leading-relaxed cursor-pointer">
-                                    {t("auth.consent.termsText")} <button type="button" onClick={openTermsModal} className="text-primary hover:underline">{t("auth.consent.termsLink")}</button> *
+                                    {t("auth.consent.termsText")}{" "}
+                                    <button
+                                        type="button"
+                                        onClick={openTermsModal}
+                                        className="text-primary hover:underline font-medium inline"
+                                    >
+                                        {t("auth.consent.termsLink")}
+                                    </button>{" "}
+                                    <a
+                                        href="/terms"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 ml-1"
+                                        title="Открыть условия в новой вкладке"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <ExternalLink className="w-3 h-3 inline" />
+                                    </a>
+                                    {" "}*
                                 </Label>
                                 {isRegister && 'termsAccepted' in errors && errors.termsAccepted && <p className="text-xs text-destructive">{errors.termsAccepted.message}</p>}
                             </div>
                         </div>
                     )}
                 />
+
+                {/* Формальные прямые ссылки на правовые разделы сайта */}
+                <div className="pt-2 text-[11px] text-muted-foreground/80 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary/80">
+                        Политика конфиденциальности
+                    </a>
+                    <span>•</span>
+                    <a href="/consent" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary/80">
+                        Согласие на обработку ПДн
+                    </a>
+                    <span>•</span>
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary/80">
+                        Пользовательское соглашение
+                    </a>
+                    <span>•</span>
+                    <a href="/cookies" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary/80">
+                        Файлы cookie
+                    </a>
+                </div>
             </div>
         </>
     );
@@ -231,6 +300,10 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
             <PrivacyPolicyModal 
                 open={isPrivacyModalOpen} 
                 onOpenChange={closePrivacyModal} 
+            />
+            <ConsentModal 
+                open={isConsentModalOpen} 
+                onOpenChange={closeConsentModal} 
             />
             <TermsOfServiceModal 
                 open={isTermsModalOpen} 

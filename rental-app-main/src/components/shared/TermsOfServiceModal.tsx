@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Shield, Clock, CreditCard, AlertTriangle, CheckCircle, User, Calendar, Phone, MapPin, Camera } from "lucide-react";
+import { FileText, Shield, Clock, CreditCard, AlertTriangle, CheckCircle, User, Calendar, Phone, MapPin, Camera, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { COMPANY_INFO } from "@/lib/companyInfo";
 
@@ -14,9 +14,20 @@ export default function TermsOfServiceModal({ open, onOpenChange }: TermsOfServi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-4">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">
             Условия использования сервиса
           </DialogTitle>
+          <div className="text-center pt-1 mb-2">
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Открыть на отдельной странице (/terms)
+            </a>
+          </div>
         </DialogHeader>
         
         <div className="space-y-6">

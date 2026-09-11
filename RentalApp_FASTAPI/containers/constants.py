@@ -120,6 +120,7 @@ from api.services.availability.queries import AvailabilityQueryService
 from api.services.dashboard.dashboard_service import DashboardService
 from api.services.holiday_service import HolidayService
 from api.services.notification_service import NotificationService
+from api.services.telegram_notification_service import TelegramNotificationService
 from api.services.calendar_service import CalendarService
 from api.services.pack_service import PackService
 from api.services.equipment_crud_service import EquipmentCRUDService

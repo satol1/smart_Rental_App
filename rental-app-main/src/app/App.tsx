@@ -1,7 +1,7 @@
 // src/app/App.tsx
 
 import { lazy, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { MotionConfig } from "framer-motion";
 import MainLayout from "@/components/layout/MainLayout";
@@ -17,6 +17,13 @@ const ReservePage = lazy(() => import("@/pages/ReservePage"));
 const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const MyReservationsPage = lazy(() => import("@/pages/MyReservationsPage"));
+
+// --- Юридические страницы (152-ФЗ, 38-ФЗ) ---
+const PrivacyPolicyPage = lazy(() => import("@/pages/legal/PrivacyPolicyPage"));
+const ConsentPage = lazy(() => import("@/pages/legal/ConsentPage"));
+const TermsOfServicePage = lazy(() => import("@/pages/legal/TermsOfServicePage"));
+const CookiePolicyPage = lazy(() => import("@/pages/legal/CookiePolicyPage"));
+const MarketingConsentPage = lazy(() => import("@/pages/legal/MarketingConsentPage"));
 
 // --- Страницы управления (не в admin/, но тяжёлые) ---
 const UserManagementPage = lazy(() => import("@/pages/UserManagementPage"));
@@ -67,6 +74,18 @@ function App() {
                     <Route index element={<HomePage />} />
                     <Route path="how-it-works" element={<HowItWorksPage />} />
                     <Route path="rules" element={<RulesPage />} />
+
+                    {/* Юридические страницы (152-ФЗ, 38-ФЗ) */}
+                    <Route path="privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="privacy-policy" element={<Navigate to="/privacy" replace />} />
+                    <Route path="consent" element={<ConsentPage />} />
+                    <Route path="personal-data-consent" element={<Navigate to="/consent" replace />} />
+                    <Route path="terms" element={<TermsOfServicePage />} />
+                    <Route path="terms-of-service" element={<Navigate to="/terms" replace />} />
+                    <Route path="cookies" element={<CookiePolicyPage />} />
+                    <Route path="cookie-policy" element={<Navigate to="/cookies" replace />} />
+                    <Route path="marketing-consent" element={<MarketingConsentPage />} />
+
                     <Route path="reserve/create" element={<ReservePage />} />
                     <Route path="calendar" element={<CalendarPage />} />
                     <Route path="profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />

@@ -134,6 +134,7 @@ class Container(containers.DeclarativeContainer):
 
     # --- Notification ---
     notification_service = ServicesContainer.notification_service
+    telegram_notification_service = ServicesContainer.telegram_notification_service
     calendar_service = ServicesContainer.calendar_service
 
     # --- Lifecycle ---

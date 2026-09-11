@@ -21,6 +21,7 @@ from containers.constants import (
     DashboardEquipmentService,
     BalanceService, DiscountService, AssociationService,
     HolidayService, NotificationService, CalendarService,
+    TelegramNotificationService,
     ErrorHandlerService, SettingsService,
     RentalRepository, RentalQueryRepository, RentalCommandRepository, RentalFinancialRepository,
 )
@@ -58,6 +59,7 @@ class ServicesContainer(containers.DeclarativeContainer):
     # ============================================================
 
     system_service = providers.Factory(SystemService, system_repo=system_repo)
+    telegram_notification_service = providers.Singleton(TelegramNotificationService)
     status_service = providers.Factory(StatusService)
     error_handler_service = providers.Factory(ErrorHandlerService)
     balance_service = providers.Factory(BalanceService, db=db_session, user_repo=user_repo)
@@ -312,6 +314,7 @@ class ServicesContainer(containers.DeclarativeContainer):
         validator=order_validator_with_financial,
         financial_service=financial_service,
         promo_code_logic=promo_code_business_logic,
+        telegram_service=telegram_notification_service,
     )
     rental_lifecycle_service = providers.Factory(
         RentalLifecycleService,

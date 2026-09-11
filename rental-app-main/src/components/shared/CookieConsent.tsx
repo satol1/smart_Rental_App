@@ -1,6 +1,6 @@
 // src/components/shared/CookieConsent.tsx
 
-import { Cookie } from "lucide-react";
+import { Cookie, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
@@ -46,6 +46,16 @@ export default function CookieConsent() {
                     >
                       политикой в отношении файлов cookie
                     </button>
+                    {" "}
+                    <a
+                      href="/cookies"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 ml-0.5"
+                      title="Открыть политику cookie на отдельной странице"
+                    >
+                      <ExternalLink className="w-3 h-3 inline" />
+                    </a>
                     .
                   </p>
                 </div>

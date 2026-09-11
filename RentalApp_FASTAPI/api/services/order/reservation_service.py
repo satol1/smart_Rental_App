@@ -1,8 +1,11 @@
 #! /usr/bin/env python3
 # api/services/order/reservation_service.py
 
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+
+from api.services.telegram_notification_service import TelegramNotificationService
 
 from api.models.user import User
 from api.models.reservation import Reservation
@@ -37,7 +40,8 @@ class ReservationLifecycleService:
                  system_service: SystemService,
                  validator: OrderValidator,
                  financial_service: FinancialService,
-                 promo_code_logic: PromoCodeBusinessLogic):
+                 promo_code_logic: PromoCodeBusinessLogic,
+                 telegram_service: Optional[TelegramNotificationService] = None):
         self.db = db
         self.reservation_repo = reservation_repo
         self.user_repo = user_repo
@@ -46,6 +50,7 @@ class ReservationLifecycleService:
         self.validator = validator
         self.financial_service = financial_service
         self.promo_code_logic = promo_code_logic
+        self.telegram_service = telegram_service
 
     async def create_user_reservation(self, request: ReservationCreateRequest, user: User) -> Reservation:
         try:
@@ -116,7 +121,12 @@ class ReservationLifecycleService:
 
             logger.info(f"User {user.id} created reservation #{reservation.id}")
             invalidate_dashboard_summary()
-            return await self.reservation_repo.get_by_id_with_details(reservation.id)
+            created_reservation = await self.reservation_repo.get_by_id_with_details(reservation.id)
+            if self.telegram_service:
+                self.telegram_service.send_in_background(
+                    self.telegram_service.notify_new_reservation(created_reservation, user)
+                )
+            return created_reservation
 
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
@@ -135,6 +145,14 @@ class ReservationLifecycleService:
                 if not reservation or reservation.user_id != user.id:
                     from fastapi import HTTPException, status
                     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found or you do not have permission to access it.")
+                
+                old_start_date = reservation.start_date
+                old_end_date = reservation.end_date
+                old_equipment_ids = set(reservation.equipment_ids)
+                old_equipment_names = [
+                    f"{eq.brand} {eq.name}".strip() if getattr(eq, "brand", None) else eq.name
+                    for eq in reservation.equipment
+                ] if getattr(reservation, "equipment", None) else []
                 
                 # Валидация прав на редактирование резерва (включая предлагаемую
                 # новую дату начала — иначе «далёкий» резерв можно передвинуть
@@ -243,7 +261,24 @@ class ReservationLifecycleService:
             logger.info(f"User {user.id} updated reservation #{reservation.id}")
             # даты/состав/стоимость влияют на метрики дашборда
             invalidate_dashboard_summary()
-            return await self.reservation_repo.get_by_id_with_details(reservation.id)
+            updated_reservation = await self.reservation_repo.get_by_id_with_details(reservation.id)
+            dates_changed = (old_start_date != updated_reservation.start_date or old_end_date != updated_reservation.end_date)
+            new_equipment_ids = set(updated_reservation.equipment_ids)
+            equipment_changed = (old_equipment_ids != new_equipment_ids)
+
+            if self.telegram_service and (dates_changed or equipment_changed):
+                self.telegram_service.send_in_background(
+                    self.telegram_service.notify_reservation_updated(
+                        reservation=updated_reservation,
+                        old_start_date=old_start_date,
+                        old_end_date=old_end_date,
+                        old_equipment_names=old_equipment_names,
+                        dates_changed=dates_changed,
+                        equipment_changed=equipment_changed,
+                        user=user,
+                    )
+                )
+            return updated_reservation
 
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
@@ -267,6 +302,15 @@ class ReservationLifecycleService:
                     await self.validator.validate_user_can_cancel_reservation(user, reservation, is_manager=False)
 
                 self.validator.validate_reservation_is_cancellable(reservation)
+                
+                cancelled_start_date = reservation.start_date
+                cancelled_end_date = reservation.end_date
+                cancelled_total_cost = reservation.total_cost
+                cancelled_equipment_names = [
+                    f"{eq.brand} {eq.name}".strip() if getattr(eq, "brand", None) else eq.name
+                    for eq in reservation.equipment
+                ] if getattr(reservation, "equipment", None) else []
+
                 # Отмена освобождает лимит использованного промокода
                 if reservation.promo_code_id:
                     await self.promo_code_logic.release_promo_code_usage(
@@ -276,6 +320,17 @@ class ReservationLifecycleService:
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.info(f"User {user.id} cancelled reservation #{reservation_id}")
             invalidate_dashboard_summary()
+            if self.telegram_service:
+                self.telegram_service.send_in_background(
+                    self.telegram_service.notify_reservation_cancelled(
+                        reservation_id=reservation_id,
+                        user=user,
+                        start_date=cancelled_start_date,
+                        end_date=cancelled_end_date,
+                        equipment_names=cancelled_equipment_names,
+                        total_cost=cancelled_total_cost,
+                    )
+                )
 
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
