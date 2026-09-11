@@ -5,6 +5,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { MotionConfig } from "framer-motion";
 import MainLayout from "@/components/layout/MainLayout";
+import AdminLayout from "@/components/admin/AdminLayout";
 import RequireAuth from "@/components/RequireAuth";
 import CookieConsent from "@/components/shared/CookieConsent";
 import { useThemeStore } from "@/store/themeStore";
@@ -90,17 +91,29 @@ function App() {
                     <Route path="calendar" element={<CalendarPage />} />
                     <Route path="profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                     <Route path="reservations/my" element={<RequireAuth><MyReservationsPage /></RequireAuth>} />
-                    <Route path="admin" element={<RequireAuth role={["manager", "admin"]}><DashboardPage /></RequireAuth>} />
-                    <Route path="admin/rentals" element={<RequireAuth role={["manager", "admin"]}><RentalManagementPage /></RequireAuth>} />
-                    <Route path="admin/users" element={<RequireAuth role={["manager", "admin"]}><UserManagementPage /></RequireAuth>} />
-                    <Route path="admin/equipment" element={<RequireAuth role={["manager", "admin"]}><EquipmentManagementPage /></RequireAuth>} />
-                    <Route path="admin/accessories" element={<RequireAuth role={["manager", "admin"]}><AccessoryManagementPage /></RequireAuth>} />
-                    <Route path="admin/reservations" element={<RequireAuth role={["manager", "admin"]}><AllReservationsManagementPage /></RequireAuth>} />
-                    <Route path="admin/promocodes" element={<RequireAuth role={["manager", "admin"]}><PromoCodeManagementPage /></RequireAuth>} />
-                    <Route path="admin/holidays" element={<RequireAuth role={["admin"]}><HolidayManagementPage /></RequireAuth>} />
-                    <Route path="admin/associations" element={<RequireAuth role={["manager", "admin"]}><AssociationManagementPage /></RequireAuth>} />
-                    <Route path="admin/packs" element={<RequireAuth role={["manager", "admin"]}><PackManagementPage /></RequireAuth>} />
-                    <Route path="admin/settings" element={<RequireAuth role={["admin"]}><SettingsPage /></RequireAuth>} />
+
+                    {/* Админ-раздел: общий каркас (AdminNavigation + Suspense) —
+                        навигация не размонтируется при смене раздела */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <RequireAuth role={["manager", "admin"]}>
+                                <AdminLayout />
+                            </RequireAuth>
+                        }
+                    >
+                        <Route index element={<DashboardPage />} />
+                        <Route path="rentals" element={<RentalManagementPage />} />
+                        <Route path="users" element={<UserManagementPage />} />
+                        <Route path="equipment" element={<EquipmentManagementPage />} />
+                        <Route path="accessories" element={<AccessoryManagementPage />} />
+                        <Route path="reservations" element={<AllReservationsManagementPage />} />
+                        <Route path="promocodes" element={<PromoCodeManagementPage />} />
+                        <Route path="holidays" element={<RequireAuth role={["admin"]}><HolidayManagementPage /></RequireAuth>} />
+                        <Route path="associations" element={<AssociationManagementPage />} />
+                        <Route path="packs" element={<PackManagementPage />} />
+                        <Route path="settings" element={<RequireAuth role={["admin"]}><SettingsPage /></RequireAuth>} />
+                    </Route>
 
                     <Route path="forbidden" element={<ForbiddenPage />} />
                     <Route path="*" element={<NotFoundPage />} />

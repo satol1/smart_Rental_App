@@ -17,38 +17,38 @@ export default function ActivityFeedWidget({ data, isLoading }: ActivityFeedWidg
     const getActivityIcon = (type: ActivityFeedItem['type']) => {
         switch (type) {
             case 'reservation_created':
-                return <Calendar className="w-4 h-4 text-blue-600" />;
+                return <Calendar className="w-4 h-4 text-primary" />;
             case 'reservation_cancelled':
-                return <X className="w-4 h-4 text-red-600" />;
+                return <X className="w-4 h-4 text-destructive" />;
             case 'rental_started':
-                return <Play className="w-4 h-4 text-green-600" />;
+                return <Play className="w-4 h-4 text-success" />;
             case 'rental_completed':
-                return <CheckCircle className="w-4 h-4 text-green-600" />;
+                return <CheckCircle className="w-4 h-4 text-success" />;
             case 'user_registered':
-                return <UserPlus className="w-4 h-4 text-purple-600" />;
+                return <UserPlus className="w-4 h-4 text-muted-foreground" />;
             case 'equipment_added':
-                return <Package className="w-4 h-4 text-orange-600" />;
+                return <Package className="w-4 h-4 text-warning" />;
             default:
-                return <Activity className="w-4 h-4 text-gray-600" />;
+                return <Activity className="w-4 h-4 text-muted-foreground" />;
         }
     };
 
     const getActivityColor = (type: ActivityFeedItem['type']) => {
         switch (type) {
             case 'reservation_created':
-                return 'bg-blue-50 border-blue-200';
+                return 'bg-info-soft border-primary/25';
             case 'reservation_cancelled':
-                return 'bg-red-50 border-red-200';
+                return 'bg-danger-soft border-destructive/25';
             case 'rental_started':
-                return 'bg-green-50 border-green-200';
+                return 'bg-success-soft border-success/25';
             case 'rental_completed':
-                return 'bg-green-50 border-green-200';
+                return 'bg-success-soft border-success/25';
             case 'user_registered':
-                return 'bg-purple-50 border-purple-200';
+                return 'bg-muted border-border';
             case 'equipment_added':
-                return 'bg-orange-50 border-orange-200';
+                return 'bg-warning-soft border-warning/30';
             default:
-                return 'bg-gray-50 border-gray-200';
+                return 'bg-muted border-border';
         }
     };
 
@@ -135,10 +135,10 @@ export default function ActivityFeedWidget({ data, isLoading }: ActivityFeedWidg
                                     {getActivityIcon(activity.type)}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 mb-1">
+                                    <p className="text-sm font-medium text-foreground mb-1">
                                         {activity.description}
                                     </p>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                         <span>
                                             {formatDistanceToNow(new Date(activity.timestamp), { 
                                                 addSuffix: true, 
@@ -170,8 +170,8 @@ export default function ActivityFeedWidget({ data, isLoading }: ActivityFeedWidg
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-8 text-sm text-gray-500">
-                            <Activity className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                        <div className="text-center py-8 text-sm text-muted-foreground">
+                            <Activity className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                             <p>Нет активности</p>
                             <p className="text-xs">События появятся здесь по мере их возникновения</p>
                         </div>

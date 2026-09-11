@@ -133,13 +133,13 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
                             <Input id="code" {...register("code")} className="flex-grow" placeholder="SUMMER25"/>
                             <Button type="button" variant="outline" size="icon" onClick={handleGenerateCode} title="Сгенерировать код" aria-label="Сгенерировать код"><RefreshCw className="h-4 w-4" aria-hidden="true" /></Button>
                         </div>
-                        {errors.code && <p className="col-start-2 col-span-3 text-xs text-red-500 mt-1">{errors.code.message}</p>}
+                        {errors.code && <p className="col-start-2 col-span-3 text-xs text-destructive mt-1">{errors.code.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="discount_percentage" className="text-right">Скидка, % *</Label>
                         <div className="col-span-3"><Input id="discount_percentage" type="number" {...register("discount_percentage")} /></div>
-                        {errors.discount_percentage && <p className="col-start-2 col-span-3 text-xs text-red-500 mt-1">{errors.discount_percentage.message}</p>}
+                        {errors.discount_percentage && <p className="col-start-2 col-span-3 text-xs text-destructive mt-1">{errors.discount_percentage.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -162,7 +162,7 @@ export function PromoCodeDialog({ promoCode, open, onClose }: Props) {
                             <Controller control={control} name="valid_from" render={({ field }) => (<Input type="date" onChange={(e) => field.onChange(e.target.valueAsDate)} value={field.value ? field.value.toISOString().split('T')[0] : ''}/>)} />
                             <Controller control={control} name="expires_at" render={({ field }) => (<Input type="date" onChange={(e) => field.onChange(e.target.valueAsDate)} value={field.value ? field.value.toISOString().split('T')[0] : ''}/>)} />
                         </div>
-                        {errors.expires_at && <p className="col-start-2 col-span-3 text-xs text-red-500 mt-1">{errors.expires_at.message}</p>}
+                        {errors.expires_at && <p className="col-start-2 col-span-3 text-xs text-destructive mt-1">{errors.expires_at.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">

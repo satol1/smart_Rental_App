@@ -1,11 +1,11 @@
 // src/components/rental/MyRentalsList.tsx
 
 import React, { useMemo } from "react";
+import SharedErrorState from "@/components/shared/ErrorState";
 import type { InfiniteData } from "@tanstack/react-query";
 import type { AdminRentalOut, AdminRentalListResponse } from "@/types/rental";
 import { useMyRentals } from "@/hooks/useMyRentals";
 import MyRentalCard from "./MyRentalCard";
-import { Button } from "@/components/ui/button";
 import { RefreshCw, Truck } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { useOrderFilterStore } from "@/store/orderFilterStore";
@@ -29,18 +29,6 @@ const LoadingState = () => (
     </div>
 );
 
-const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
-    <div className="text-center py-8">
-        <div className="flex items-center justify-center mb-4">
-            <Truck className="w-8 h-8 text-gray-400" />
-        </div>
-        <p className="text-red-600 mb-4">{message}</p>
-        <Button onClick={onRetry} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Попробовать снова
-        </Button>
-    </div>
-);
 
 const EmptyState = () => {
     const { goToEquipmentSelection, goToHowItWorks } = useEmptyStateActions();
@@ -98,9 +86,9 @@ const MyRentalsListComponent = ({
 
     if (isError) {
         return (
-            <ErrorState 
-                message={error?.message || "Ошибка при загрузке аренд"} 
-                onRetry={() => refetch()} 
+            <SharedErrorState
+                message={error?.message || "Ошибка при загрузке аренд"}
+                onRetry={() => void refetch()}
             />
         );
     }

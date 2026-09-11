@@ -84,7 +84,7 @@ export default function UserInfo({ userName, userPhone, user_telegram, userStatu
             {userPhone && (
                 <a 
                     href={`tel:${userPhone}`} 
-                    className="text-sm text-sky-600 flex items-center gap-1 hover:underline"
+                    className="text-sm text-primary flex items-center gap-1 hover:underline"
                 >
                     <Phone className="w-3 h-3" />
                     {userPhone}
@@ -93,7 +93,7 @@ export default function UserInfo({ userName, userPhone, user_telegram, userStatu
             {user_telegram && (
                 <button
                     onClick={handleTelegramClick}
-                    className="text-sm text-sky-600 flex items-center gap-1 hover:underline"
+                    className="text-sm text-primary flex items-center gap-1 hover:underline"
                 >
                     <Send className="w-3 h-3" />
                     {user_telegram}

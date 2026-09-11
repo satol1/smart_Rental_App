@@ -19,7 +19,7 @@ export default function EquipmentList({ equipmentList, maxVisible = 3 }: Equipme
         return (
             <div className="mt-2 pt-2 border-t">
                 <p className="text-xs font-semibold mb-1">Оборудование:</p>
-                <p className="text-xs text-gray-500">Нет оборудования</p>
+                <p className="text-xs text-muted-foreground">Нет оборудования</p>
             </div>
         );
     }
@@ -35,7 +35,7 @@ export default function EquipmentList({ equipmentList, maxVisible = 3 }: Equipme
             {hasMoreEquipment && (
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                    className="text-xs text-primary hover:underline flex items-center gap-1 mt-1"
                 >
                     {isExpanded ? (
                         <>

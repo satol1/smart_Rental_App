@@ -41,7 +41,7 @@ export default function DurationDiscountManager() {
     };
 
     if (isLoading) {
-        return <div className="flex items-center gap-2 text-gray-500"><Loader2 className="h-4 w-4 animate-spin"/>Загрузка данных о скидках...</div>;
+        return <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Загрузка данных о скидках...</div>;
     }
 
     if (isError) {
@@ -66,7 +66,7 @@ export default function DurationDiscountManager() {
                                 <TableCell>{d.discount_percentage}%</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(d.id)} disabled={deleteMutation.isPending} aria-label="Удалить правило скидки">
-                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                        <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -113,7 +113,7 @@ export default function DurationDiscountManager() {
                 </Button>
             </div>
 
-            <p className="text-sm text-gray-600 pt-2">
+            <p className="text-sm text-muted-foreground pt-2">
                 <strong>Как это работает:</strong> Система автоматически применит скидку с наибольшим порогом дней, который не превышает общее количество дней аренды.
                 <br />
                 <em>Например, если есть скидки для 3 и 7 дней, а аренда на 8 дней, будет применена скидка для 7 дней.</em>

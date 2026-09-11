@@ -1,6 +1,7 @@
 // rental-app-main/src/components/MyReservationList.tsx
 
 import React from "react";
+import SharedErrorState from "@/components/shared/ErrorState";
 import { motion } from "framer-motion";
 import ReservationCard from "./ReservationCard";
 import { FileText } from "lucide-react";
@@ -23,9 +24,6 @@ const LoadingState = () => (
     <SkeletonList count={3} columns="single" />
 );
 
-const ErrorState = ({ message }: { message: string }) => (
-    <p className="text-red-600 text-center py-4">{message}</p>
-);
 
 const MyReservationListComponent = (props: MyReservationListProps) => {
     const {
@@ -40,6 +38,7 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
         equipmentMap,
         isLoading,
         isError,
+        refetch,
         deletingId,
         itemToRemove,
         reservationToCancel,
@@ -58,7 +57,7 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
     const { goToEquipmentSelection, goToHowItWorks } = useEmptyStateActions();
 
     if (isLoading) return <LoadingState />;
-    if (isError) return <ErrorState message="Ошибка загрузки данных" />;
+    if (isError) return <SharedErrorState message="Ошибка загрузки данных" onRetry={refetch} compact />;
 
     if (reservationsWithNames.length === 0) {
         return (

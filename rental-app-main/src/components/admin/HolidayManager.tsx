@@ -245,7 +245,7 @@ export default function HolidayManager() {
                             <DayPicker
                                 mode="single" locale={ru} month={month} onMonthChange={setMonth}
                                 onSelect={handleDaySelect} modifiers={{ holidays: holidayDates }}
-                                modifiersClassNames={{ holidays: 'bg-red-100 text-red-800 rounded-md' }}
+                                modifiersClassNames={{ holidays: 'bg-danger-soft text-destructive rounded-md' }}
                                 footer={isLoadingHolidays ? <p className="text-center text-sm p-2">Загрузка...</p> : <p className="text-center text-sm p-2">Выбран месяц: {format(month, "LLLL yyyy", { locale: ru })}</p>}
                             />
                         </div>
@@ -255,16 +255,16 @@ export default function HolidayManager() {
                         {holidays.length > 0 ? (
                             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                                 {holidays.map((holiday: HolidayWithDate) => (
-                                    <div key={holiday.date.toString()} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <div key={holiday.date.toString()} className="flex items-center justify-between p-2 bg-muted rounded-md">
                                         <div>
                                             <span className="font-medium">{format(holiday.date, 'PPP', { locale: ru })}</span>
-                                            {holiday.description && <span className="text-gray-600 text-sm ml-2">- {holiday.description}</span>}
+                                            {holiday.description && <span className="text-muted-foreground text-sm ml-2">- {holiday.description}</span>}
                                         </div>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteHoliday(holiday.date)} disabled={deleteMutation.isPending} aria-label="Удалить выходной день"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteHoliday(holiday.date)} disabled={deleteMutation.isPending} aria-label="Удалить выходной день"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
                                     </div>
                                 ))}
                             </div>
-                        ) : (<p className="text-sm text-gray-500">В этом месяце выходные не назначены.</p>)}
+                        ) : (<p className="text-sm text-muted-foreground">В этом месяце выходные не назначены.</p>)}
                     </div>
                 </CardContent>
             </Card>
@@ -289,10 +289,10 @@ export default function HolidayManager() {
                                     rules.map(rule => (
                                         <TableRow key={rule.id}>
                                             <TableCell>{rule.description}</TableCell>
-                                            <TableCell><span className="text-xs font-mono bg-slate-100 px-2 py-1 rounded">{rule.rule_type}</span></TableCell>
+                                            <TableCell><span className="text-xs font-mono bg-muted px-2 py-1 rounded">{rule.rule_type}</span></TableCell>
                                             <TableCell>{format(new Date(rule.created_at), 'dd.MM.yyyy HH:mm')}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)} disabled={deleteRuleMutation.isPending} aria-label="Удалить правило"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)} disabled={deleteRuleMutation.isPending} aria-label="Удалить правило"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -334,7 +334,7 @@ export default function HolidayManager() {
                                 <h4 className="font-semibold text-sm mb-2">Продленные аренды:</h4>
                                 <div className="space-y-2 max-h-32 overflow-y-auto">
                                     {autoExtension.extended_rentals.map(rental => (
-                                        <div key={rental.id} className="text-sm bg-blue-50 p-2 rounded">
+                                        <div key={rental.id} className="text-sm bg-info-soft p-2 rounded">
                                             <strong>Аренда #{rental.id}:</strong> {rental.old_end_date} → {rental.new_end_date}
                                         </div>
                                     ))}
@@ -347,7 +347,7 @@ export default function HolidayManager() {
                                 <h4 className="font-semibold text-sm mb-2">Продленные резервы:</h4>
                                 <div className="space-y-2 max-h-32 overflow-y-auto">
                                     {autoExtension.extended_reservations.map(reservation => (
-                                        <div key={reservation.id} className="text-sm bg-green-50 p-2 rounded">
+                                        <div key={reservation.id} className="text-sm bg-success-soft p-2 rounded">
                                             <strong>Резерв #{reservation.id}:</strong> {reservation.old_end_date} → {reservation.new_end_date}
                                         </div>
                                     ))}
@@ -355,7 +355,7 @@ export default function HolidayManager() {
                             </div>
                         )}
                         
-                        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                        <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
                             <strong>Следующий рабочий день:</strong> {autoExtension?.next_working_day}
                         </div>
                     </div>

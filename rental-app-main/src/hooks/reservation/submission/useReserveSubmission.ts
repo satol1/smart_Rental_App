@@ -71,7 +71,6 @@ export function useReserveSubmission() {
             promo_code: appliedPromoCode || undefined,
         };
 
-        console.log('[useReserveSubmission] Payload before validation:', JSON.stringify(payload, null, 2));
 
         const validationResult = reservationCreateSchema.safeParse(payload);
         if (!validationResult.success) {

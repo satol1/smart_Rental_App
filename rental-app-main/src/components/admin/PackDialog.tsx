@@ -154,7 +154,7 @@ export default function PackDialog({ open, onClose, pack }: PackDialogProps) {
                             placeholder="Например: Комплект для видеосъемки"
                         />
                         {errors.name && (
-                            <p className="text-xs text-red-600 mt-1">
+                            <p className="text-xs text-destructive mt-1">
                                 {errors.name.message}
                             </p>
                         )}
@@ -223,13 +223,13 @@ export default function PackDialog({ open, onClose, pack }: PackDialogProps) {
                             </div>
                             
                             {errors.equipment_ids && (
-                                <p className="text-xs text-red-600 mt-1">
+                                <p className="text-xs text-destructive mt-1">
                                     {errors.equipment_ids.message}
                                 </p>
                             )}
                             
                             {selectedEquipmentIds.length > 0 && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                     Выбрано единиц оборудования: {selectedEquipmentIds.length}
                                 </p>
                             )}

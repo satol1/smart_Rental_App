@@ -68,7 +68,7 @@ export default function ReturnRentalDialog({ rental, open, onClose }: Props) {
                             type="date"
                             {...register("actual_return_date")}
                         />
-                        {errors.actual_return_date && <p className="text-xs text-red-600 mt-1">{errors.actual_return_date.message}</p>}
+                        {errors.actual_return_date && <p className="text-xs text-destructive mt-1">{errors.actual_return_date.message}</p>}
                     </div>
                     <div>
                         <Label htmlFor="notes_on_return">Заметки при возврате</Label>

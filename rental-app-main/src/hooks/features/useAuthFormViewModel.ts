@@ -212,8 +212,8 @@ export const useAuthFormViewModel = ({ onSuccess }: UseAuthFormViewModelProps = 
             const errMsg =
                 err instanceof Error ? err.message : undefined;
             const errorMessage = errDetail || errMsg || t("errors.generic");
+            // Ошибка показывается инлайн в форме; toast дублировал её дважды
             setError(errorMessage);
-            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

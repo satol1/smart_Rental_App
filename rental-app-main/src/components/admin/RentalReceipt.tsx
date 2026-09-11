@@ -18,7 +18,7 @@ interface RentalReceiptProps {
 
 export default function RentalReceipt({ rentalData }: RentalReceiptProps) {
     return (
-        <div className="print-container mx-auto max-w-4xl bg-white text-gray-900">
+        <div className="print-container mx-auto max-w-4xl bg-card text-foreground">
             {/* Брендированная шапка с контактами и заголовком документа */}
             <ReceiptHeader
                 rentalId={rentalData.id}

@@ -184,7 +184,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                                         placeholder="1000" 
                                     />
                                     {paymentForm.formState.errors.amount && (
-                                        <p className="text-xs text-red-600 mt-1">{paymentForm.formState.errors.amount.message}</p>
+                                        <p className="text-xs text-destructive mt-1">{paymentForm.formState.errors.amount.message}</p>
                                     )}
                                 </div>
                                 <div>
@@ -206,7 +206,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                                         )}
                                     />
                                     {paymentForm.formState.errors.payment_method && (
-                                        <p className="text-xs text-red-600 mt-1">{paymentForm.formState.errors.payment_method.message}</p>
+                                        <p className="text-xs text-destructive mt-1">{paymentForm.formState.errors.payment_method.message}</p>
                                     )}
                                 </div>
                             </div>
@@ -249,7 +249,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                                     placeholder="1000 или -1000" 
                                 />
                                 {adjustmentForm.formState.errors.amount && (
-                                    <p className="text-xs text-red-600 mt-1">{adjustmentForm.formState.errors.amount.message}</p>
+                                    <p className="text-xs text-destructive mt-1">{adjustmentForm.formState.errors.amount.message}</p>
                                 )}
                             </div>
                             
@@ -261,7 +261,7 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
                                     placeholder="Например: Начисление бонуса за лояльность, Списание штрафа за просрочку" 
                                 />
                                 {adjustmentForm.formState.errors.description && (
-                                    <p className="text-xs text-red-600 mt-1">{adjustmentForm.formState.errors.description.message}</p>
+                                    <p className="text-xs text-destructive mt-1">{adjustmentForm.formState.errors.description.message}</p>
                                 )}
                             </div>
                             

@@ -53,18 +53,6 @@ export function useEditReservation({
                 ? ["adminReservations"] 
                 : ["reservations"];
 
-            // 🔍 ОТЛАДКА: Логируем состояние кэша до инвалидации
-            console.log("🔍 [useEditReservation] До инвалидации:");
-            console.log("QueryKey:", queryKey);
-            console.log("UpdatedReservation:", updatedReservation);
-            
-            const cacheBefore = queryClient.getQueryCache().findAll({ queryKey, exact: false });
-            console.log("Найденные запросы в кэше:", cacheBefore.map(q => ({ 
-                queryKey: q.queryKey, 
-                state: q.state.status,
-                dataUpdatedAt: q.state.dataUpdatedAt 
-            })));
-
             // 2. НЕМЕДЛЕННО ОБНОВЛЯЕМ КЭШ ДЛЯ МГНОВЕННОГО ОТОБРАЖЕНИЯ
             if (variables.isAdminContext) {
                 // Обновляем все запросы админских резервов
@@ -86,13 +74,10 @@ export function useEditReservation({
                 );
             } else {
                 // 🔧 ИСПРАВЛЕНИЕ: Обновляем кэш для пользовательских резервов
-                console.log("🔧 [useEditReservation] Обновляем кэш для пользовательских резервов");
-                console.log("🔧 [useEditReservation] updatedReservation:", updatedReservation);
                 
                 queryClient.setQueriesData<unknown>(
                     { queryKey, exact: false },
                     (oldData: unknown) => {
-                        console.log("🔧 [useEditReservation] oldData:", oldData);
                         
                         if (!oldData) return oldData;
                         
@@ -100,7 +85,6 @@ export function useEditReservation({
                         const asRecord = oldData as { pages?: Array<{ items?: Array<{ id: number }> }> };
 
                         if (Array.isArray(asRecord.pages)) {
-                            console.log("🔧 [useEditReservation] Обновляем InfiniteData");
                             return {
                                 ...oldData,
                                 pages: asRecord.pages.map(page => ({
@@ -114,16 +98,13 @@ export function useEditReservation({
 
                         // Если это обычный массив (пользовательские резервы)
                         if (Array.isArray(oldData)) {
-                            console.log("🔧 [useEditReservation] Обновляем массив пользовательских резервов");
                             const items = oldData as Array<{ id: number }>;
                             const updatedArray = items.map(item =>
                                 item.id === updatedReservation.id ? updatedReservation : item
                             );
-                            console.log("🔧 [useEditReservation] Обновленный массив:", updatedArray);
                             return updatedArray;
                         }
                         
-                        console.log("🔧 [useEditReservation] Неизвестный формат данных:", typeof oldData);
                         return oldData;
                     }
                 );
@@ -134,17 +115,6 @@ export function useEditReservation({
                 queryKey, 
                 exact: false 
             });
-
-            // 🔍 ОТЛАДКА: Логируем состояние кэша после инвалидации
-            setTimeout(() => {
-                console.log("🔍 [useEditReservation] После инвалидации:");
-                const cacheAfter = queryClient.getQueryCache().findAll({ queryKey, exact: false });
-                console.log("Найденные запросы в кэше:", cacheAfter.map(q => ({ 
-                    queryKey: q.queryKey, 
-                    state: q.state.status,
-                    dataUpdatedAt: q.state.dataUpdatedAt 
-                })));
-            }, 100);
 
             // 4. Вызываем колбэки для управления UI (закрытие формы и т.д.)
             if (onSuccessCallback) onSuccessCallback();

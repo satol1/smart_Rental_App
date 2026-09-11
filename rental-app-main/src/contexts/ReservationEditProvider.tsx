@@ -69,18 +69,10 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
     // Мутация для сохранения изменений
     const editApiMutation = useEditReservation({
         onSuccessCallback: () => {
-            console.log("🔧 [ReservationEditProvider] onSuccessCallback вызван");
-            console.log("🔧 [ReservationEditProvider] Состояние перед сбросом:", {
-                hasProcessedEquipmentAddition: state.hasProcessedEquipmentAddition,
-                newlyAddedEquipmentIds: Array.from(state.newlyAddedEquipmentIds),
-                currentEquipmentDetails: state.currentEquipmentDetails.map(eq => ({ id: eq.id, label: eq.label }))
-            });
             stateActions.resetProcessedEquipmentAddition();
-            console.log("🔧 [ReservationEditProvider] Вызываем onFinishEditing");
             onFinishEditing();
         },
         onClearState: () => {
-            console.log("🔧 [ReservationEditProvider] onClearState вызван");
             clearReserveStore();
         },
     });

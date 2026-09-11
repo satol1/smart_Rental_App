@@ -50,7 +50,7 @@ export default function BrandSystemTable() {
 
     if (isError) {
         return (
-            <p className="text-red-500">
+            <p className="text-destructive">
                 Ошибка загрузки данных систем брендов.
             </p>
         );
@@ -83,7 +83,7 @@ export default function BrandSystemTable() {
                                 </TableCell>
                                 <TableCell>
                                     {system.description || (
-                                        <span className="text-gray-400 italic">Нет описания</span>
+                                        <span className="text-muted-foreground italic">Нет описания</span>
                                     )}
                                 </TableCell>
                                 <TableCell>
@@ -103,7 +103,7 @@ export default function BrandSystemTable() {
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 
-                                            className="text-red-500 hover:text-red-700" 
+                                            className="text-destructive"
                                             onClick={() => handleDelete(system.id)}
                                             title="Удалить"
                                             aria-label="Удалить бренд"
@@ -118,11 +118,11 @@ export default function BrandSystemTable() {
                 </Table>
             ) : (
                 <div className="text-center py-10 border-dashed border-2 rounded-lg">
-                    <ShieldCheck className="mx-auto h-12 w-12 text-gray-300" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-800">
+                    <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                    <h3 className="mt-2 text-sm font-semibold text-foreground">
                         Системы брендов не созданы
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Нажмите "Создать Систему", чтобы добавить первую систему бренда.
                     </p>
                 </div>

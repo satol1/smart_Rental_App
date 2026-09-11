@@ -66,7 +66,7 @@ export default function UserTable({
     }
 
     if (error) {
-        return <div className="text-center py-8 text-red-600">Ошибка загрузки пользователей</div>;
+        return <div className="text-center py-8 text-destructive">Ошибка загрузки пользователей</div>;
     }
 
     return (
@@ -111,9 +111,9 @@ export default function UserTable({
                                 <TableRow>
                                     <TableCell colSpan={isAdmin ? 6 : 5} className="h-24 text-center">
                                         <div className="flex flex-col items-center justify-center text-center p-4">
-                                            <UserSearch className="w-16 h-16 text-gray-300 mb-3" />
-                                            <h3 className="text-lg font-semibold text-gray-700">Пользователи не найдены</h3>
-                                            <p className="text-sm text-gray-500 max-w-sm">
+                                            <UserSearch className="w-16 h-16 text-muted-foreground/50 mb-3" />
+                                            <h3 className="text-lg font-semibold text-foreground">Пользователи не найдены</h3>
+                                            <p className="text-sm text-muted-foreground max-w-sm">
                                                 {searchQuery
                                                     ? "Попробуйте изменить поисковый запрос."
                                                     : "В системе пока нет зарегистрированных пользователей."}
@@ -133,7 +133,7 @@ export default function UserTable({
                 />
 
                 {!isAdmin && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+                    <div className="bg-info-soft border border-primary/25 rounded-lg p-4 text-sm text-primary">
                         <strong>Режим менеджера:</strong> Вы можете просматривать список пользователей, но не можете их изменять, блокировать или удалять.
                     </div>
                 )}

@@ -48,7 +48,7 @@ export function UserBalanceHistoryDialog({ user, open, onClose }: Props) {
                         Просмотр всех транзакций для пользователя {shownUser.email}.
                     </DialogDescription>
                     <div className="mt-2">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                             Текущий баланс: <span className={`font-semibold ${getBalanceColor(shownUser.balance)}`}>
                                 {formatBalance(shownUser.balance)}
                             </span>

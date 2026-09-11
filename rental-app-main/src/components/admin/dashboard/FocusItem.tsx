@@ -27,7 +27,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
                 const daysPassed = itemStartDate ? differenceInDays(today, itemStartDate) : 0;
 
                 return {
-                    bgColor: isPendingPickup ? "bg-cyan-50 hover:bg-cyan-100" : "bg-blue-50 hover:bg-blue-100",
+                    bgColor: isPendingPickup ? "bg-info-soft/60 hover:bg-info-soft" : "bg-accent/60 hover:bg-accent",
                     badgeText: isPendingPickup ? `К выдаче (-${daysPassed} дн.)` : "Выдача сегодня",
                     badgeVariant: (isPendingPickup ? "outline" : "secondary") as "outline" | "secondary",
                     scheduledTime: pickupItem.scheduled_time ? new Date(pickupItem.scheduled_time).toLocaleDateString('ru-RU') : 'Не указано'
@@ -36,7 +36,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
             case 'return': {
                 const returnItem = item as PickupReturnItem;
                 return {
-                    bgColor: "bg-green-50 hover:bg-green-100",
+                    bgColor: "bg-success-soft/60 hover:bg-success-soft",
                     badgeText: "Возврат",
                     badgeVariant: "secondary" as "secondary",
                     scheduledTime: returnItem.scheduled_time ? new Date(returnItem.scheduled_time).toLocaleDateString('ru-RU') : 'Не указано'
@@ -46,7 +46,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
                 const overdueItem = item as OverdueRentalItem;
                 const daysOverdue = calculateDaysOverdue(overdueItem.due_date, overdueItem.days_overdue);
                 return {
-                    bgColor: "bg-red-50 hover:bg-red-100",
+                    bgColor: "bg-danger-soft/60 hover:bg-danger-soft",
                     badgeText: "Просрочено",
                     badgeVariant: "destructive" as "destructive",
                     scheduledTime: daysOverdue > 0 ? `${daysOverdue} дн.` : 'Просрочено',
@@ -55,7 +55,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
             }
             default:
                 return {
-                    bgColor: "bg-gray-50 hover:bg-gray-100",
+                    bgColor: "bg-muted/60 hover:bg-muted",
                     badgeText: "Неизвестно",
                     badgeVariant: "outline" as const,
                     scheduledTime: "Не указано"
@@ -88,7 +88,7 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
                     <Badge variant={config.badgeVariant} className="text-xs">
                         {config.badgeText}
                     </Badge>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         {config.scheduledTime}
                     </p>
                 </div>

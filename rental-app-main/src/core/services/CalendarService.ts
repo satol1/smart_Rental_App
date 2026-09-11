@@ -41,10 +41,6 @@ export class CalendarService {
         },
       });
 
-      console.log(
-        "[CalendarService] API response for /calendar/day-statuses:",
-        response
-      );
 
       if (
         response?.data?.equipment_day_statuses !== undefined

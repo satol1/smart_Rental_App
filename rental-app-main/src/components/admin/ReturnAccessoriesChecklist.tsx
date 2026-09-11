@@ -28,11 +28,11 @@ export default function ReturnAccessoriesChecklist({
     return (
         <div className="space-y-3 pt-3 border-t">
             <Label className="font-semibold">Подтвердите возврат аксессуаров:</Label>
-            <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-3 bg-slate-50">
+            <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-3 bg-muted">
                 {rental.equipment.map((eq: Equipment) => (
                     accessoriesByEquipment[eq.id] && (
                         <div key={eq.id}>
-                            <p className="text-sm font-medium text-gray-700">{eq.name}</p>
+                            <p className="text-sm font-medium text-foreground">{eq.name}</p>
                             <ul className="pl-4 mt-1 space-y-1">
                                 {accessoriesByEquipment[eq.id].map((acc: Accessory) => {
                                     const key = `${eq.id}-${acc.id}`;

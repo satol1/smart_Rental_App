@@ -53,19 +53,19 @@ const formatValue = (value: number, format?: string) => {
 const getColorClasses = (color?: string) => {
     switch (color) {
         case 'primary':
-            return 'text-blue-600';
+            return 'text-primary';
         case 'success':
-            return 'text-green-600';
+            return 'text-success';
         case 'warning':
-            return 'text-yellow-600';
+            return 'text-warning';
         case 'danger':
-            return 'text-red-600';
+            return 'text-destructive';
         case 'info':
-            return 'text-cyan-600';
+            return 'text-primary';
         case 'muted':
-            return 'text-gray-500';
+            return 'text-muted-foreground';
         default:
-            return 'text-gray-900';
+            return 'text-foreground';
     }
 };
 
@@ -83,11 +83,11 @@ const getSizeClasses = (size?: string) => {
 const getVariantClasses = (variant?: string) => {
     switch (variant) {
         case 'highlight':
-            return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300';
+            return 'bg-gradient-to-br from-info-soft/60 to-accent/60 border-primary/25 hover:border-primary/40';
         case 'accent':
-            return 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:border-emerald-300';
+            return 'bg-gradient-to-br from-success-soft/70 to-success-soft/40 border-success/25 hover:border-success/40';
         default:
-            return 'bg-white border-gray-200 hover:border-gray-300';
+            return 'border-border hover:border-foreground/25';
     }
 };
 
@@ -101,8 +101,8 @@ const KpiCard = ({ title, icon, stats, navigateTo, variant = 'default' }: KpiCar
             className={`cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${getVariantClasses(variant)}`}
         >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-700">{title}</CardTitle>
-                <div className="p-1.5 rounded-lg bg-white/50">
+                <CardTitle className="text-sm font-semibold text-foreground">{title}</CardTitle>
+                <div className="p-1.5 rounded-lg bg-card/50">
                     {icon}
                 </div>
             </CardHeader>
@@ -114,10 +114,10 @@ const KpiCard = ({ title, icon, stats, navigateTo, variant = 'default' }: KpiCar
                                 <div className={`${getSizeClasses(stat.size)} font-bold ${getColorClasses(stat.color)}`}>
                                     {formatValue(stat.value, stat.format)}
                                 </div>
-                                <p className="text-xs text-gray-500 font-medium mt-1">{stat.label}</p>
+                                <p className="text-xs text-muted-foreground font-medium mt-1">{stat.label}</p>
                             </div>
                             {index < stats.length - 1 && (
-                                <div className="w-px h-8 bg-gray-300 mx-2"></div>
+                                <div className="w-px h-8 bg-border mx-2"></div>
                             )}
                         </div>
                     ))}
@@ -132,7 +132,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 8 }).map((_, index) => (
-                    <Card key={index} className="bg-white">
+                    <Card key={index} className="bg-card">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <Skeleton className="h-4 w-20" />
                             <Skeleton className="h-6 w-6 rounded-lg" />
@@ -144,7 +144,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
                                         <Skeleton className="h-6 w-12 mb-1" />
                                         <Skeleton className="h-3 w-16" />
                                     </div>
-                                    <div className="w-px h-8 bg-gray-200 mx-2"></div>
+                                    <div className="w-px h-8 bg-border mx-2"></div>
                                 </div>
                                 <div className="flex items-center">
                                     <div className="text-center flex-1">
@@ -167,7 +167,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
                 title="Пользователи"
                 navigateTo="/admin/users"
                 variant="highlight"
-                icon={<Users className="h-5 w-5 text-blue-600" />}
+                icon={<Users className="h-5 w-5 text-primary" />}
                 stats={[
                     { 
                         value: data.total_users, 
@@ -189,7 +189,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
                 title="Аренды"
                 navigateTo="/admin/rentals"
                 variant="accent"
-                icon={<Truck className="h-5 w-5 text-emerald-600" />}
+                icon={<Truck className="h-5 w-5 text-success" />}
                 stats={[
                     { 
                         value: data.total_rentals, 
@@ -216,7 +216,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
             <KpiCard
                 title="Резервы"
                 navigateTo="/admin/reservations"
-                icon={<ClipboardList className="h-5 w-5 text-purple-600" />}
+                icon={<ClipboardList className="h-5 w-5 text-muted-foreground" />}
                 stats={[
                     { 
                         value: data.total_reservations, 
@@ -237,7 +237,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
             <KpiCard
                 title="Оборудование"
                 navigateTo="/admin/equipment"
-                icon={<Package className="h-5 w-5 text-orange-600" />}
+                icon={<Package className="h-5 w-5 text-warning" />}
                 stats={[
                     { 
                         value: data.total_equipment, 
@@ -265,7 +265,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
                 title="Выручка сегодня"
                 navigateTo="/admin/rentals"
                 variant="highlight"
-                icon={<DollarSign className="h-5 w-5 text-green-600" />}
+                icon={<DollarSign className="h-5 w-5 text-success" />}
                 stats={[
                     { 
                         value: data.revenue_today, 
@@ -282,7 +282,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
                 title="Выручка за месяц"
                 navigateTo="/admin/rentals"
                 variant="accent"
-                icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}
+                icon={<TrendingUp className="h-5 w-5 text-success" />}
                 stats={[
                     { 
                         value: data.revenue_this_month, 
@@ -298,7 +298,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
             <KpiCard
                 title="Загруженность"
                 navigateTo="/admin/equipment"
-                icon={<BarChart3 className="h-5 w-5 text-cyan-600" />}
+                icon={<BarChart3 className="h-5 w-5 text-primary" />}
                 stats={[
                     { 
                         value: data.occupancy_rate, 
@@ -314,7 +314,7 @@ export default function KpiCardsWidget({ data, isLoading }: KpiCardsWidgetProps)
             <KpiCard
                 title="Средняя длительность"
                 navigateTo="/admin/rentals"
-                icon={<Clock className="h-5 w-5 text-indigo-600" />}
+                icon={<Clock className="h-5 w-5 text-primary" />}
                 stats={[
                     { 
                         value: data.avg_rental_duration, 

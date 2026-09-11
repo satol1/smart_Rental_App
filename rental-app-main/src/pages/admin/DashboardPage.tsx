@@ -2,7 +2,6 @@
 
 import { useCurrentUser } from "@/hooks/useProfile";
 import { useDashboardData } from "@/hooks/admin/useDashboardData";
-import AdminNavigation from "@/components/admin/AdminNavigation";
 import TodayFocusWidget from "@/components/admin/dashboard/TodayFocusWidget";
 import KpiCardsWidget from "@/components/admin/dashboard/KpiCardsWidget";
 import ActivityFeedWidget from "@/components/admin/dashboard/ActivityFeedWidget";
@@ -23,8 +22,7 @@ export default function DashboardPage() {
 
     if (!isManager) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <AdminNavigation />
+            <div>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <Alert className="max-w-md">
                         <AlertCircle className="h-4 w-4" />
@@ -39,8 +37,7 @@ export default function DashboardPage() {
 
     if (isError) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-                <AdminNavigation />
+            <div className="space-y-6">
                 <div className="flex items-center justify-center min-h-[400px]">
                     <Card className="max-w-md">
                         <CardContent className="pt-6">
@@ -70,22 +67,21 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            <AdminNavigation />
+        <div className="space-y-6">
 
             {/* Заголовок */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-bold text-foreground">
                         Панель управления
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Добро пожаловать, {currentUser?.full_name}!
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     {isLoading && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <RefreshCw className="w-4 h-4 animate-spin" />
                             Обновление...
                         </div>
@@ -188,7 +184,7 @@ export default function DashboardPage() {
 
             {/* Дополнительная информация */}
             {!isLoading && dashboardData && (
-                <div className="text-center text-sm text-gray-500 pt-4 border-t">
+                <div className="text-center text-sm text-muted-foreground pt-4 border-t">
                     <p>
                         Данные обновляются автоматически каждые 2 минуты. 
                         Последнее обновление: {new Date().toLocaleTimeString('ru-RU')}

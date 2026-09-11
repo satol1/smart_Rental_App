@@ -19,7 +19,7 @@ interface PrintableRentalReceiptProps {
 export default function PrintableRentalReceipt({ rentalData }: PrintableRentalReceiptProps) {
 
     return (
-        <div className="max-w-4xl mx-auto bg-white print-container">
+        <div className="max-w-4xl mx-auto bg-card print-container">
             {/* Двухколоночная компоновка для печати */}
             <div className="grid grid-cols-2 gap-x-4">
                 {/* Левая колонка */}

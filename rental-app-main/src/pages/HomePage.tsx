@@ -51,7 +51,7 @@ export default function HomePage() {
     const { returnFromEquipmentSelection, cancelAndReturn } = useReservationNavigation(); // <-- ИСПОЛЬЗОВАНИЕ ХУКА
 
     // Получаем состояние фильтров для передачи в EquipmentCatalog
-    const { query, type, brand, availableOnly, associationId, startDate: filterStartDate, endDate: filterEndDate } = useAppFilters();
+    const { query, type, availableOnly, associationId, startDate: filterStartDate, endDate: filterEndDate } = useAppFilters();
 
     // Получаем данные оборудования для useReservationManagement (пагинированные)
     const {
@@ -60,7 +60,6 @@ export default function HomePage() {
     } = useEquipmentData({
         query,
         type: type ?? undefined,
-        brand: brand ?? undefined,
         associationId: associationId ?? undefined,
         availableOnly,
         startDate: filterStartDate ?? undefined,

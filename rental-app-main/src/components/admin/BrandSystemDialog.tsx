@@ -91,7 +91,7 @@ export default function BrandSystemDialog({ isOpen, onClose, brandSystem, allEqu
                             placeholder="Например: Canon" 
                         />
                         {errors.name && (
-                            <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>
+                            <p className="text-xs text-destructive mt-1">{errors.name.message}</p>
                         )}
                     </div>
                     
@@ -104,7 +104,7 @@ export default function BrandSystemDialog({ isOpen, onClose, brandSystem, allEqu
                             rows={3}
                         />
                         {errors.description && (
-                            <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>
+                            <p className="text-xs text-destructive mt-1">{errors.description.message}</p>
                         )}
                     </div>
                     
@@ -123,7 +123,7 @@ export default function BrandSystemDialog({ isOpen, onClose, brandSystem, allEqu
                             )}
                         />
                         {errors.equipment_ids && (
-                            <p className="text-xs text-red-600 mt-1">{errors.equipment_ids.message}</p>
+                            <p className="text-xs text-destructive mt-1">{errors.equipment_ids.message}</p>
                         )}
                     </div>
                     

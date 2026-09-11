@@ -1,6 +1,7 @@
 // path: rental-app-main/src/components/EquipmentGrid.tsx
 
 import { useTranslation } from "react-i18next";
+import SharedErrorState from "@/components/shared/ErrorState";
 import EquipmentCard from '@/components/equipment-card';
 import CompactEquipmentCard from '@/components/CompactEquipmentCard';
 import PackCard from '@/components/PackCard';
@@ -60,6 +61,8 @@ const AnimatedGridItem: React.FC<{ children: React.ReactNode }> = ({ children })
 
 interface EquipmentGridProps {
     isLoading: boolean;
+    isError?: boolean;
+    onRetry?: () => void;
     items: CatalogItem[];
     hasActiveFilters: boolean;
     getEquipmentStatus: (eq: Equipment) => EquipmentStatus | "my_reservation" | "added";
@@ -76,6 +79,8 @@ interface EquipmentGridProps {
 
 export default function EquipmentGrid({
     isLoading,
+    isError = false,
+    onRetry,
     items,
     hasActiveFilters,
     getEquipmentStatus,
@@ -99,6 +104,14 @@ export default function EquipmentGrid({
                 compact={viewMode === "compact"}
                 className="mt-4"
             />
+        );
+    }
+
+    if (isError && items.length === 0) {
+        return (
+            <div className="col-span-full my-8">
+                <SharedErrorState onRetry={onRetry} />
+            </div>
         );
     }
 

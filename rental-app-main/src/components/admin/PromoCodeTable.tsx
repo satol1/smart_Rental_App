@@ -43,7 +43,7 @@ export default function PromoCodeTable() {
     };
 
     if (isLoading) return <p className="text-center py-4">Загрузка промокодов...</p>;
-    if (error) return <p className="text-center text-red-600 py-4">Ошибка загрузки данных.</p>;
+    if (error) return <p className="text-center text-destructive py-4">Ошибка загрузки данных.</p>;
 
     return (
         <>
@@ -96,7 +96,7 @@ export default function PromoCodeTable() {
                                             <Edit className="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleDelete(pc.id)} disabled={deleteMutation.isPending} aria-label="Удалить промокод">
-                                            <Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" />
+                                            <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -106,9 +106,9 @@ export default function PromoCodeTable() {
                 </div>
             ) : (
                 <div className="text-center py-12 px-4 border-2 border-dashed rounded-lg">
-                    <Ticket className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-700">Промокоды не найдены</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <Ticket className="w-16 h-16 text-muted-foreground/50 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground">Промокоды не найдены</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
                         {search ? "Попробуйте изменить поисковый запрос." : "Добавьте первый промокод, чтобы он появился в списке."}
                     </p>
                 </div>

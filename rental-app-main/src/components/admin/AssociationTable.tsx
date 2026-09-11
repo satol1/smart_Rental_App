@@ -88,7 +88,7 @@ function AssociationDialog({ open, onClose, association, allEquipment }: {
                     <div>
                         <Label htmlFor="assoc-name">Название *</Label>
                         <Input id="assoc-name" {...register("name")} placeholder="Набор для стриминга" />
-                        {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
+                        {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
                     </div>
                     <div>
                         <Label htmlFor="assoc-sort">Порядок сортировки</Label>
@@ -166,7 +166,7 @@ export default function AssociationTable() {
                                 <TableCell>{assoc.equipment_ids.length}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(assoc)} aria-label="Редактировать ассоциацию"><Edit className="h-4 w-4" aria-hidden="true" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc.id)} aria-label="Удалить ассоциацию"><Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc.id)} aria-label="Удалить ассоциацию"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -174,9 +174,9 @@ export default function AssociationTable() {
                 </Table>
             ) : (
                 <div className="text-center py-10 border-dashed border-2 rounded-lg">
-                    <Tags className="mx-auto h-12 w-12 text-gray-300" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-800">Ассоциации не созданы</h3>
-                    <p className="mt-1 text-sm text-gray-500">Нажмите "Создать", чтобы добавить первую.</p>
+                    <Tags className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                    <h3 className="mt-2 text-sm font-semibold text-foreground">Ассоциации не созданы</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Нажмите "Создать", чтобы добавить первую.</p>
                 </div>
             )}
             {/* ✅ Теперь в диалог гарантированно передается ПОЛНЫЙ список оборудования */}

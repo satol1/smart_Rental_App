@@ -111,7 +111,7 @@ export function UserEditDialog({ user, open, onClose }: Props) {
                             <div>
                                 <Label htmlFor="edit-full_name">ФИО *</Label>
                                 <Input id="edit-full_name" {...register("full_name")} />
-                                {errors.full_name && <p className="text-xs text-red-600 mt-1">{errors.full_name.message}</p>}
+                                {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name.message}</p>}
                             </div>
                             <div>
                                 <Label htmlFor="edit-phone">Телефон</Label>
@@ -123,17 +123,17 @@ export function UserEditDialog({ user, open, onClose }: Props) {
                                         <PhoneInput id="edit-phone" {...field} />
                                     )}
                                 />
-                                {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone.message}</p>}
+                                {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
                             </div>
                         </div>
 
                         <div>
                             <Label htmlFor="edit-telegram">Telegram</Label>
                             <div className="relative">
-                                <Send className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Send className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input id="edit-telegram" {...register("telegram_username")} placeholder="@username" className="pl-9" />
                             </div>
-                            {errors.telegram_username && <p className="text-xs text-red-600 mt-1">{errors.telegram_username.message}</p>}
+                            {errors.telegram_username && <p className="text-xs text-destructive mt-1">{errors.telegram_username.message}</p>}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -161,7 +161,7 @@ export function UserEditDialog({ user, open, onClose }: Props) {
                                         </Select>
                                     )}
                                 />
-                                {!isAdmin && <p className="text-xs text-gray-500 mt-1">Только админ может менять роль.</p>}
+                                {!isAdmin && <p className="text-xs text-muted-foreground mt-1">Только админ может менять роль.</p>}
                             </div>
                             <div>
                                 <Label htmlFor="edit-status">Статус</Label>
@@ -196,7 +196,7 @@ export function UserEditDialog({ user, open, onClose }: Props) {
                                                     </SelectContent>
                                                 </Select>
                                                 {isPersonaNonGrataRestricted && (
-                                                    <p className="text-xs text-amber-600 mt-1">
+                                                    <p className="text-xs text-warning mt-1">
                                                         Только админ может изменять статус "Персона НонГрата"
                                                     </p>
                                                 )}
@@ -210,7 +210,7 @@ export function UserEditDialog({ user, open, onClose }: Props) {
                         <div>
                             <Label htmlFor="edit-balance">Баланс</Label>
                             <Input id="edit-balance" type="number" step="0.01" {...register("balance")} placeholder="0.00" />
-                            {errors.balance && <p className="text-xs text-red-600 mt-1">{errors.balance.message}</p>}
+                            {errors.balance && <p className="text-xs text-destructive mt-1">{errors.balance.message}</p>}
                         </div>
 
                         <div>

@@ -69,33 +69,19 @@ export function useReservationEditState(
     // Обработка добавления оборудования из reserveStore
     useEffect(() => {
         const { addToReservationMode } = useReserveStore.getState();
-        console.log("🔧 [useReservationEditState] Проверка добавления оборудования:", {
-            addToReservationMode,
-            reservationId: reservation.id,
-            itemsFromStoreLength: itemsFromStore.length,
-            hasProcessedEquipmentAddition: state.hasProcessedEquipmentAddition,
-            allEquipmentLength: allEquipment.length
-        });
         
         if (addToReservationMode === reservation.id && itemsFromStore.length > 0 && !state.hasProcessedEquipmentAddition) {
             if (allEquipment.length > 0) {
-                console.log("🔧 [useReservationEditState] Добавляем оборудование:", {
-                    itemsFromStore: itemsFromStore.map(item => ({ id: item.id, name: item.name })),
-                    allEquipmentLength: allEquipment.length
-                });
                 
                 const newItemsData = itemsFromStore.map(itemInStore => 
                     allEquipment.find((eq: Equipment) => eq.id === itemInStore.id) || itemInStore
                 );
                 
-                console.log("🔧 [useReservationEditState] Данные для добавления:", newItemsData.map(item => ({ id: item.id, name: item.name })));
-                console.log("🔧 [useReservationEditState] Аксессуары из стора:", selectedAccessoriesFromStore);
                 
                 addEquipmentItems(newItemsData);
                 
                 // 🔧 ИСПРАВЛЕНИЕ: Переносим аксессуары из стора в локальное состояние
                 if (Object.keys(selectedAccessoriesFromStore).length > 0) {
-                    console.log("🔧 [useReservationEditState] Переносим аксессуары в локальное состояние");
                     setState(prev => ({
                         ...prev,
                         localSelectedAccessories: {
@@ -108,7 +94,6 @@ export function useReservationEditState(
                     setState(prev => ({ ...prev, hasProcessedEquipmentAddition: true }));
                 }
                 
-                console.log("🔧 [useReservationEditState] Оборудование и аксессуары добавлены, hasProcessedEquipmentAddition установлен в true");
             }
         }
     }, [allEquipment, reservation.id, itemsFromStore, selectedAccessoriesFromStore, state.hasProcessedEquipmentAddition]);
@@ -118,24 +103,16 @@ export function useReservationEditState(
     }, []);
 
     const addEquipmentItems = useCallback((itemsToAdd: Equipment[]) => {
-        console.log("🔧 [addEquipmentItems] Вызывается с данными:", itemsToAdd.map(item => ({ id: item.id, name: item.name })));
         
         setState(prev => {
-            console.log("🔧 [addEquipmentItems] Текущее состояние:", {
-                currentEquipmentDetails: prev.currentEquipmentDetails.map(eq => ({ id: eq.id, label: eq.label })),
-                newlyAddedEquipmentIds: Array.from(prev.newlyAddedEquipmentIds),
-                originalEquipmentIds: Array.from(initialValues.equipmentIds)
-            });
             
             const currentIds = new Set(prev.currentEquipmentDetails.map(d => d.id));
             const newDetails = itemsToAdd
                 .filter(item => !currentIds.has(item.id))
                 .map(item => ({ id: item.id, label: createDisplayLabel(item) }));
 
-            console.log("🔧 [addEquipmentItems] Новые детали для добавления:", newDetails);
 
             if (newDetails.length === 0) {
-                console.log("🔧 [addEquipmentItems] Нет новых элементов для добавления");
                 return prev;
             }
 
@@ -152,10 +129,6 @@ export function useReservationEditState(
                 newlyAddedEquipmentIds: newNewlyAddedIds,
             };
             
-            console.log("🔧 [addEquipmentItems] Новое состояние:", {
-                currentEquipmentDetails: newState.currentEquipmentDetails.map(eq => ({ id: eq.id, label: eq.label })),
-                newlyAddedEquipmentIds: Array.from(newState.newlyAddedEquipmentIds)
-            });
 
             return newState;
         });

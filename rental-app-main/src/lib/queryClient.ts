@@ -29,6 +29,7 @@ function isUnauthorizedError(error: unknown): boolean {
 }
 
 function handleUnauthorized() {
-    localStorage.removeItem("access_token")
-    window.location.href = "/"
+    // Не жёсткая перезагрузка SPA: единый путь логаута — событие
+    // 'auth-token-expired' (слушатель в main.tsx вызывает authStore.logout)
+    window.dispatchEvent(new Event("auth-token-expired"))
 }

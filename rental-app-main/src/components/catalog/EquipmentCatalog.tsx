@@ -67,6 +67,8 @@ export default function EquipmentCatalog({ onOpenPackDetails, collections }: Equ
         hasActiveFilters,
         totalCount,
         isLoading,
+        isError,
+        refetch,
         isFetchingNextPage,
         hasNextPage,
         fetchNextPage
@@ -134,6 +136,8 @@ export default function EquipmentCatalog({ onOpenPackDetails, collections }: Equ
             <div className="catalog-grid-stagger">
                 <EquipmentGrid
                     isLoading={isLoading}
+                    isError={isError}
+                    onRetry={refetch}
                     items={combinedItems}
                     hasActiveFilters={hasActiveFilters}
                     getEquipmentStatus={getEquipmentStatus}

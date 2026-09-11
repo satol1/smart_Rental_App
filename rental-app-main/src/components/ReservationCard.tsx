@@ -71,7 +71,6 @@ export default function ReservationCard({
     useEffect(() => {
         const state = location.state as { continueEditing?: number } | null;
         if (state?.continueEditing === id) {
-            console.log("🔧 [ReservationCard] Автоматически открываем редактирование для резерва #", id);
             setIsEditing(true);
             // Очистим state, чтобы не триггерилось повторно при навигации
             navigate(location.pathname, { replace: true, state: {} });
@@ -98,7 +97,6 @@ export default function ReservationCard({
                     isAdminContext={isAdminOrManager}
                     // ✅ УПРОЩЕННАЯ ЛОГИКА: Просто закрываем редактирование
                     onFinishEditing={() => {
-                        console.log("🔧 [ReservationCard] onFinishEditing вызван для резерва #", id);
                         setIsEditing(false);
                     }}
                 >

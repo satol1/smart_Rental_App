@@ -70,21 +70,26 @@ export default function EquipmentDetailsView({
                     {allImages.length > 1 && (
                         <div className="flex overflow-x-auto space-x-2 pb-2">
                             {allImages.map((url, index) => (
-                                <div 
-                                    key={index} 
-                                    className={`flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border cursor-pointer transition-all ${
-                                        index === currentImageIndex 
-                                            ? 'border-primary ring-2 ring-primary/30' 
+                                <button
+                                    type="button"
+                                    key={index}
+                                    aria-label={`Показать изображение ${index + 1}: ${equipment.name}`}
+                                    aria-current={index === currentImageIndex}
+                                    className={`flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border cursor-pointer transition-all p-0 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                        index === currentImageIndex
+                                            ? 'border-primary ring-2 ring-primary/30'
                                             : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                     onClick={() => handleThumbnailClick(index)}
                                 >
-                                    <img 
-                                        src={url} 
-                                        alt={`${equipment.name} image ${index + 1}`} 
-                                        className="w-full h-full object-cover" 
+                                    <img
+                                        src={url}
+                                        alt=""
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-cover pointer-events-none"
                                     />
-                                </div>
+                                </button>
                             ))}
                         </div>
                     )}

@@ -69,6 +69,16 @@ export default function Header() {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isHomePage = location.pathname === '/';
 
+  // Deep-link возврат: RequireAuth редиректит неавторизованных на главную с
+  // state.from — открываем диалог входа сразу, после входа completeAuth
+  // вернёт пользователя на исходный маршрут
+  useEffect(() => {
+    const from = (location.state as { from?: string } | null)?.from;
+    if (isHomePage && from) {
+      setAuthDialogOpen(true);
+    }
+  }, [isHomePage, location.state]);
+
   const links = [
     { to: '/', label: t('shell.catalog'), icon: null },
     { to: '/calendar', label: t('nav.calendar'), icon: Calendar },
@@ -269,7 +279,17 @@ export default function Header() {
         </div>
       </header>
       <ContactDialog open={isContactOpen} onOpenChange={setContactOpen} />
-      <AuthDialog open={isAuthDialogOpen} onOpenChange={setAuthDialogOpen} />
+      <AuthDialog
+            open={isAuthDialogOpen}
+            onOpenChange={(open) => {
+              setAuthDialogOpen(open);
+              if (!open) {
+                // Сбрасываем history-state (deep-link from), иначе Back/F5
+                // снова откроет диалог входа
+                navigate(location.pathname, { replace: true, state: {} });
+              }
+            }}
+          />
     </>
   );
 }

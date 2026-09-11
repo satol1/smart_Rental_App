@@ -65,8 +65,8 @@ export default function RentalReceiptDialog({ isOpen, onClose, rentalData }: Ren
                     {isLoading ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="flex flex-col items-center gap-3">
-                                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                                <span className="text-sm text-gray-600">Формирование бланка...</span>
+                                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                <span className="text-sm text-muted-foreground">Формирование бланка...</span>
                             </div>
                         </div>
                     ) : (

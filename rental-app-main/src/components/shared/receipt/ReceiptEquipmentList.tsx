@@ -39,7 +39,7 @@ export default function ReceiptEquipmentList({ rentalData }: ReceiptEquipmentLis
 
     return (
         <section className="receipt-section receipt-equipment-table mb-5">
-            <h3 className="receipt-section-title mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="receipt-section-title mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 <Receipt className="h-4 w-4" />
                 Оборудование и аксессуары
             </h3>
@@ -57,21 +57,21 @@ export default function ReceiptEquipmentList({ rentalData }: ReceiptEquipmentLis
                         <TableRow key={equipment.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>
-                                <p className="font-medium text-gray-900">{equipment.name}</p>
-                                <p className="text-xs text-gray-500">{equipment.brand}</p>
+                                <p className="font-medium text-foreground">{equipment.name}</p>
+                                <p className="text-xs text-muted-foreground">{equipment.brand}</p>
                             </TableCell>
                             <TableCell>{equipment.serial_number || 'Не указан'}</TableCell>
                             <TableCell>
                                 {equipment.accessories.length > 0 ? (
                                     <ul className="space-y-0.5 text-sm">
                                         {equipment.accessories.map((accessory) => (
-                                            <li key={accessory.id} className="text-gray-700">
+                                            <li key={accessory.id} className="text-foreground">
                                                 • {accessory.name}
                                             </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <span className="text-gray-400">Нет</span>
+                                    <span className="text-muted-foreground">Нет</span>
                                 )}
                             </TableCell>
                         </TableRow>

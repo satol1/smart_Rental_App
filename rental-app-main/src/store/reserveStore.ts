@@ -83,10 +83,6 @@ export const useReserveStore = create<ReserveStore>()(
         // 👇 РЕАЛИЗАЦИЯ НОВОГО МЕТОДА
         addWithAccessories: (equipment, accessoryIds) => {
             // ДИАГНОСТИКА: Трассировка структуры объекта Equipment
-            console.log("[ReserveStore] addWithAccessories called:");
-            console.log("  equipment.id:", equipment.id);
-            console.log("  accessoryIds:", accessoryIds);
-            console.log("  equipment:", JSON.stringify(equipment, null, 2));
             
             set(state => {
                 const items = state.items.some(i => i.id === equipment.id)
@@ -96,12 +92,10 @@ export const useReserveStore = create<ReserveStore>()(
                 const newSelectedAccessories = { ...state.selectedAccessories };
                 if (accessoryIds.length > 0) {
                     newSelectedAccessories[equipment.id] = accessoryIds;
-                    console.log(`[ReserveStore] Set accessories for equipment ${equipment.id}:`, accessoryIds);
                 } else {
                     delete newSelectedAccessories[equipment.id];
                 }
 
-                console.log("[ReserveStore] Final selectedAccessories:", newSelectedAccessories);
 
                 return { items, selectedAccessories: newSelectedAccessories };
             });
@@ -110,7 +104,6 @@ export const useReserveStore = create<ReserveStore>()(
         // 👇 РЕАЛИЗАЦИЯ МАССОВОГО ДОБАВЛЕНИЯ
         bulkAddWithAccessories: (items) => {
             // ДИАГНОСТИКА: Трассировка структуры объектов Equipment
-            console.log("МАССОВОЕ ДОБАВЛЕНИЕ в reserveStore (bulkAddWithAccessories):", JSON.stringify(items, null, 2));
             
             set(state => {
                 const currentItems = [...state.items];
@@ -178,7 +171,6 @@ export const useReserveStore = create<ReserveStore>()(
         },
 
         logState: () => {
-            console.log(`[ReserveStore] Current state:`, get());
         },
 
         toggleAccessory: (equipmentId, accessoryId) => {
@@ -224,7 +216,6 @@ useReserveStore.subscribe(
     (state) => state.items,
     (items, previousItems) => {
         if (items.length !== previousItems.length) {
-            console.log(`[ReserveStore] Items changed: ${previousItems.length} -> ${items.length}`);
         }
     }
 );
@@ -233,7 +224,6 @@ useReserveStore.subscribe(
     (state) => state.reservationId,
     (reservationId, previousReservationId) => {
         if (reservationId !== previousReservationId) {
-            console.log(`[ReserveStore] Reservation ID changed: ${previousReservationId} -> ${reservationId}`);
         }
     }
 );
@@ -242,7 +232,6 @@ useReserveStore.subscribe(
     (state) => state.addToReservationMode,
     (addToReservationMode, previousAddToReservationMode) => {
         if (addToReservationMode !== previousAddToReservationMode) {
-            console.log(`[ReserveStore] Add to reservation mode changed: ${previousAddToReservationMode} -> ${addToReservationMode}`);
         }
     }
 );

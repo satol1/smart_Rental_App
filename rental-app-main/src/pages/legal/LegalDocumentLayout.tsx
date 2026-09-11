@@ -1,28 +1,17 @@
 // src/pages/legal/LegalDocumentLayout.tsx
-import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Printer, ShieldCheck, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import LegalDocument from "@/components/shared/LegalDocument";
 import { COMPANY_INFO } from "@/lib/companyInfo";
+import type { LegalDocumentContent } from "@/content/legal";
 
 interface LegalDocumentLayoutProps {
-  title: string;
-  subtitle?: string;
-  badge?: string;
-  effectiveDate?: string;
-  version?: string;
-  children: ReactNode;
+  content: LegalDocumentContent;
 }
 
-export default function LegalDocumentLayout({
-  title,
-  subtitle,
-  badge = "152-ФЗ РФ",
-  effectiveDate = "10 января 2026 г.",
-  version = "2.0",
-  children,
-}: LegalDocumentLayoutProps) {
+export default function LegalDocumentLayout({ content }: LegalDocumentLayoutProps) {
   const handlePrint = () => {
     window.print();
   };
@@ -55,29 +44,31 @@ export default function LegalDocumentLayout({
         {/* Заголовок документа */}
         <header className="mb-10 pb-6 border-b border-border">
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              {badge}
-            </span>
+            {content.badge && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {content.badge}
+              </span>
+            )}
             <span className="text-xs text-muted-foreground">
-              Версия {version} • Действует с {effectiveDate}
+              Версия {content.version} • Действует с {content.effectiveDate}
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-3">
-            {title}
+            {content.title}
           </h1>
 
-          {subtitle && (
+          {content.subtitle && (
             <p className="text-base text-muted-foreground leading-relaxed">
-              {subtitle}
+              {content.subtitle}
             </p>
           )}
         </header>
 
         {/* Основной текст документа */}
-        <div className="legal-content space-y-8 text-sm sm:text-base leading-relaxed">
-          {children}
+        <div className="legal-content text-sm sm:text-base leading-relaxed">
+          <LegalDocument sections={content.sections} />
         </div>
 
         {/* Блок реквизитов Оператора */}

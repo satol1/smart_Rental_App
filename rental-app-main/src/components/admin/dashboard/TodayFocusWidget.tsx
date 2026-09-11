@@ -125,7 +125,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                 {/* Выдачи сегодня */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <ArrowUpCircle className="w-4 h-4 text-blue-600" />
+                        <ArrowUpCircle className="w-4 h-4 text-primary" />
                         <h3 className="font-medium text-sm">Выдачи сегодня</h3>
                         <Badge variant="outline" className="text-xs">
                             {data.pickups_today.length}
@@ -135,7 +135,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                         {data.pickups_today.length > 0 ? (
                             sortPickupsByPriority(data.pickups_today, today).map(renderPickupItem)
                         ) : (
-                            <div className="text-center py-4 text-sm text-gray-500">
+                            <div className="text-center py-4 text-sm text-muted-foreground">
                                 Сегодня нет выдач
                             </div>
                         )}
@@ -145,7 +145,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                 {/* Возвраты сегодня */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <ArrowDownCircle className="w-4 h-4 text-green-600" />
+                        <ArrowDownCircle className="w-4 h-4 text-success" />
                         <h3 className="font-medium text-sm">Возвраты сегодня</h3>
                         <Badge variant="outline" className="text-xs">
                             {data.returns_today.length}
@@ -155,7 +155,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                         {data.returns_today.length > 0 ? (
                             data.returns_today.map(renderReturnItem)
                         ) : (
-                            <div className="text-center py-4 text-sm text-gray-500">
+                            <div className="text-center py-4 text-sm text-muted-foreground">
                                 Сегодня нет возвратов
                             </div>
                         )}
@@ -165,7 +165,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                 {/* Просроченные аренды */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <AlertTriangle className="w-4 h-4 text-red-600" />
+                        <AlertTriangle className="w-4 h-4 text-destructive" />
                         <h3 className="font-medium text-sm">Просроченные аренды</h3>
                         <Badge variant="outline" className="text-xs">
                             {data.overdue_rentals.length}
@@ -175,7 +175,7 @@ export default function TodayFocusWidget({ data, isLoading }: TodayFocusWidgetPr
                         {data.overdue_rentals.length > 0 ? (
                             sortOverdueRentalsByDays(data.overdue_rentals).map(renderOverdueItem)
                         ) : (
-                            <div className="text-center py-4 text-sm text-gray-500">
+                            <div className="text-center py-4 text-sm text-muted-foreground">
                                 Нет просроченных аренд
                             </div>
                         )}

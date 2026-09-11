@@ -12,10 +12,29 @@ export default function RequireAuth({ children, role }: Props) {
     const location = useLocation()
 
     if (isLoading) {
-        return <p>Загрузка профиля...</p>
+        return (
+            <div
+                className="flex min-h-[40vh] items-center justify-center"
+                role="status"
+                aria-live="polite"
+            >
+                <div className="flex items-center gap-3 text-muted-foreground">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+                    <span>Загрузка профиля…</span>
+                </div>
+            </div>
+        )
     }
     if (!user) {
-        return <Navigate to="/" replace state={{ from: location.pathname }} />
+        // Полный путь (с query) — после входа completeAuth вернёт пользователя назад;
+        // Header видит state.from на главной и сам открывает диалог входа
+        return (
+            <Navigate
+                to="/"
+                replace
+                state={{ from: `${location.pathname}${location.search}` }}
+            />
+        )
     }
     if (role && !(Array.isArray(role) ? role.includes(user.role) : user.role === role)) {
         return <Navigate to="/forbidden" replace />

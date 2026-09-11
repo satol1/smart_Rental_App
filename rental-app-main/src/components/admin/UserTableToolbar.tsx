@@ -21,7 +21,7 @@ export function UserTableToolbar({
     return (
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div className="relative flex-grow max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                     placeholder="Поиск пользователей..."
                     value={searchQuery}
@@ -30,7 +30,7 @@ export function UserTableToolbar({
                 />
             </div>
             <div className="flex items-center gap-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                     Найдено: {filteredUserCount}
                 </p>
                 {isAdmin && (

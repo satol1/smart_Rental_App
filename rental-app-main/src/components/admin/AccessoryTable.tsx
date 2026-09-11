@@ -47,7 +47,7 @@ export default function AccessoryTable() {
     };
 
     if (isLoading) return <p>Загрузка аксессуаров...</p>;
-    if (error) return <p className="text-red-600">Ошибка загрузки данных.</p>;
+    if (error) return <p className="text-destructive">Ошибка загрузки данных.</p>;
 
     return (
         <>
@@ -90,7 +90,7 @@ export default function AccessoryTable() {
                                                 <Edit className="h-4 w-4" />
                                             </Button>
                                             <Button variant="ghost" size="icon" onClick={() => handleDelete(acc.id)} disabled={deleteMutation.isPending} aria-label={`Удалить аксессуар ${acc.name}`}>
-                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                                <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -126,9 +126,9 @@ export default function AccessoryTable() {
                 </>
             ) : (
                 <div className="text-center py-12 px-4 border rounded-md">
-                    <Wrench className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-700">Аксессуары не найдены</h3>
-                    <p className="text-sm text-gray-500 mt-1">{search ? "Попробуйте изменить поисковый запрос." : "Добавьте первый аксессуар, чтобы он появился в списке."}</p>
+                    <Wrench className="w-16 h-16 text-muted-foreground/50 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground">Аксессуары не найдены</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{search ? "Попробуйте изменить поисковый запрос." : "Добавьте первый аксессуар, чтобы он появился в списке."}</p>
                 </div>
             )}
 

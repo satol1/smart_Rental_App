@@ -17,10 +17,10 @@ interface Props {
 export default function AllRentalsList({ rentals, onReturn, highlightId, elementRef, getHighlightClasses }: Props) {
     if (!rentals || rentals.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center text-center p-12 space-y-4 bg-gray-50/50 rounded-lg border-2 border-dashed">
-                <ClipboardX className="w-16 h-16 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-800">Аренды не найдены</h3>
-                <p className="text-sm text-gray-500">Попробуйте изменить фильтры или поисковый запрос.</p>
+            <div className="flex flex-col items-center justify-center text-center p-12 space-y-4 bg-muted/50 rounded-lg border-2 border-dashed">
+                <ClipboardX className="w-16 h-16 text-muted-foreground/50" />
+                <h3 className="text-lg font-semibold text-foreground">Аренды не найдены</h3>
+                <p className="text-sm text-muted-foreground">Попробуйте изменить фильтры или поисковый запрос.</p>
             </div>
         );
     }

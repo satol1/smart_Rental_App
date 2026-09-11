@@ -59,13 +59,13 @@ export function UserCreateDialog({ open, onClose }: Props) {
                     <div>
                         <Label htmlFor="create-full_name">ФИО *</Label>
                         <Input id="create-full_name" {...register("full_name")} placeholder="Иван Петров" />
-                        {errors.full_name && <p className="text-xs text-red-600 mt-1">{errors.full_name.message}</p>}
+                        {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name.message}</p>}
                     </div>
 
                     <div>
                         <Label htmlFor="create-email">Email *</Label>
                         <Input id="create-email" type="email" {...register("email")} placeholder="user@example.com" />
-                        {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
+                        {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
                     </div>
 
                     {/* +++ НАЧАЛО: Новое поле для телефона +++ */}
@@ -84,7 +84,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
                                 />
                             )}
                         />
-                        {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone.message}</p>}
+                        {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
                     </div>
                     {/* +++ КОНЕЦ: Новое поле для телефона +++ */}
 
@@ -92,17 +92,17 @@ export function UserCreateDialog({ open, onClose }: Props) {
                     <div>
                         <Label htmlFor="create-telegram">Telegram</Label>
                         <div className="relative">
-                            <Send className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Send className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input id="create-telegram" {...register("telegram_username")} placeholder="@username" className="pl-9" />
                         </div>
-                        {errors.telegram_username && <p className="text-xs text-red-600 mt-1">{errors.telegram_username.message}</p>}
+                        {errors.telegram_username && <p className="text-xs text-destructive mt-1">{errors.telegram_username.message}</p>}
                     </div>
                     {/* +++ КОНЕЦ: Новое поле для Telegram +++ */}
 
                     <div>
                         <Label htmlFor="create-password">Пароль *</Label>
                         <Input id="create-password" type="password" {...register("password")} placeholder="••••••••" />
-                        {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
+                        {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
                     </div>
 
                     <div>
@@ -125,7 +125,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
                                 </Select>
                             )}
                         />
-                        {errors.role && <p className="text-xs text-red-600 mt-1">{errors.role.message}</p>}
+                        {errors.role && <p className="text-xs text-destructive mt-1">{errors.role.message}</p>}
                     </div>
 
                     <DialogFooter className="pt-4">

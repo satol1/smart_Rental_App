@@ -11,7 +11,6 @@ import type { AvailabilityInfo, DailyAvailabilityData } from "@/types/availabili
 export interface EquipmentFilters {
     query?: string;
     type?: string;
-    brand?: string;
     associationId?: number;
     availableOnly?: boolean;
     startDate?: Date;

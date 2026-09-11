@@ -30,10 +30,8 @@ export default function DeleteBalanceHistoryDialog({
             return;
         }
         
-        console.log(`🗑️ Attempting to delete balance history entry ${historyId} for user ${userId}`);
         deleteMutation.mutate({ historyId, userId }, {
             onSuccess: () => {
-                console.log(`✅ Successfully deleted balance history entry ${historyId}, closing dialog`);
                 onClose();
             },
             onError: (error) => {

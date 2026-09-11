@@ -219,6 +219,9 @@
     background: hsl(var(--background));
     scroll-padding-top: 7rem;
     -webkit-text-size-adjust: 100%;
+    /* Зарезервировать место под скроллбар всегда: без этого при переходе
+       «высокая страница → короткая» лейаут дёргается на ширину скроллбара */
+    scrollbar-gutter: stable;
   }
   body {
     margin: 0;
@@ -360,6 +363,12 @@
     --secondary-foreground: 0 0% 15%;
     --destructive: 0 60% 40%;
     --destructive-foreground: 0 0% 100%;
+    /* Печатные пины семантических цветов: без них text-success/text-warning
+       из тёмной темы стали бы почти белыми на бумаге */
+    --success: 145 30% 30%;
+    --success-soft: 142 30% 91%;
+    --warning: 34 56% 30%;
+    --warning-soft: 38 62% 91%;
     --accent: 201 42% 91%;
     --accent-foreground: 201 62% 27%;
     --brand: 201 71% 38%;

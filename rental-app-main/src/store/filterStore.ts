@@ -3,8 +3,6 @@ import { create } from "zustand"
 
 type FilterState = {
   brandSystemId: number | null
-  /** Текстовый фильтр бренда (не используется UI, сохранён для совместимости потребителей хуков) */
-  brand: string | null
   type: string | null
   associationId: number | null
   availableOnly: boolean
@@ -19,7 +17,6 @@ type FilterState = {
 
 export const useFilterStore = create<FilterState>((set) => ({
   brandSystemId: null,        // По умолчанию показывать все системы брендов
-  brand: null,
   type: null,                  // <-- По умолчанию показывать все типы
   associationId: null,
   availableOnly: false,
@@ -31,7 +28,6 @@ export const useFilterStore = create<FilterState>((set) => ({
   setGroupSimilar: (value) => set({ groupSimilar: value }),
   reset: () => set({
     brandSystemId: null,
-    brand: null,
     type: null,               // <-- Сброс должен тоже давать null
     associationId: null,
     availableOnly: false,

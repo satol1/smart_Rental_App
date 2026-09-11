@@ -26,7 +26,7 @@ export function AdminReservationToolbar({ visibleReservationIds, onBulkDelete, i
     };
 
     return (
-        <div className="flex items-center gap-4 p-3 bg-slate-50 border rounded-md mb-4 h-14">
+        <div className="flex items-center gap-4 p-3 bg-muted border rounded-md mb-4 h-14">
             <div className="flex items-center gap-2">
                 <Checkbox
                     id="select-all"
@@ -34,14 +34,14 @@ export function AdminReservationToolbar({ visibleReservationIds, onBulkDelete, i
                     onCheckedChange={handleSelectAll}
                     aria-label="Выбрать все видимые резервы"
                 />
-                <label htmlFor="select-all" className="text-sm font-medium text-slate-700 cursor-pointer">
+                <label htmlFor="select-all" className="text-sm font-medium text-foreground cursor-pointer">
                     Выбрать все
                 </label>
             </div>
 
             {selectedIds.length > 0 && (
                 <div className="flex items-center gap-4 animate-in fade-in-0 duration-300">
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-muted-foreground">
             Выбрано: {selectedIds.length}
           </span>
                     <Button

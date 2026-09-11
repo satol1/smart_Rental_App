@@ -38,23 +38,23 @@ export default function ReceiptRentalDetails({ rentalData }: ReceiptRentalDetail
 
     return (
         <section className="receipt-section receipt-details">
-            <h3 className="receipt-section-title mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="receipt-section-title mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 <CalendarDays className="h-4 w-4" />
                 Детали аренды
             </h3>
             <div className="space-y-1.5">
                 <div className="grid grid-cols-2 gap-2">
                     <div>
-                        <p className="text-xs font-medium text-gray-500">Дата начала</p>
-                        <p className="text-sm font-semibold text-gray-900">{formatDate(rentalData.start_date)}</p>
+                        <p className="text-xs font-medium text-muted-foreground">Дата начала</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDate(rentalData.start_date)}</p>
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-gray-500">Дата окончания</p>
-                        <p className="text-sm font-semibold text-gray-900">{formatDate(rentalData.end_date)}</p>
+                        <p className="text-xs font-medium text-muted-foreground">Дата окончания</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDate(rentalData.end_date)}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium text-gray-500">Статус</p>
+                    <p className="text-xs font-medium text-muted-foreground">Статус</p>
                     <Badge
                         variant={getStatusVariant(rentalData.status)}
                         className="receipt-status-badge px-2 py-0.5 text-xs"

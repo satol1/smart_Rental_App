@@ -23,7 +23,7 @@ export default function EquipmentListForFinalization({
 }: Props) {
     if (equipmentWithAccessories.length === 0) {
         return (
-            <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+            <div className="p-4 text-center text-muted-foreground bg-muted rounded-lg">
                 Оборудование не выбрано
             </div>
         );
@@ -31,7 +31,7 @@ export default function EquipmentListForFinalization({
 
     return (
         <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-gray-800 mb-3">
+            <h4 className="text-sm font-semibold text-foreground mb-3">
                 Выбранное оборудование ({equipmentWithAccessories.length} позиций)
             </h4>
             <div className="space-y-2 max-h-60 overflow-y-auto">

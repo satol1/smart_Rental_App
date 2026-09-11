@@ -45,7 +45,7 @@ export function AccessoryCreateDialog({ open, onClose }: CreateProps) {
                     <div>
                         <Label htmlFor="name">Название *</Label>
                         <Input id="name" {...register("name")} placeholder="Аккумулятор LP-E6" />
-                        {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
+                        {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -55,7 +55,7 @@ export function AccessoryCreateDialog({ open, onClose }: CreateProps) {
                         <div>
                             <Label htmlFor="price">Цена (₽/день)</Label>
                             <Input id="price" type="number" step="0.01" {...register("price")} placeholder="100"/>
-                            {errors.price && <p className="text-xs text-red-600 mt-1">{errors.price.message}</p>}
+                            {errors.price && <p className="text-xs text-destructive mt-1">{errors.price.message}</p>}
                         </div>
                     </div>
                     <div>
@@ -145,7 +145,7 @@ export function AccessoryEditDialog({ accessory, open, onClose }: EditProps) {
                     <div>
                         <Label htmlFor="edit-name">Название *</Label>
                         <Input id="edit-name" {...register("name")} />
-                        {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
+                        {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -155,7 +155,7 @@ export function AccessoryEditDialog({ accessory, open, onClose }: EditProps) {
                         <div>
                             <Label htmlFor="edit-price">Цена (₽/день)</Label>
                             <Input id="edit-price" type="number" step="0.01" {...register("price")} />
-                            {errors.price && <p className="text-xs text-red-600 mt-1">{errors.price.message}</p>}
+                            {errors.price && <p className="text-xs text-destructive mt-1">{errors.price.message}</p>}
                         </div>
                     </div>
                     <div>

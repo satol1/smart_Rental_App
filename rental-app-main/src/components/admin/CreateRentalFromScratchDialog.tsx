@@ -104,8 +104,8 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
                         />
                         
                         {/* Дополнительная информация */}
-                        <div className="p-3 bg-slate-50 border rounded-lg">
-                            <div className="text-xs text-gray-600 space-y-1">
+                        <div className="p-3 bg-muted border rounded-lg">
+                            <div className="text-xs text-muted-foreground space-y-1">
                                 <div>Период: {form.watch("start_date")} - {form.watch("end_date")}</div>
                                 {financialData.appliedPromoCode && (
                                     <div>Промокод: {financialData.appliedPromoCode}</div>
@@ -166,7 +166,7 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
                     <DialogTitle>
                         Создание аренды с нуля
                         {step === 'finalization' && (
-                            <span className="text-sm font-normal text-gray-500 ml-2">
+                            <span className="text-sm font-normal text-muted-foreground ml-2">
                                 (Шаг 2 из 2)
                             </span>
                         )}

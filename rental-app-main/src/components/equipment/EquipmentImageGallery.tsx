@@ -202,6 +202,8 @@ export default function EquipmentImageGallery() {
                                 <img
                                     src={url}
                                     alt="Фото оборудования"
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-28 w-full object-cover"
                                 />
                                 {isMain && (

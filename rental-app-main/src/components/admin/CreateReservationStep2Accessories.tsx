@@ -30,7 +30,7 @@ export const CreateReservationStep2Accessories = () => {
                                     render={({ field }) => (
                                         <div className="space-y-2">
                                             {equipmentItem.accessories.map(acc => (
-                                                <div key={acc.id} className="flex items-center justify-between hover:bg-slate-50 p-2 rounded">
+                                                <div key={acc.id} className="flex items-center justify-between hover:bg-muted p-2 rounded">
                                                     <Label htmlFor={`acc-${equipmentItem.id}-${acc.id}`} className="flex items-center gap-2 font-normal cursor-pointer">
                                                         <Checkbox id={`acc-${equipmentItem.id}-${acc.id}`}
                                                                   checked={field.value?.includes(acc.id)}

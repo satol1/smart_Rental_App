@@ -18,6 +18,7 @@ export interface ReservationListViewModelResult {
     equipmentMap: Record<number, Equipment>;
     isLoading: boolean;
     isError: boolean;
+    refetch: () => void;
     deletingId: number | null;
     itemToRemove: { reservationId: number; equipmentId: number } | null;
     /** Резерв, для которого открыт диалог подтверждения полной отмены */
@@ -162,6 +163,7 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
     }, []);
 
     return {
+        refetch: () => { void reservationsQuery.refetch(); },
         reservationsWithNames,
         equipmentMap,
         isLoading: isLoadingReservations || isLoadingEquipment,

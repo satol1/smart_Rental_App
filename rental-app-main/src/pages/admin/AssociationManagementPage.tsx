@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminNavigation from "@/components/admin/AdminNavigation";
 import AssociationTable from "@/components/admin/AssociationTable";
 import BrandSystemTable from "@/components/admin/BrandSystemTable";
 import { Button } from "@/components/ui/button";
@@ -9,15 +8,14 @@ export default function AssociationManagementPage() {
     const [activeTab, setActiveTab] = useState<"associations" | "brand-systems">("associations");
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            <AdminNavigation />
+        <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <Tags className="w-8 h-8 text-green-600" />
+                <Tags className="w-8 h-8 text-success" />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-bold text-foreground">
                         Группировка
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Управление подборками (Ассоциации) и совместимостью (Системы Бренда).
                     </p>
                 </div>
@@ -44,7 +42,7 @@ export default function AssociationManagementPage() {
             </div>
 
             {/* Контент вкладок */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
+            <div className="bg-card rounded-lg border shadow-sm p-6">
                 {activeTab === "associations" && <AssociationTable />}
                 {activeTab === "brand-systems" && <BrandSystemTable />}
             </div>

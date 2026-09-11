@@ -34,7 +34,7 @@ export default function EquipmentTable({
     } = useEquipmentTableLogic(equipment);
 
     if (isLoading) return <div className="flex justify-center p-4">Загрузка оборудования...</div>;
-    if (error) return <div className="flex justify-center p-4 text-red-500">Ошибка загрузки оборудования</div>;
+    if (error) return <div className="flex justify-center p-4 text-destructive">Ошибка загрузки оборудования</div>;
 
     return (
         <div className="space-y-4">
@@ -83,9 +83,9 @@ export default function EquipmentTable({
                 </div>
             ) : (
                 <div className="text-center py-12 px-4 border rounded-md">
-                    <PackageSearch className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-700">Оборудование не найдено</h3>
-                    <p className="text-sm text-gray-500 max-w-sm">
+                    <PackageSearch className="w-16 h-16 text-muted-foreground/50 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground">Оборудование не найдено</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm">
                         {searchQuery ? "Попробуйте изменить поисковый запрос." : "Добавьте оборудование, чтобы оно появилось в списке."}
                     </p>
                 </div>

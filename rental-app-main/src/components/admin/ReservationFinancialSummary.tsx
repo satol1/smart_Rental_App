@@ -66,20 +66,20 @@ export default function ReservationFinancialSummary({
         [conflictingItemIds, equipmentMap]);
 
     return (
-        <div className="p-3 bg-slate-50 border rounded-lg space-y-2">
-            <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                <ReceiptText className="w-5 h-5 text-sky-600" />
+        <div className="p-3 bg-muted border rounded-lg space-y-2">
+            <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <ReceiptText className="w-5 h-5 text-primary" />
                 Финансовая сводка
             </h4>
 
             {(isCalculatingPrice || isCheckingAvailability) ? (
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-4">
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     {isCheckingAvailability ? "Проверка доступности..." : "Пересчет стоимости..."}
                 </div>
             ) : hasConflicts ? (
                 // +++ НАЧАЛО: Новый блок для отображения ошибки конфликта +++
-                <div className="text-sm text-red-700 font-medium p-2 bg-red-100 border border-red-200 rounded-md space-y-1">
+                <div className="text-sm text-destructive font-medium p-2 bg-danger-soft border border-destructive/25 rounded-md space-y-1">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="h-4 w-4" />
                         <span>Конфликт бронирования!</span>
@@ -90,12 +90,12 @@ export default function ReservationFinancialSummary({
                 </div>
                 // +++ КОНЕЦ: Новый блок +++
             ) : priceError || !newDateRangeIsValid ? (
-                <div className="flex items-center gap-2 text-sm text-red-600 font-medium p-2 bg-red-50 rounded-md">
+                <div className="flex items-center gap-2 text-sm text-destructive font-medium p-2 bg-danger-soft rounded-md">
                     <AlertCircle className="h-4 w-4" />
                     <span>{priceError ? "Не удалось рассчитать цену." : "Невозможно выдать: резерв уже закончился."}</span>
                 </div>
             ) : (
-                <div className="text-xs text-gray-700 space-y-1.5 border-t pt-2">
+                <div className="text-xs text-foreground space-y-1.5 border-t pt-2">
                     <div className="flex justify-between">
                         <span>Период резерва:</span>
                         <span className="font-medium">{new Date(reservation.start_date).toLocaleDateString()} - {new Date(reservation.end_date).toLocaleDateString()}</span>
@@ -112,11 +112,11 @@ export default function ReservationFinancialSummary({
                     {priceDetails && (priceDetails.discount_amount > 0) && (() => {
                         const totalDiscountPercentage = (priceDetails.duration_discount_percentage || 0) + (priceDetails.promo_discount_percentage || 0);
                         return (
-                            <div className="flex justify-between items-center text-green-600">
+                            <div className="flex justify-between items-center text-success">
                                 <span className="flex items-center gap-1.5">
                                     <span>Скидка ({totalDiscountPercentage.toFixed(0)}%):</span>
                                     {reservation.promo_code && (priceDetails.promo_discount_percentage > 0) && (
-                                        <span className="text-[11px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-mono font-medium">
+                                        <span className="text-[11px] bg-success-soft text-success px-1.5 py-0.5 rounded font-mono font-medium">
                                             {reservation.promo_code}
                                         </span>
                                     )}
@@ -126,14 +126,14 @@ export default function ReservationFinancialSummary({
                         );
                     })()}
                     {reservation.promo_code && priceDetails && (priceDetails.promo_discount_percentage ?? 0) === 0 && (
-                        <div className="flex justify-between items-center text-amber-700 text-xs bg-amber-50 px-2 py-1 rounded">
+                        <div className="flex justify-between items-center text-warning text-xs bg-warning-soft px-2 py-1 rounded">
                             <span>Промокод {reservation.promo_code} не применен:</span>
                             <span className="font-medium">{priceDetails.promo_code_message || "условия не выполнены"}</span>
                         </div>
                     )}
                     <div className="flex justify-between text-base font-bold pt-1 border-t mt-1">
                         <span>Итого к списанию с баланса:</span>
-                        <span className="text-sky-700"><MoneyText value={finalCost} /></span>
+                        <span className="text-primary"><MoneyText value={finalCost} /></span>
                     </div>
                 </div>
             )}

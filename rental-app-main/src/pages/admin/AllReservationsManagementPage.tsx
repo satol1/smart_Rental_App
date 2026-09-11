@@ -1,8 +1,8 @@
 // src/pages/admin/AllReservationsManagementPage.tsx
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import SharedErrorState from "@/components/shared/ErrorState";
 import { useLocation } from "react-router-dom";
-import AdminNavigation from "@/components/admin/AdminNavigation";
 import { useAdminReservations, useBulkDeleteAdminReservations } from "@/hooks/useAdminReservations";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useAutoLoaderForItem } from "@/hooks/useAutoLoaderForItem";
@@ -56,6 +56,7 @@ export default function AllReservationsManagementPage() {
         data,
         isLoading: isLoadingReservations,
         error,
+        refetch,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
@@ -121,8 +122,7 @@ export default function AllReservationsManagementPage() {
     }, [bulkDeleteMutation, selectedIds, clearSelection]);
 
     return (
-        <div className="rental-container space-y-6 py-6">
-            <AdminNavigation />
+        <div className="space-y-6">
 
             <div className="flex items-center gap-3">
                 <ClipboardList className="w-8 h-8 text-indigo-600" />
@@ -130,7 +130,7 @@ export default function AllReservationsManagementPage() {
                     <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                         Управление резервами
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Просмотр, создание и редактирование всех резервов в системе.
                     </p>
                 </div>
@@ -157,14 +157,14 @@ export default function AllReservationsManagementPage() {
 
             <div className="space-y-4">
                 {isLoading && <SkeletonTable rows={6} columns={6} />}
-                {isFetchingNextPage && <p className="text-center text-blue-600 py-2 text-sm">Поиск резерва в следующих страницах...</p>}
-                {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}
+                {isFetchingNextPage && <p className="text-center text-primary py-2 text-sm">Поиск резерва в следующих страницах...</p>}
+                {error && <SharedErrorState message={`Ошибка загрузки данных: ${error.message}`} onRetry={() => void refetch()} compact />}
 
                 {!isLoading && !error && allReservations.length === 0 && (
-                    <div className="flex flex-col items-center justify-center text-center p-12 space-y-4 bg-gray-50/50 rounded-lg border-2 border-dashed">
-                        <ClipboardX className="w-16 h-16 text-gray-400" />
-                        <h3 className="text-lg font-semibold text-gray-800">Резервы не найдены</h3>
-                        <p className="text-sm text-gray-500">Попробуйте изменить фильтры или создайте новый резерв.</p>
+                    <div className="flex flex-col items-center justify-center text-center p-12 space-y-4 bg-muted/50 rounded-lg border-2 border-dashed">
+                        <ClipboardX className="w-16 h-16 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold text-foreground">Резервы не найдены</h3>
+                        <p className="text-sm text-muted-foreground">Попробуйте изменить фильтры или создайте новый резерв.</p>
                     </div>
                 )}
 

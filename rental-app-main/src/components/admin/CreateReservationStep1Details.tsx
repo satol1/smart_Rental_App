@@ -156,21 +156,21 @@ export const CreateReservationStep1Details = ({
                         </Alert>
                     )}
                     {isBlocked && !isPersonaNonGrata && (
-                        <Alert variant="default" className="border-amber-200 bg-amber-50">
-                            <AlertTriangle className="h-4 w-4 text-amber-600" />
-                            <AlertDescription className="text-amber-800">
+                        <Alert variant="default" className="border-warning/30 bg-warning-soft">
+                            <AlertTriangle className="h-4 w-4 text-warning" />
+                            <AlertDescription className="text-warning">
                                 Пользователь заблокирован. Резерв может создать только менеджер.
                             </AlertDescription>
                         </Alert>
                     )}
                     {selectedUser && !isPersonaNonGrata && !isBlocked && maxReservations > 0 && (
-                        <Alert variant={isLimitReached ? "destructive" : "default"} className={isLimitReached ? "" : "border-blue-200 bg-blue-50"}>
+                        <Alert variant={isLimitReached ? "destructive" : "default"} className={isLimitReached ? "" : "border-primary/25 bg-info-soft"}>
                             {isLimitReached ? (
-                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                                <AlertTriangle className="h-4 w-4 text-destructive" />
                             ) : (
-                                <Info className="h-4 w-4 text-blue-600" />
+                                <Info className="h-4 w-4 text-primary" />
                             )}
-                            <AlertDescription className={isLimitReached ? "text-red-800" : "text-blue-800"}>
+                            <AlertDescription className={isLimitReached ? "text-destructive" : "text-primary"}>
                                 {isLimitReached ? (
                                     <>
                                         Лимит активных резервов достигнут ({activeReservationsCount}/{maxReservations}). 

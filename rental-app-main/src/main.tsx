@@ -18,6 +18,7 @@ import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NetworkStatus from "./components/NetworkStatus";
 import { initThemeSystemListener } from "./store/themeStore";
+import { useAuthStore } from "./store/authStore";
 // i18n: инициализация словаря (fallback 'ru') до рендера приложения
 import "./i18n";
 
@@ -25,6 +26,18 @@ import "./i18n";
 // Класс dark на <html> уже мог поставить inline-скрипт в index.html —
 // здесь только синхронизируем store и подписку на matchMedia.
 initThemeSystemListener();
+
+// Истечение сессии: axios-интерцептор (lib/api.ts) диспатчит событие, когда
+// refresh не смог продлить access-токен. Единственный путь логаута —
+// authStore.logout (токен + серверный revoke + сброс кэша current_user).
+let handlingSessionExpiry = false;
+window.addEventListener("auth-token-expired", () => {
+    if (handlingSessionExpiry) return;
+    handlingSessionExpiry = true;
+    void useAuthStore.getState().logout().finally(() => {
+        handlingSessionExpiry = false;
+    });
+});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

@@ -29,6 +29,8 @@ interface UseServerFiltersReturn {
 
   // Состояние загрузки
   isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
   fetchNextPage: () => void;
@@ -80,6 +82,8 @@ export function useServerFilters(): UseServerFiltersReturn {
     fetchNextPage,
     hasNextPage,
     isLoading,
+    isError,
+    refetch,
     isFetchingNextPage
   } = useEquipment({
     query,
@@ -146,6 +150,8 @@ export function useServerFilters(): UseServerFiltersReturn {
   return {
     ...result,
     isLoading,
+    isError,
+    refetch: () => { void refetch(); },
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage

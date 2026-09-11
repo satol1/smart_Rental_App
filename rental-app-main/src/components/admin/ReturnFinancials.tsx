@@ -41,43 +41,43 @@ export default function ReturnFinancials({
             <Label className="font-semibold text-base">Финансовая информация</Label>
             
             {/* Информационные поля */}
-            <div className="space-y-2 bg-slate-50 p-3 rounded-md">
+            <div className="space-y-2 bg-muted p-3 rounded-md">
                 <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Текущий баланс клиента:</span>
+                    <span className="text-sm text-muted-foreground">Текущий баланс клиента:</span>
                     <span className={`font-medium ${getBalanceColor(rental.user.balance)}`}>{formatBalance(rental.user.balance)}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Стоимость аренды:</span>
+                    <span className="text-sm text-muted-foreground">Стоимость аренды:</span>
                     <span className="font-medium">{rental.total_cost.toLocaleString()} ₽</span>
                 </div>
                 {rental.discount_amount > 0 && (
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-success">
                         <span className="text-sm">Скидка:</span>
                         <span className="font-medium">- {rental.discount_amount.toLocaleString()} ₽</span>
                     </div>
                 )}
                 {rental.promo_code && (
-                    <div className="flex justify-between text-purple-700">
+                    <div className="flex justify-between text-muted-foreground">
                         <span className="text-sm">Промокод:</span>
-                        <span className="font-medium font-mono bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">{rental.promo_code}</span>
+                        <span className="font-medium font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded text-xs">{rental.promo_code}</span>
                     </div>
                 )}
                 <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Внесенная предоплата:</span>
+                    <span className="text-sm text-muted-foreground">Внесенная предоплата:</span>
                     <span className="font-medium">{rental.prepayment_amount.toLocaleString()} ₽</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Остаток к оплате:</span>
-                    <span className={`font-medium ${dynamicRemainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <span className="text-sm text-muted-foreground">Остаток к оплате:</span>
+                    <span className={`font-medium ${dynamicRemainingAmount > 0 ? 'text-destructive' : 'text-success'}`}>
                         {dynamicRemainingAmount.toLocaleString()} ₽
                     </span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Внесенный залог:</span>
+                    <span className="text-sm text-muted-foreground">Внесенный залог:</span>
                     <span className="font-medium">{rental.deposit_amount.toLocaleString()} ₽</span>
                 </div>
                 {overdueSurcharge && overdueSurcharge > 0 && (
-                    <div className="flex justify-between text-red-600 font-semibold pt-2 border-t border-dashed">
+                    <div className="flex justify-between text-destructive font-semibold pt-2 border-t border-dashed">
                         <span>Штраф за просрочку:</span>
                         <span>+ {overdueSurcharge.toLocaleString()} ₽</span>
                     </div>
@@ -108,10 +108,10 @@ export default function ReturnFinancials({
                         onChange={(e) => setPaymentAmount(e.target.value)}
                         placeholder="Введите сумму"
                         disabled={paymentApplied}
-                        className={paymentApplied ? "bg-green-50 border-green-200" : ""}
+                        className={paymentApplied ? "bg-success-soft border-success/25" : ""}
                     />
                     {paymentApplied && (
-                        <p className="text-xs text-green-600 mt-1 flex items-center">
+                        <p className="text-xs text-success mt-1 flex items-center">
                             <span className="mr-1">✓</span>
                             Платеж учтен
                         </p>
@@ -126,7 +126,7 @@ export default function ReturnFinancials({
                         onChange={(e) => setPaymentDescription(e.target.value)}
                         placeholder="Например: Частичная оплата при возврате"
                         disabled={paymentApplied}
-                        className={paymentApplied ? "bg-green-50 border-green-200" : ""}
+                        className={paymentApplied ? "bg-success-soft border-success/25" : ""}
                     />
                 </div>
 

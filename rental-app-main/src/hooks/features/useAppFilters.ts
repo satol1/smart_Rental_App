@@ -19,7 +19,6 @@ export const useAppFilters = () => {
         
         // Фильтры
         type: filters.type,
-        brand: filters.brand,
         availableOnly: filters.availableOnly,
         associationId: filters.associationId,
         reset: filters.reset,

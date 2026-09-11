@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useCurrentUser } from "@/hooks/useProfile";
-import AdminNavigation from "@/components/admin/AdminNavigation";
 import EquipmentTable from "@/components/admin/EquipmentTable";
 import EquipmentDialog from "@/components/equipment/EquipmentDialog";
 import EquipmentCopyDialog from "@/components/equipment/EquipmentCopyDialog";
@@ -18,7 +17,7 @@ export default function EquipmentManagementPage() {
     const navigate = useNavigate();
 
     // ✅ ИЗМЕНЕНИЕ: Используем новый хук для получения полного списка оборудования
-    const { data: allEquipment = [], isLoading, error } = useAllEquipment();
+    const { data: allEquipment = [], isLoading, error, refetch } = useAllEquipment();
 
     const [dialogState, setDialogState] = useState<{
         isOpen: boolean;
@@ -42,13 +41,13 @@ export default function EquipmentManagementPage() {
 
     if (!isManager) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div>
                 <div className="text-center">
-                    <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h1 className="text-2xl font-bold text-foreground mb-2">
                         Доступ ограничен
                     </h1>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-muted-foreground mb-4">
                         У вас нет прав для доступа к управлению оборудованием.
                     </p>
                     <Button onClick={() => navigate("/")}>
@@ -61,7 +60,7 @@ export default function EquipmentManagementPage() {
 
     if (isLoading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-4" role="status" aria-label="Загрузка оборудования">
+            <div className="space-y-4" role="status" aria-label="Загрузка оборудования">
                 <SkeletonList count={8} compact />
             </div>
         );
@@ -69,14 +68,14 @@ export default function EquipmentManagementPage() {
 
     if (error) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div>
                 <div className="text-center">
-                    <div className="text-red-500 mb-4">
+                    <div className="text-destructive mb-4">
                         <Shield className="w-16 h-16 mx-auto mb-2" />
                         <h2 className="text-xl font-semibold">Ошибка загрузки</h2>
-                        <p className="text-gray-600">Не удалось загрузить список оборудования</p>
+                        <p className="text-muted-foreground">Не удалось загрузить список оборудования</p>
                     </div>
-                    <Button onClick={() => window.location.reload()}>
+                    <Button onClick={() => void refetch()}>
                         Попробовать снова
                     </Button>
                 </div>
@@ -105,17 +104,16 @@ export default function EquipmentManagementPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            <AdminNavigation />
+        <div className="space-y-6">
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <Package className="w-8 h-8 text-green-600" />
+                    <Package className="w-8 h-8 text-success" />
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-3xl font-bold text-foreground">
                             Управление оборудованием
                         </h1>
-                        <p className="text-gray-600 mt-1">
+                        <p className="text-muted-foreground mt-1">
                             Добавление, редактирование и удаление оборудования для аренды
                         </p>
                     </div>
@@ -126,7 +124,7 @@ export default function EquipmentManagementPage() {
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm p-6">
+            <div className="bg-card rounded-lg border shadow-sm p-6">
                 {/* ✅ ИЗМЕНЕНИЕ: Передаем полный список оборудования в таблицу */}
                 <EquipmentTable
                     onEditEquipment={handleEditEquipment}
@@ -136,7 +134,7 @@ export default function EquipmentManagementPage() {
             </div>
 
             {/* Блоки с советами и состояниями остаются без изменений */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-info-soft border border-blue-200 rounded-lg p-4">
                 <h3 className="font-semibold text-blue-900 mb-3">💡 Полезные советы</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
                     <div>
@@ -157,8 +155,8 @@ export default function EquipmentManagementPage() {
                     </div>
                 </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Состояния оборудования</h3>
+            <div className="bg-muted rounded-lg p-4">
+                <h3 className="font-semibold text-foreground mb-3">Состояния оборудования</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                     <div className="bg-green-100 text-green-800 p-2 rounded text-center">
                         <div className="font-medium">Великолепно</div>

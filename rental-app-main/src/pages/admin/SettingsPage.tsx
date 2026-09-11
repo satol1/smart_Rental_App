@@ -2,7 +2,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useGetSettings, useUpdateSettings } from '@/hooks/admin/useSettings';
-import AdminNavigation from "@/components/admin/AdminNavigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -45,8 +44,7 @@ export default function SettingsPage() {
 
     if (isLoading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-                 <AdminNavigation />
+            <div className="space-y-6">
                  <Skeleton className="h-12 w-1/2" />
                  <Skeleton className="h-64 w-full" />
                  <Skeleton className="h-48 w-full" />
@@ -55,13 +53,12 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            <AdminNavigation />
+        <div className="space-y-6">
             <div className="flex items-center gap-3">
-                 <Settings className="w-8 h-8 text-gray-700" />
+                 <Settings className="w-8 h-8 text-foreground" />
                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Настройки приложения</h1>
-                    <p className="text-gray-600 mt-1">Управление шаблонами и другими параметрами системы.</p>
+                    <h1 className="text-3xl font-bold text-foreground">Настройки приложения</h1>
+                    <p className="text-muted-foreground mt-1">Управление шаблонами и другими параметрами системы.</p>
                  </div>
             </div>
             
@@ -89,7 +86,7 @@ export default function SettingsPage() {
                 </Card>
             </form>
 
-             <Card className="bg-blue-50 border-blue-200">
+             <Card className="bg-info-soft border-blue-200">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm text-blue-800"><Info className="w-4 h-4"/>Справка по плейсхолдерам</CardTitle>
                 </CardHeader>

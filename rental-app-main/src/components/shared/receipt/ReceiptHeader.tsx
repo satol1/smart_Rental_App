@@ -21,19 +21,19 @@ export default function ReceiptHeader({ rentalId, createdAt }: ReceiptHeaderProp
 
     return (
         <header className="receipt-header mb-5">
-            <div className="receipt-header-top flex items-start justify-between gap-4 border-b-2 border-gray-900 pb-3">
+            <div className="receipt-header-top flex items-start justify-between gap-4 border-b-2 border-foreground pb-3">
                 <div className="flex items-center gap-3">
                     <BrandLogo size={44} showText={false} animated={false} />
                     <div>
-                        <p className="receipt-company-name text-lg font-bold leading-tight text-gray-900">
+                        <p className="receipt-company-name text-lg font-bold leading-tight text-foreground">
                             {COMPANY_INFO.name}
                         </p>
-                        <p className="receipt-company-legal text-xs text-gray-600">
+                        <p className="receipt-company-legal text-xs text-muted-foreground">
                             {COMPANY_INFO.legalEntity}
                         </p>
                     </div>
                 </div>
-                <div className="receipt-contacts text-right text-xs leading-snug text-gray-700">
+                <div className="receipt-contacts text-right text-xs leading-snug text-foreground">
                     {COMPANY_INFO.phones.map((phone) => (
                         <p key={phone}>{phone}</p>
                     ))}
@@ -42,7 +42,7 @@ export default function ReceiptHeader({ rentalId, createdAt }: ReceiptHeaderProp
                     ))}
                 </div>
             </div>
-            <div className="receipt-title mt-3 rounded-md bg-sky-800 px-4 py-2 text-center text-white">
+            <div className="receipt-title mt-3 rounded-md bg-primary px-4 py-2 text-center text-primary-foreground">
                 <h1 className="text-lg font-bold tracking-wide">
                     БЛАНК АРЕНДЫ №{rentalId}
                 </h1>

@@ -15,10 +15,10 @@ const RULES = [
 export default function ReceiptRules({ }: ReceiptRulesProps) {
     return (
         <section className="receipt-section receipt-rules">
-            <h3 className="receipt-section-title mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="receipt-section-title mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Основные правила пользования оборудованием
             </h3>
-            <ol className="list-decimal space-y-1 pl-5 text-sm text-gray-800">
+            <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
                 {RULES.map((rule, index) => (
                     <li key={index} className="pl-0.5">{rule}</li>
                 ))}

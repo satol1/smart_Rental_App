@@ -43,9 +43,9 @@ export default function PackTable() {
     if (error) {
         return (
             <div className="text-center py-12 px-4 border rounded-md">
-                <PackageSearch className="w-16 h-16 text-red-300 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold text-red-700">Ошибка загрузки</h3>
-                <p className="text-sm text-red-500">
+                <PackageSearch className="w-16 h-16 text-destructive/40 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-destructive">Ошибка загрузки</h3>
+                <p className="text-sm text-destructive">
                     Не удалось загрузить список пачек. Попробуйте обновить страницу.
                 </p>
             </div>
@@ -57,10 +57,10 @@ export default function PackTable() {
             {/* Заголовок и кнопка создания */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-lg font-semibold text-foreground">
                         Список пачек
                     </h2>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         Всего пачек: {packs?.length || 0}
                     </p>
                 </div>
@@ -91,11 +91,11 @@ export default function PackTable() {
                                     </TableCell>
                                     <TableCell>
                                         {pack.description ? (
-                                            <span className="text-gray-600">
+                                            <span className="text-muted-foreground">
                                                 {pack.description}
                                             </span>
                                         ) : (
-                                            <span className="text-gray-400 italic">
+                                            <span className="text-muted-foreground italic">
                                                 Без описания
                                             </span>
                                         )}
@@ -138,9 +138,9 @@ export default function PackTable() {
                 </div>
             ) : (
                 <div className="text-center py-12 px-4 border rounded-md">
-                    <PackageSearch className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-700">Пачки не найдены</h3>
-                    <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                    <PackageSearch className="w-16 h-16 text-muted-foreground/50 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground">Пачки не найдены</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                         Создайте первую пачку оборудования, чтобы она появилась в списке.
                     </p>
                 </div>

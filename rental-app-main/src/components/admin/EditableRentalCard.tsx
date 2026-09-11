@@ -44,12 +44,12 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
     
 
     return (
-        <Card className="w-full transition-shadow border-2 border-dashed border-sky-400 bg-sky-50/50">
+        <Card className="w-full transition-shadow border-2 border-dashed border-primary/40 bg-info-soft/50">
             <form onSubmit={handleSubmit}>
                 <CardContent className="p-4 space-y-6">
                     <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-sky-600" />
-                        <h3 className="font-semibold text-lg text-sky-800">Редактирование аренды #{rental.id}</h3>
+                        <FileText className="w-5 h-5 text-primary" />
+                        <h3 className="font-semibold text-lg text-primary">Редактирование аренды #{rental.id}</h3>
                     </div>
                     
 
@@ -57,7 +57,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                         <>
                             {/* Форма для активной аренды */}
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                                     <Calendar className="w-4 h-4" />
                                     Изменение условий аренды
                                 </div>
@@ -70,8 +70,8 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                             type="date"
                                             {...register("end_date")} 
                                         />
-                                        {errors.end_date && <p className="text-xs text-red-600 mt-1">{errors.end_date.message}</p>}
-                                        {holidayError && <p className="text-xs text-red-600 mt-1">{holidayError}</p>}
+                                        {errors.end_date && <p className="text-xs text-destructive mt-1">{errors.end_date.message}</p>}
+                                        {holidayError && <p className="text-xs text-destructive mt-1">{holidayError}</p>}
                                     </div>
                                     
                                     <div className="space-y-2">
@@ -84,10 +84,10 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                             {...register("prepayment_amount")} 
                                             placeholder="0.00"
                                         />
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-muted-foreground">
                                             Текущая предоплата: {rental.prepayment_amount.toLocaleString('ru-RU')} ₽
                                         </p>
-                                        {errors.prepayment_amount && <p className="text-xs text-red-600 mt-1">{errors.prepayment_amount.message}</p>}
+                                        {errors.prepayment_amount && <p className="text-xs text-destructive mt-1">{errors.prepayment_amount.message}</p>}
                                     </div>
                                 </div>
 
@@ -111,7 +111,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                         <>
                             {/* Форма для завершенной аренды */}
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                                     <DollarSign className="w-4 h-4" />
                                     Корректировка завершенной аренды
                                 </div>
@@ -127,7 +127,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                             {...register("final_cost")} 
                                             placeholder="Оставьте пустым для авторасчета"
                                         />
-                                        {errors.final_cost && <p className="text-xs text-red-600 mt-1">{errors.final_cost.message}</p>}
+                                        {errors.final_cost && <p className="text-xs text-destructive mt-1">{errors.final_cost.message}</p>}
                                     </div>
                                     
                                     <div className="space-y-2">
@@ -139,14 +139,14 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                             min="0"
                                             {...register("deposit_amount")} 
                                         />
-                                        {errors.deposit_amount && <p className="text-xs text-red-600 mt-1">{errors.deposit_amount.message}</p>}
+                                        {errors.deposit_amount && <p className="text-xs text-destructive mt-1">{errors.deposit_amount.message}</p>}
                                     </div>
                                 </div>
 
                                 {/* Неизменяемые поля для завершенной аренды */}
-                                <div className="p-3 bg-gray-50 rounded-lg space-y-2">
-                                    <div className="text-sm font-medium text-gray-600">Неизменяемые поля:</div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-500">
+                                <div className="p-3 bg-muted rounded-lg space-y-2">
+                                    <div className="text-sm font-medium text-muted-foreground">Неизменяемые поля:</div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                                         <div>Начало: {rental.start_date}</div>
                                         <div>Окончание: {rental.end_date}</div>
                                         <div>Возврат: {rental.actual_return_date || 'Не указан'}</div>
@@ -158,7 +158,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
 
                     {/* Общие поля */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <FileText className="w-4 h-4" />
                             Общие поля
                         </div>
@@ -174,7 +174,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                         min="0"
                                         {...register("deposit_amount")} 
                                     />
-                                    {errors.deposit_amount && <p className="text-xs text-red-600 mt-1">{errors.deposit_amount.message}</p>}
+                                    {errors.deposit_amount && <p className="text-xs text-destructive mt-1">{errors.deposit_amount.message}</p>}
                                 </div>
                             )}
                             
@@ -186,7 +186,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                     rows={2}
                                     placeholder="Дополнительные заметки..."
                                 />
-                                {errors.notes_on_issue && <p className="text-xs text-red-600 mt-1">{errors.notes_on_issue.message}</p>}
+                                {errors.notes_on_issue && <p className="text-xs text-destructive mt-1">{errors.notes_on_issue.message}</p>}
                             </div>
                         </div>
 
@@ -199,7 +199,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                     rows={2}
                                     placeholder="Заметки о состоянии при возврате..."
                                 />
-                                {errors.notes_on_return && <p className="text-xs text-red-600 mt-1">{errors.notes_on_return.message}</p>}
+                                {errors.notes_on_return && <p className="text-xs text-destructive mt-1">{errors.notes_on_return.message}</p>}
                             </div>
                         )}
                     </div>

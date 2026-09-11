@@ -1,7 +1,7 @@
 // src/pages/admin/RentalManagementPage.tsx
 
 import { useState, useMemo } from "react";
-import AdminNavigation from "@/components/admin/AdminNavigation";
+import SharedErrorState from "@/components/shared/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Truck, Plus } from "lucide-react";
 import { useAdminRentals } from "@/hooks/useAdminRentals";
@@ -37,6 +37,7 @@ export default function RentalManagementPage() {
         data,
         isLoading,
         error,
+        refetch,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
@@ -58,16 +59,15 @@ export default function RentalManagementPage() {
     }, [data]);
 
     return (
-        <div className="rental-container space-y-6 py-6">
-            <AdminNavigation />
+        <div className="space-y-6">
 
             <div className="flex items-center gap-3">
-                <Truck className="w-8 h-8 text-orange-600" />
+                <Truck className="w-8 h-8 text-warning" />
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                         Управление Арендами
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Просмотр, создание и завершение физической выдачи оборудования.
                     </p>
                 </div>
@@ -88,7 +88,7 @@ export default function RentalManagementPage() {
 
             <div className="space-y-4">
                 {isLoading && <SkeletonTable rows={6} columns={6} />}
-                {error && <p className="text-center text-red-600 py-4">Ошибка загрузки данных: {error.message}</p>}
+                {error && <SharedErrorState message={`Ошибка загрузки данных: ${error.message}`} onRetry={() => void refetch()} compact />}
                 {!isLoading && !error && allRentals.length > 0 && (
                     <AllRentalsList 
                         rentals={allRentals} 

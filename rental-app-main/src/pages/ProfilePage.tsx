@@ -59,7 +59,6 @@ export default function ProfilePage() {
             setOriginalEmail(user.email)
             
             // Инвалидируем кэш истории баланса при загрузке страницы профиля
-            console.log(`🔄 Invalidating balance history cache for current user on profile page load`);
             queryClient.invalidateQueries({
                 queryKey: ["balanceHistory", "me"]
             });

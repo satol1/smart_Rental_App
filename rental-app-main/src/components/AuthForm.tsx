@@ -106,7 +106,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            id="emailReg" type="email" autoComplete="email" {...formRegister("email")}
+                            id="emailReg" type="email" autoComplete="email" aria-invalid={!!error} aria-describedby={error ? "auth-form-error" : undefined} {...formRegister("email")}
                             placeholder="your@email.com" className="pl-9"
                             onBlur={() => trigger("email")}
                         />
@@ -117,7 +117,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                     <Label htmlFor="passwordReg">{t("auth.fields.password")} *</Label>
                     <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="passwordReg" autoComplete="new-password" type={showPassword ? "text" : "password"} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-12" />
+                        <Input id="passwordReg" autoComplete="new-password" type={showPassword ? "text" : "password"} aria-invalid={!!error} aria-describedby={error ? "auth-form-error" : undefined} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-12" />
                         <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-11 w-11" onClick={togglePasswordVisibility} aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}>
                             {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                         </Button>
@@ -233,7 +233,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                 <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        id="emailLogin" type="email" autoComplete="email" {...formRegister("email")}
+                        id="emailLogin" type="email" autoComplete="email" aria-invalid={!!error} aria-describedby={error ? "auth-form-error" : undefined} {...formRegister("email")}
                         placeholder="your@email.com" className="pl-9"
                         onBlur={() => trigger("email")}
                     />
@@ -244,7 +244,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                 <Label htmlFor="passwordLogin">{t("auth.fields.password")}</Label>
                 <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="passwordLogin" autoComplete="current-password" type={showPassword ? "text" : "password"} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-12" />
+                    <Input id="passwordLogin" autoComplete="current-password" type={showPassword ? "text" : "password"} aria-invalid={!!error} aria-describedby={error ? "auth-form-error" : undefined} {...formRegister("password")} placeholder="••••••••" className="pl-9 pr-12" />
                     <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-11 w-11" onClick={togglePasswordVisibility} aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}>
                         {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                     </Button>
@@ -263,7 +263,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                 {isRegister ? registrationFields : loginFields}
 
                 {error && (
-                    <div className="rounded-md bg-danger-soft p-3 text-sm text-destructive">
+                    <div role="alert" id="auth-form-error" className="rounded-md bg-danger-soft p-3 text-sm text-destructive">
                         {error}
                     </div>
                 )}
