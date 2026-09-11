@@ -37,29 +37,35 @@ class NotificationService:
             next_working_day: Следующий рабочий день
         """
         try:
-            # Получаем пользователей, которых нужно уведомить
-            user_ids = set()
-            
-            # Собираем ID пользователей из аренд
-            for rental_info in extended_rentals:
-                rental = await self.notification_repo.get_rental_by_id(rental_info["id"])
-                if rental and rental.user_id:
-                    user_ids.add(rental.user_id)
-            
-            # Собираем ID пользователей из резервов
-            for reservation_info in extended_reservations:
-                reservation = await self.notification_repo.get_reservation_by_id(reservation_info["id"])
-                if reservation and reservation.user_id:
-                    user_ids.add(reservation.user_id)
-            
-            # Отправляем уведомления каждому пользователю
+            # Загружаем заказы одним батч-запросом на тип и группируем по
+            # пользователям в Python — вместо запроса на каждый заказ × пользователя
+            rentals = await self.notification_repo.get_rentals_by_ids(
+                [info["id"] for info in extended_rentals]
+            )
+            reservations = await self.notification_repo.get_reservations_by_ids(
+                [info["id"] for info in extended_reservations]
+            )
+            rental_user = {r.id: r.user_id for r in rentals}
+            reservation_user = {r.id: r.user_id for r in reservations}
+
+            user_ids = set(rental_user.values()) | set(reservation_user.values())
+
+            # Отправляем уведомления каждому пользователю (только его заказы)
             for user_id in user_ids:
+                user_rentals = [
+                    info for info in extended_rentals
+                    if rental_user.get(info["id"]) == user_id
+                ]
+                user_reservations = [
+                    info for info in extended_reservations
+                    if reservation_user.get(info["id"]) == user_id
+                ]
                 await self._send_auto_extension_notification(
-                    user_id, 
-                    holiday_date, 
+                    user_id,
+                    holiday_date,
                     next_working_day,
-                    extended_rentals,
-                    extended_reservations
+                    user_rentals,
+                    user_reservations
                 )
                 
             logger.info(f"Отправлено уведомлений об автоматическом продлении {len(user_ids)} пользователям")
@@ -92,25 +98,13 @@ class NotificationService:
                 logger.warning(f"Пользователь с ID {user_id} не найден")
                 return
             
-            # Фильтруем заказы пользователя
-            user_rentals = [
-                rental for rental in extended_rentals 
-                if await self._is_rental_belongs_to_user(rental["id"], user_id)
-            ]
-            user_reservations = [
-                reservation for reservation in extended_reservations 
-                if await self._is_reservation_belongs_to_user(reservation["id"], user_id)
-            ]
-            
-            if not user_rentals and not user_reservations:
-                return
-            
+            # Заказы пользователя уже отфильтрованы вызывающей стороной
             # Формируем сообщение
             message = self._format_auto_extension_message(
                 holiday_date,
                 next_working_day,
-                user_rentals,
-                user_reservations
+                extended_rentals,
+                extended_reservations
             )
             
             # В реальном приложении здесь была бы отправка уведомления
@@ -124,16 +118,6 @@ class NotificationService:
         except Exception as e:
             logger.error(f"Ошибка при отправке уведомления пользователю {user_id}: {e}")
     
-    
-    async def _is_rental_belongs_to_user(self, rental_id: int, user_id: int) -> bool:
-        """Проверяет, принадлежит ли аренда пользователю."""
-        rental = await self.notification_repo.get_rental_by_id(rental_id)
-        return rental and rental.user_id == user_id
-    
-    async def _is_reservation_belongs_to_user(self, reservation_id: int, user_id: int) -> bool:
-        """Проверяет, принадлежит ли резерв пользователю."""
-        reservation = await self.notification_repo.get_reservation_by_id(reservation_id)
-        return reservation and reservation.user_id == user_id
     
     def _format_auto_extension_message(
         self,

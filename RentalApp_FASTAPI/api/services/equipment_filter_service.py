@@ -66,7 +66,8 @@ class EquipmentFilterService:
         association_id: Optional[int] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
-        available_only: bool = False
+        available_only: bool = False,
+        exclude_equipment_ids: Optional[List[int]] = None
     ) -> tuple[List[Equipment], int]:
         """
         Возвращает отфильтрованный и пагинированный список оборудования и их общее количество.
@@ -87,13 +88,38 @@ class EquipmentFilterService:
             start_date=start_date,
             end_date=end_date,
             available_only=available_only,
-            include_available_filters=False
+            include_available_filters=False,
+            exclude_equipment_ids=exclude_equipment_ids
         )
         
         # Валидируем поля оборудования
         self._validate_equipment_fields(items)
         
         return items, total
+
+    async def count_standalone_equipment(
+        self,
+        exclude_equipment_ids: List[int],
+        query: Optional[str] = None,
+        type: Optional[str] = None,
+        brand_system_id: Optional[int] = None,
+        association_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        available_only: bool = False
+    ) -> int:
+        """Количество оборудования, исключая элементы пачек (для total каталога)."""
+        self._validate_date_range(available_only, start_date, end_date)
+        return await self.equipment_repo.count_filtered_equipment_excluding_ids(
+            exclude_equipment_ids=exclude_equipment_ids,
+            query=query,
+            type=type,
+            brand=brand_system_id,
+            association_id=association_id,
+            start_date=start_date,
+            end_date=end_date,
+            available_only=available_only
+        )
     
     async def calculate_available_filters(
         self,

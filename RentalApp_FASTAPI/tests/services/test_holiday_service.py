@@ -216,9 +216,12 @@ class TestHolidayService:
             description="Weekly Sunday"
         )
         
-        # Настраиваем мок
+        # Настраиваем мок: все воскресенья января 2024 уже существуют
         mock_holiday_repo.save_rule = AsyncMock(return_value=sample_holiday_rule)
         mock_holiday_repo.save_holiday = AsyncMock()
+        mock_holiday_repo.find_existing_holiday_dates = AsyncMock(return_value={
+            date(2024, 1, 7), date(2024, 1, 14), date(2024, 1, 21), date(2024, 1, 28),
+        })
         
         # Выполняем тест
         result = await holiday_service.create_weekly_recurring_holidays(rule_data, sample_user)
@@ -309,7 +312,6 @@ class TestHolidayService:
     async def test_delete_holiday_repository_error(self, holiday_service, mock_holiday_repo, sample_holiday):
         """Тест обработки ошибки репозитория в delete_holiday"""
         # Настраиваем мок для выброса исключения
-        mock_holiday_repo.find_holiday_by_date = AsyncMock(return_value=sample_holiday)
         mock_holiday_repo.delete_holiday = AsyncMock(side_effect=Exception("Database error"))
         
         # Проверяем, что исключение пробрасывается

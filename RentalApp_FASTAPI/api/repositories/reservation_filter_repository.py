@@ -171,6 +171,44 @@ class ReservationFilterRepository(ReservationBaseRepository):
         
         return reservations, total
 
+    async def count_for_admin(
+        self,
+        status: Optional[str] = None,
+        search_query: Optional[str] = None,
+        reservation_id: Optional[int] = None,
+        period_type: Optional[str] = None,
+        period_offset: int = 0
+    ) -> int:
+        """Количество резервов по фильтрам админки — без eager-загрузки и limit.
+
+        Прежний путь (get_paginated_for_admin(skip=0, limit=1)) выполнял полный
+        eager-запрос ради одного числа и дублировал работу страницы.
+        """
+        query = select(Reservation)
+
+        if search_query:
+            query = self._apply_user_search(query, search_query)
+        query = self._apply_status_filter(query, status)
+        if reservation_id:
+            query = query.filter(Reservation.id == reservation_id)
+        if period_type:
+            try:
+                start_date, end_date = self.period_service.get_period_dates(period_type, period_offset)
+                query = query.filter(
+                    and_(
+                        Reservation.start_date <= end_date,
+                        Reservation.end_date >= start_date
+                    )
+                )
+            except ValueError as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Ошибка в параметрах периода: {e}")
+
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        return count_result.scalar_one()
+
     def _apply_status_filter(self, query, status: Optional[str]):
         """Применяет фильтрацию по статусу."""
         if not status:

@@ -41,6 +41,24 @@ class NotificationRepository(BaseRepository):
             logger.error(f"Ошибка при получении пользователя {user_id}: {e}", exc_info=True)
             return None
     
+    async def get_rentals_by_ids(self, rental_ids: list) -> list:
+        """Аренды по списку ID одним запросом."""
+        if not rental_ids:
+            return []
+        result = await self.db.execute(
+            select(Rental).where(Rental.id.in_(rental_ids))
+        )
+        return result.scalars().all()
+
+    async def get_reservations_by_ids(self, reservation_ids: list) -> list:
+        """Резервы по списку ID одним запросом."""
+        if not reservation_ids:
+            return []
+        result = await self.db.execute(
+            select(Reservation).where(Reservation.id.in_(reservation_ids))
+        )
+        return result.scalars().all()
+
     async def get_rental_by_id(self, rental_id: int) -> Optional[Rental]:
         """
         Получает аренду по ID.

@@ -40,7 +40,8 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
         end_date: Optional[date] = None,
         available_only: bool = False,
         group_similar: bool = True,
-        include_available_filters: bool = True
+        include_available_filters: bool = True,
+        exclude_equipment_ids: Optional[List[int]] = None
     ) -> Tuple[List[Equipment], int, Optional[AvailableFilters]]:
         """
         Получение отфильтрованного и пагинированного списка оборудования.
@@ -73,17 +74,23 @@ class EquipmentQueryRepository(EquipmentBaseRepository):
 
         # Применяем фильтры
         filtered_query = self._apply_filters(
-            base_query, query, type, brand_system_id, association_id, 
+            base_query, query, type, brand_system_id, association_id,
             start_date, end_date, available_only
         )
+
+        # Исключение оборудования из пачек (пачки показываются отдельно)
+        if exclude_equipment_ids:
+            filtered_query = filtered_query.filter(
+                Equipment.id.notin_(exclude_equipment_ids)
+            )
 
         # Получаем общее количество записей
         count_query = select(func.count()).select_from(filtered_query.subquery())
         count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
 
-        # Применяем пагинацию и сортировку
-        paginated_query = filtered_query.order_by(Equipment.name).offset(skip).limit(limit)
+        # Применяем пагинацию и сортировку (id — tie-breaker для стабильных страниц)
+        paginated_query = filtered_query.order_by(Equipment.name, Equipment.id).offset(skip).limit(limit)
         result = await self.db.execute(paginated_query)
         items = result.unique().scalars().all()
 

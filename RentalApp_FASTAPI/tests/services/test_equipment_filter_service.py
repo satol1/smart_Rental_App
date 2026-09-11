@@ -132,7 +132,8 @@ class TestEquipmentFilterService:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             available_only=True,
-            include_available_filters=False
+            include_available_filters=False,
+            exclude_equipment_ids=None
         )
 
     @pytest.mark.asyncio

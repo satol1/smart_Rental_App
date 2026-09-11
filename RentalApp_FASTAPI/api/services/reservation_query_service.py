@@ -59,17 +59,13 @@ class ReservationQueryService:
         return items_dto, total
 
     async def get_admin_reservations_count(self, status: Optional[str] = None, search_query: Optional[str] = None, period_type: Optional[str] = None, period_offset: int = 0) -> int:
-        """Получает общее количество резервов с учетом фильтров для админ-панели."""
-        # Делегируем получение данных репозиторию
-        _, total = await self.reservation_repo.get_paginated_for_admin(
-            skip=0,
-            limit=1,  # Нам нужно только количество
+        """Количество резервов по фильтрам админки (count без eager-загрузки)."""
+        return await self.reservation_repo.count_for_admin(
             status=status,
             search_query=search_query,
             period_type=period_type,
             period_offset=period_offset
         )
-        return total
 
     async def get_paginated_admin_reservations(self, skip: int, limit: int, status: Optional[str] = None, search_query: Optional[str] = None, reservation_id: Optional[int] = None, period_type: Optional[str] = None, period_offset: int = 0) -> List[AdminReservationOut]:
         """Получает страницу резервов с пагинацией для админ-панели."""

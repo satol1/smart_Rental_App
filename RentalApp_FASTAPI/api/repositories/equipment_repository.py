@@ -53,13 +53,14 @@ class EquipmentRepository(EquipmentBaseRepository):
         end_date: Optional[date] = None,
         available_only: bool = False,
         group_similar: bool = True,
-        include_available_filters: bool = True
+        include_available_filters: bool = True,
+        exclude_equipment_ids: Optional[List[int]] = None
     ) -> Tuple[List[Equipment], int, Optional[AvailableFilters]]:
         """Получение отфильтрованного и пагинированного списка оборудования."""
         return await self._query_repo.get_filtered_paginated(
             skip, limit, query, type, brand_system_id, association_id,
             start_date, end_date, available_only, group_similar,
-            include_available_filters
+            include_available_filters, exclude_equipment_ids
         )
 
     async def get_available_filters(self) -> AvailableFilters:

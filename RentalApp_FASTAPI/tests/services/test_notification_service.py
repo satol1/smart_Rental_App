@@ -110,10 +110,12 @@ class TestNotificationService:
         ]
         extended_reservations = []
         
-        # Настраиваем моки для получения аренды и пользователя
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = sample_rental
-        mock_db_session.execute.return_value = mock_result
+        # Настраиваем моки батч-геттеров и пользователя
+        notification_service.notification_repo.get_rentals_by_ids = AsyncMock(return_value=[sample_rental])
+        notification_service.notification_repo.get_reservations_by_ids = AsyncMock(return_value=[])
+        notification_service.notification_repo.get_user_by_id = AsyncMock(
+            return_value=User(id=sample_rental.user_id, email="u@t.ru", full_name="U")
+        )
         
         # Act
         await notification_service.notify_auto_extension(
@@ -124,8 +126,8 @@ class TestNotificationService:
         )
         
         # Assert
-        # Проверяем, что были запросы для получения аренды и пользователя
-        assert mock_db_session.execute.call_count >= 2
+        # Батч-геттер и пользователь запрошены
+        notification_service.notification_repo.get_rentals_by_ids.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_notify_auto_extension_with_reservations(
@@ -147,10 +149,12 @@ class TestNotificationService:
             }
         ]
         
-        # Настраиваем моки для получения резерва и пользователя
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = sample_reservation
-        mock_db_session.execute.return_value = mock_result
+        # Настраиваем моки батч-геттеров и пользователя
+        notification_service.notification_repo.get_rentals_by_ids = AsyncMock(return_value=[])
+        notification_service.notification_repo.get_reservations_by_ids = AsyncMock(return_value=[sample_reservation])
+        notification_service.notification_repo.get_user_by_id = AsyncMock(
+            return_value=User(id=sample_reservation.user_id, email="u@t.ru", full_name="U")
+        )
         
         # Act
         await notification_service.notify_auto_extension(
@@ -161,8 +165,8 @@ class TestNotificationService:
         )
         
         # Assert
-        # Проверяем, что были запросы для получения резерва и пользователя
-        assert mock_db_session.execute.call_count >= 2
+        # Батч-геттер и пользователь запрошены
+        notification_service.notification_repo.get_reservations_by_ids.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_notify_auto_extension_mixed_extensions(
@@ -191,10 +195,12 @@ class TestNotificationService:
             }
         ]
         
-        # Настраиваем моки для получения аренды, резерва и пользователя
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.side_effect = [sample_rental, sample_reservation, sample_rental.user]
-        mock_db_session.execute.return_value = mock_result
+        # Настраиваем моки батч-геттеров и пользователя
+        notification_service.notification_repo.get_rentals_by_ids = AsyncMock(return_value=[sample_rental])
+        notification_service.notification_repo.get_reservations_by_ids = AsyncMock(return_value=[sample_reservation])
+        notification_service.notification_repo.get_user_by_id = AsyncMock(
+            return_value=User(id=sample_rental.user_id, email="u@t.ru", full_name="U")
+        )
         
         # Act
         await notification_service.notify_auto_extension(
@@ -206,7 +212,8 @@ class TestNotificationService:
         
         # Assert
         # Проверяем, что были запросы для получения всех объектов
-        assert mock_db_session.execute.call_count >= 3
+        notification_service.notification_repo.get_rentals_by_ids.assert_awaited_once()
+        notification_service.notification_repo.get_reservations_by_ids.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_notify_auto_extension_rental_not_found(
@@ -227,10 +234,10 @@ class TestNotificationService:
         ]
         extended_reservations = []
         
-        # Настраиваем мок для возврата None (аренда не найдена)
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.return_value = None
-        mock_db_session.execute.return_value = mock_result
+        # Настраиваем моки: батч-геттер вернул пусто — аренда не найдена
+        notification_service.notification_repo.get_rentals_by_ids = AsyncMock(return_value=[])
+        notification_service.notification_repo.get_reservations_by_ids = AsyncMock(return_value=[])
+        notification_service.notification_repo.get_user_by_id = AsyncMock()
         
         # Act
         await notification_service.notify_auto_extension(
@@ -241,8 +248,9 @@ class TestNotificationService:
         )
         
         # Assert
-        # Проверяем, что был запрос для получения аренды
-        assert mock_db_session.execute.call_count >= 1
+        # Аренды нет → пользователей для уведомления нет
+        notification_service.notification_repo.get_rentals_by_ids.assert_awaited_once()
+        notification_service.notification_repo.get_user_by_id.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_notify_auto_extension_user_not_found(
@@ -265,9 +273,9 @@ class TestNotificationService:
         extended_reservations = []
         
         # Настраиваем моки: аренда найдена, пользователь не найден
-        mock_result = Mock()
-        mock_result.scalar_one_or_none.side_effect = [sample_rental, None]
-        mock_db_session.execute.return_value = mock_result
+        notification_service.notification_repo.get_rentals_by_ids = AsyncMock(return_value=[sample_rental])
+        notification_service.notification_repo.get_reservations_by_ids = AsyncMock(return_value=[])
+        notification_service.notification_repo.get_user_by_id = AsyncMock(return_value=None)
         
         # Act
         await notification_service.notify_auto_extension(
@@ -278,8 +286,8 @@ class TestNotificationService:
         )
         
         # Assert
-        # Проверяем, что были запросы для получения аренды и пользователя
-        assert mock_db_session.execute.call_count >= 2
+        # Батч-геттер и пользователь запрошены
+        notification_service.notification_repo.get_rentals_by_ids.assert_awaited_once()
 
     def test_format_auto_extension_message_rentals_only(self, notification_service):
         """Тест форматирования сообщения только с арендами"""

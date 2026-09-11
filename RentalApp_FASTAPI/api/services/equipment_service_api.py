@@ -49,48 +49,57 @@ class EquipmentServiceApi:
         Возвращает отфильтрованный, отсортированный и пагинированный список,
         где пачки всегда идут первыми, если включена группировка.
         """
-        # Получаем отфильтрованные пачки и оборудование
-        filtered_packs = []
-        if group_similar:
+        # Пагинация выполняется в SQL: главный публичный эндпоинт не должен
+        # тянуть весь каталог с eager-связями и строить Pydantic-объекты
+        # для каждой записи, чтобы затем отрезать страницу в Python.
+
+        if not group_similar:
+            # Без группировки — только оборудование, прямая SQL-пагинация
+            items, total = await self.filter_service.get_paginated_equipment(
+                skip, limit, query, type, brand_system_id, association_id,
+                start_date, end_date, available_only
+            )
+            paginated_items: List[CatalogItem] = [EquipmentOut.model_validate(i) for i in items]
+        else:
+            # С группировкой пачки идут первыми, оборудование — за ними.
+            # Окно страницы [skip, skip+limit) раскладываем на две части
+            # и каждую берём из БД по отдельности.
             filtered_packs = await self.pack_service.get_filtered_packs_async(
                 query, type, brand_system_id, association_id, start_date, end_date, available_only=available_only
             )
-
-        # 2. Получаем ВСЕ отфильтрованное оборудование (без пагинации)
-        # Используем get_paginated_equipment, но с очень большим лимитом, чтобы получить все.
-        # В реальном проекте здесь лучше создать отдельный метод в сервисе, который не делает пагинацию.
-        items, base_total = await self.filter_service.get_paginated_equipment(
-            0, 10000, query, type, brand_system_id, association_id, start_date, end_date, available_only
-        )
-        
-        # 3. Создаем единый список и сортируем его
-        combined_items: List[CatalogItem] = []
-        
-        if group_similar:
-            # Если группировка включена, добавляем пачки первыми
-            equipment_in_packs = {eq_id for p in filtered_packs for eq_id in p.equipment_ids}
-            standalone_items = [item for item in items if item.id not in equipment_in_packs]
-            
-            # Преобразуем к единому формату CatalogItem
             pack_items: List[CatalogItem] = [PublicPackOut.model_validate(p) for p in filtered_packs]
-            equipment_items: List[CatalogItem] = [EquipmentOut.model_validate(i) for i in standalone_items]
-            
-            combined_items = pack_items + equipment_items
-            total = len(combined_items)
-        else:
-            # Если группировка выключена, показываем только оборудование
-            equipment_items: List[CatalogItem] = [EquipmentOut.model_validate(i) for i in items]
-            combined_items = equipment_items
-            total = base_total
+            equipment_in_packs = sorted({eq_id for p in filtered_packs for eq_id in p.equipment_ids})
 
-        # 4. Применяем пагинацию к итоговому отсортированному списку
-        paginated_items = combined_items[skip : skip + limit]
+            packs_on_page = pack_items[skip : skip + limit]
+            remaining = limit - len(packs_on_page)
+            equipment_offset = max(skip - len(pack_items), 0)
 
-        # 5. Вычисляем доступные фильтры, как и раньше
+            equipment_items: List[CatalogItem] = []
+            standalone_total: Optional[int] = None
+            if remaining > 0:
+                # total из этого же запроса равен standalone-количеству:
+                # те же фильтры и то же исключение пачек — отдельный COUNT не нужен
+                items, standalone_total = await self.filter_service.get_paginated_equipment(
+                    equipment_offset, remaining, query, type, brand_system_id, association_id,
+                    start_date, end_date, available_only,
+                    exclude_equipment_ids=equipment_in_packs or None
+                )
+                equipment_items = [EquipmentOut.model_validate(i) for i in items]
+
+            if standalone_total is None:
+                # Страница целиком внутри пачек — оборудования не запрашивали
+                standalone_total = await self.filter_service.count_standalone_equipment(
+                    equipment_in_packs, query, type, brand_system_id, association_id,
+                    start_date, end_date, available_only
+                )
+            total = len(pack_items) + standalone_total
+            paginated_items = packs_on_page + equipment_items
+
+        # Доступные фильтры считаются отдельно (с кэшем)
         available_filters = await self.filter_service.calculate_available_filters(
             query, type, brand_system_id, association_id, start_date, end_date, available_only
         )
-        
+
         # Возвращаем пагинированный список, total и фильтры
         return paginated_items, total, available_filters
 

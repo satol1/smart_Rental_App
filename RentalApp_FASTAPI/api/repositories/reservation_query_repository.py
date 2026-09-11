@@ -142,11 +142,15 @@ class ReservationQueryRepository(ReservationBaseRepository):
         Returns:
             Список резервов для отображения в календаре
         """
+        # Коллекции — selectinload: joinedload на коллекции даёт декартово
+        # произведение строк (резерв × оборудование × аксессуары)
         query = select(Reservation).options(
-            joinedload(Reservation.equipment).joinedload(Equipment.accessories),
-            joinedload(Reservation.equipment).joinedload(Equipment.associations),
+            selectinload(Reservation.equipment).options(
+                selectinload(Equipment.accessories),
+                selectinload(Equipment.associations)
+            ),
             joinedload(Reservation.user),
-            joinedload(Reservation.accessory_links).joinedload(ReservationAccessory.accessory),
+            selectinload(Reservation.accessory_links).selectinload(ReservationAccessory.accessory),
             joinedload(Reservation.applied_promo_code)
         ).filter(
             and_(

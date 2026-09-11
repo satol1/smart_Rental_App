@@ -31,7 +31,10 @@ class HolidayRepository:
         
         # Запрос для получения "страницы" выходных
         holidays_result = await self.db.execute(
-            select(Holiday).filter(Holiday.date.between(start_date, end_date)).offset(skip).limit(limit)
+            select(Holiday)
+            .filter(Holiday.date.between(start_date, end_date))
+            .order_by(Holiday.date)  # без сортировки страницы «прыгают» между запросами
+            .offset(skip).limit(limit)
         )
         holidays_orm = holidays_result.scalars().all()
         
@@ -59,6 +62,13 @@ class HolidayRepository:
         """Находит выходной по конкретной дате."""
         result = await self.db.execute(select(Holiday).filter(Holiday.date == holiday_date))
         return result.scalars().first()
+
+    async def find_existing_holiday_dates(self, dates: List[date]) -> set:
+        """Множество уже существующих выходных среди переданных дат (батч, без N+1)."""
+        if not dates:
+            return set()
+        result = await self.db.execute(select(Holiday.date).filter(Holiday.date.in_(dates)))
+        return {row[0] for row in result.all()}
     
     async def find_rule_by_id(self, rule_id: int) -> Optional[HolidayRule]:
         """Находит правило по его ID."""

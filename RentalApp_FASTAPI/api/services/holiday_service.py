@@ -110,24 +110,25 @@ class HolidayService:
         
         await self.repo.save_rule(new_rule)
         
-        # Генерируем выходные для указанного дня недели в диапазоне дат
-        holidays_to_create = []
+        # Генерируем выходные для указанного дня недели в диапазоне дат.
+        # Существующие даты получаем одним батч-запросом, а не по одной (N+1)
+        rule_dates = []
         current_date = rule_in.start_date
-        
         while current_date <= rule_in.end_date:
             if current_date.weekday() == rule_in.day_of_week:
-                # Проверяем, не существует ли уже такой выходной
-                existing_holiday = await self.repo.find_holiday_by_date(current_date)
-                if not existing_holiday:
-                    holidays_to_create.append(
-                        Holiday(
-                            date=current_date,
-                            description=f"Авто (правило #{new_rule.id})",
-                            created_by_id=current_user.id,
-                            rule_id=new_rule.id
-                        )
-                    )
+                rule_dates.append(current_date)
             current_date += timedelta(days=1)
+
+        existing_dates = await self.repo.find_existing_holiday_dates(rule_dates)
+        holidays_to_create = [
+            Holiday(
+                date=d,
+                description=f"Авто (правило #{new_rule.id})",
+                created_by_id=current_user.id,
+                rule_id=new_rule.id
+            )
+            for d in rule_dates if d not in existing_dates
+        ]
         
         # Сохраняем все созданные выходные
         await self.repo.bulk_save_holidays(holidays_to_create)
@@ -163,20 +164,18 @@ class HolidayService:
         
         await self.repo.save_rule(new_rule)
         
-        # Создаем выходные для каждого праздника
-        holidays_to_create = []
-        for holiday_date, holiday_name in public_holidays.items():
-            # Проверяем, не существует ли уже такой выходной
-            existing_holiday = await self.repo.find_holiday_by_date(holiday_date)
-            if not existing_holiday:
-                holidays_to_create.append(
-                    Holiday(
-                        date=holiday_date,
-                        description=holiday_name,
-                        created_by_id=current_user.id,
-                        rule_id=new_rule.id
-                    )
-                )
+        # Создаем выходные для каждого праздника (батч-проверка существующих)
+        existing_dates = await self.repo.find_existing_holiday_dates(list(public_holidays.keys()))
+        holidays_to_create = [
+            Holiday(
+                date=holiday_date,
+                description=holiday_name,
+                created_by_id=current_user.id,
+                rule_id=new_rule.id
+            )
+            for holiday_date, holiday_name in public_holidays.items()
+            if holiday_date not in existing_dates
+        ]
         
         # Сохраняем все созданные выходные
         await self.repo.bulk_save_holidays(holidays_to_create)
