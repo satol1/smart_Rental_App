@@ -1,6 +1,6 @@
-# docker-compose.override.yml
-# Переопределение для локальной разработки
-# Этот файл автоматически подхватывается docker-compose
+# docker-compose.dev.yml
+# Переопределения для локальной разработки (DEBUG=true, фронт на :5173, dev-nginx)
+# Подключается только явно: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 services:
   frontend:

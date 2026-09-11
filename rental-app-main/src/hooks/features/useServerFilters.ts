@@ -1,10 +1,13 @@
 // src/hooks/features/useServerFilters.ts
 
 import { useMemo } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useFilterStore } from '@/store/filterStore';
 import { useSearchStore } from '@/store/searchStore';
 import { useEquipment } from '@/hooks/useEquipment';
 import { useDateStore } from '@/store/dateStore';
+import { useAssociations } from '@/hooks/useAssociations';
+import { EquipmentService } from '@/core/services/EquipmentService';
 
 import type { Association } from '@/types/association';
 import type { CatalogItem } from '@/types/pack';
@@ -12,18 +15,18 @@ import type { CatalogItem } from '@/types/pack';
 interface UseServerFiltersReturn {
   // Объединенный список элементов каталога для отображения (оборудование + пачки)
   combinedItems: CatalogItem[];
-  
-  // Доступные опции для фильтров (теперь с сервера)
+
+  // Доступные опции для фильтров (метаданные с сервера + ассоциации)
   availableTypes: string[];
   availableBrands: Array<{id: number, name: string}>;
   availableAssociations: Association[];
-  
+
   // Флаг наличия активных фильтров
   hasActiveFilters: boolean;
-  
+
   // Общее количество элементов
   totalCount: number;
-  
+
   // Состояние загрузки
   isLoading: boolean;
   isFetchingNextPage: boolean;
@@ -33,23 +36,43 @@ interface UseServerFiltersReturn {
 
 /**
  * Хук для серверной "умной" системы фильтрации с взаимозависимыми фильтрами.
- * 
+ *
  * Этот хук заменяет useSmartFilters и выполняет всю фильтрацию на сервере.
  * Сервер возвращает не только отфильтрованное оборудование, но и доступные
  * опции для каждого фильтра, что обеспечивает "умную" фильтрацию.
- * 
+ *
  * Логика работы:
- * 1. При выборе Ассоциации - сервер возвращает доступные Типы и Бренды
- * 2. При выборе Типа - сервер возвращает доступные Бренды и Ассоциации  
- * 3. При выборе Бренда - сервер возвращает доступные Типы и Ассоциации
+ * 1. Опции фильтров запрашиваются отдельным metadata-запросом БЕЗ дат и поиска —
+ *    они переживают пустые результаты и смену дат и не "мигают" при загрузке
+ * 2. При выборе Ассоциации - сервер возвращает доступные Типы и Бренды
+ * 3. При выборе Типа - сервер возвращает доступные Бренды и Ассоциации
  * 4. Все фильтры работают совместно для получения финального результата
  */
 export function useServerFilters(): UseServerFiltersReturn {
-  
+
   // Получаем текущие значения фильтров из store
   const { type, brandSystemId, associationId, availableOnly, groupSimilar } = useFilterStore();
   const { query } = useSearchStore();
   const { startDate, endDate } = useDateStore();
+
+  // Ассоциации для селектора приходят из отдельного справочника
+  const { data: associations = [] } = useAssociations();
+
+  // Metadata-запрос: только структурные фильтры, без поисковой строки и дат.
+  // Даты и поиск не должны сужать доступные опции, а пустой отфильтрованный
+  // ответ не должен очищать селекты.
+  const { data: metadataPage } = useQuery({
+    queryKey: ['equipment-filter-metadata', { type, brandSystemId, associationId, availableOnly }],
+    queryFn: () => EquipmentService.getAllEquipment(0, 1, {
+      type,
+      brandSystemId,
+      associationId,
+      availableOnly,
+    }),
+    staleTime: 5 * 60 * 1000,
+    // Держим предыдущие опции при смене фильтров — селекты не мигают пустыми
+    placeholderData: keepPreviousData,
+  });
 
   // Используем useEquipment для получения отфильтрованных данных с сервера
   const {
@@ -69,16 +92,24 @@ export function useServerFilters(): UseServerFiltersReturn {
     groupSimilar
   });
 
+  // Флаг считается из store независимо от наличия данных,
+  // чтобы оставаться верным во время загрузки первой страницы
+  const hasActiveFilters = !!(
+    (query && query.trim()) ||
+    type || brandSystemId ||
+    associationId || availableOnly
+  );
+
   // Извлекаем данные из ответа сервера
   const result = useMemo(() => {
     if (!equipmentPages?.pages.length) {
       // Возвращаем пустую структуру, если данных нет
       return {
         combinedItems: [],
-        availableTypes: [],
-        availableBrands: [],
-        availableAssociations: [],
-        hasActiveFilters: false,
+        availableTypes: metadataPage?.availableFilters?.types || [],
+        availableBrands: metadataPage?.availableFilters?.brands || [],
+        availableAssociations: associations,
+        hasActiveFilters,
         totalCount: 0,
       };
     }
@@ -102,25 +133,15 @@ export function useServerFilters(): UseServerFiltersReturn {
         return item;
     });
 
-    const hasActiveFilters = !!(
-      (query && query.trim()) ||
-      type || brandSystemId ||
-      associationId || availableOnly
-    );
-
     return {
       combinedItems, // <--- ВАЖНО: Возвращаем новый объединенный массив
-      availableTypes: firstPage.availableFilters?.types || [],
-      availableBrands: firstPage.availableFilters?.brands || [],
-      availableAssociations: firstPage.availableFilters?.associations?.map(assoc => ({
-        ...assoc,
-        description: undefined,
-        equipment_ids: [] // Пустой массив, так как в фильтрах это не нужно
-      })) || [],
+      availableTypes: metadataPage?.availableFilters?.types || [],
+      availableBrands: metadataPage?.availableFilters?.brands || [],
+      availableAssociations: associations,
       hasActiveFilters,
-      totalCount: firstPage.total, // Общее количество берем из ответа API
+      totalCount: firstPage.total, // Общее количество элементов берем из ответа API
     };
-  }, [equipmentPages, query, type, brandSystemId, associationId, availableOnly]);
+  }, [equipmentPages, metadataPage, associations, hasActiveFilters]);
 
   return {
     ...result,

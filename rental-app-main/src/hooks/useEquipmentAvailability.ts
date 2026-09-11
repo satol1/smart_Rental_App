@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 interface EquipmentAvailability {
-    hasActiveReservations: boolean;
-    hasActiveRentals: boolean;
-    activeReservationsCount: number;
-    activeRentalsCount: number;
+    has_active_reservations: boolean;
+    has_active_rentals: boolean;
+    active_reservations_count: number;
+    active_rentals_count: number;
 }
 
 export function useEquipmentAvailability(equipmentId: number) {

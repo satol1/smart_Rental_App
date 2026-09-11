@@ -60,8 +60,8 @@ async def get_all_reservations(
         query_service: ReservationQueryService = Depends(Provide[Container.reservation_query_service]),
         status: str = Query(None, description="Фильтр по статусу резерва ('active' или 'completed')"),
         search: str = Query(None, description="Поиск по имени или email пользователя"),
-        period_type: str = Query(None, description="Тип периода: week, month, quarter, year"),
-        period_offset: int = Query(0, description="Смещение периода (0 = текущий, -1 = предыдущий)"),
+        period_type: str = Query(None, alias="periodType", description="Тип периода: week, month, quarter, year"),
+        period_offset: int = Query(0, alias="periodOffset", description="Смещение периода (0 = текущий, -1 = предыдущий)"),
         skip: int = Query(0, ge=0, description="Сколько записей пропустить"),
         limit: int = Query(10, ge=1, le=100, description="Максимальное количество записей на странице")
 ):

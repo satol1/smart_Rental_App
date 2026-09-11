@@ -32,6 +32,20 @@ class TestEquipmentCRUDService:
         """Создает мок репозитория."""
         return AsyncMock()
 
+    @staticmethod
+    def _make_count_result(value: int):
+        """Результат db.execute с func.count(): scalar_one() -> value."""
+        result = MagicMock()
+        result.scalar_one.return_value = value
+        return result
+
+    def _mock_active_links(self, mock_db, reservations: int, rentals: int):
+        """Настраивает ответы подсчёта активных резервов/аренд при удалении."""
+        mock_db.execute.side_effect = [
+            self._make_count_result(reservations),
+            self._make_count_result(rentals),
+        ]
+
     @pytest.fixture
     def equipment_crud_service(self, mock_db, mock_repo):
         """Создает экземпляр EquipmentCRUDService с моком БД и репозитория."""
@@ -166,19 +180,35 @@ class TestEquipmentCRUDService:
         # Commit выполняется middleware, не в сервисе
 
     async def test_delete_equipment_success(self, equipment_crud_service, mock_db, mock_repo, sample_equipment):
-        """Тест успешного удаления оборудования."""
+        """Тест успешного удаления оборудования без активных заказов."""
         # Arrange
         equipment_id = 1
         mock_repo.get_by_id.return_value = sample_equipment
         mock_repo.delete.return_value = None
-        
+        self._mock_active_links(mock_db, reservations=0, rentals=0)
+
         # Act
         await equipment_crud_service.delete_equipment(equipment_id)
-        
+
         # Assert
         mock_repo.get_by_id.assert_called_once_with(equipment_id)
         mock_repo.delete.assert_called_once_with(equipment_id)
         # Commit выполняется middleware, не в сервисе
+
+    async def test_delete_equipment_blocked_by_active_reservations(
+            self, equipment_crud_service, mock_db, mock_repo, sample_equipment):
+        """Удаление запрещено (409), если есть активные резервы или аренды."""
+        equipment_id = 1
+        mock_repo.get_by_id.return_value = sample_equipment
+        self._mock_active_links(mock_db, reservations=2, rentals=1)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await equipment_crud_service.delete_equipment(equipment_id)
+
+        assert exc_info.value.status_code == 409
+        assert "активных резервов: 2" in str(exc_info.value.detail)
+        assert "активных аренд: 1" in str(exc_info.value.detail)
+        mock_repo.delete.assert_not_called()
 
     async def test_update_equipment_not_found(self, equipment_crud_service, mock_db, mock_repo):
         """Тест обновления несуществующего оборудования."""

@@ -10,10 +10,10 @@ import { toast } from "sonner";
 import type { Equipment } from "@/types/equipment"; // ✅ Добавляем импорт типа
 
 interface EquipmentAvailability {
-    hasActiveReservations: boolean;
-    hasActiveRentals: boolean;
-    activeReservationsCount: number;
-    activeRentalsCount: number;
+    has_active_reservations: boolean;
+    has_active_rentals: boolean;
+    active_reservations_count: number;
+    active_rentals_count: number;
 }
 
 // ✅ Хук теперь принимает массив оборудования как аргумент
@@ -60,10 +60,10 @@ export const useEquipmentTableLogic = (equipment: Equipment[] = []) => {
                 queryFn: async () => (await api.get<EquipmentAvailability>(`/equipment/${itemId}/availability`)).data,
             });
 
-            if (availability.hasActiveReservations || availability.hasActiveRentals) {
+            if (availability.has_active_reservations || availability.has_active_rentals) {
                 const messages = [];
-                if (availability.hasActiveReservations) messages.push(`${availability.activeReservationsCount} активных резервов`);
-                if (availability.hasActiveRentals) messages.push(`${availability.activeRentalsCount} активных аренд`);
+                if (availability.has_active_reservations) messages.push(`${availability.active_reservations_count} активных резервов`);
+                if (availability.has_active_rentals) messages.push(`${availability.active_rentals_count} активных аренд`);
                 toast.error(`Невозможно удалить: у оборудования есть ${messages.join(" и ")}.`);
                 return;
             }

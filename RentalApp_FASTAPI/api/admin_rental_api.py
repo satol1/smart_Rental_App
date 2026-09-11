@@ -27,8 +27,8 @@ async def get_all_rentals(
         query_service: RentalQueryService = Depends(Provide[Container.rental_query_service]),
         status: str = Query(None, description="Фильтр по статусу: active, overdue, completed"),
         search: str = Query(None, description="Поиск по имени или email клиента"),
-        period_type: str = Query(None, description="Тип периода: week, month, quarter, year"),
-        period_offset: int = Query(0, description="Смещение периода (0 = текущий, -1 = предыдущий)"),
+        period_type: str = Query(None, alias="periodType", description="Тип периода: week, month, quarter, year"),
+        period_offset: int = Query(0, alias="periodOffset", description="Смещение периода (0 = текущий, -1 = предыдущий)"),
         skip: int = Query(0, ge=0),
         limit: int = Query(10, ge=1, le=100)
 ):

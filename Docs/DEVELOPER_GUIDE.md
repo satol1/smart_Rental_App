@@ -337,8 +337,8 @@ docker-compose ps
 
 ### Продакшен развертывание
 ```bash
-# Сборка для продакшена
-docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d --build
+# Сборка для продакшена (только прод-конфиг, без dev-переопределений)
+docker-compose -f docker-compose.yml up -d --build
 
 # Проверка SSL сертификатов
 docker-compose exec nginx nginx -t

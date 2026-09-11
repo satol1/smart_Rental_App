@@ -24,7 +24,10 @@ export function useAdminPromoCodes() {
         queryKey: PROMO_CODES_QUERY_KEY,
         queryFn: async () => {
             // 1. Указываем, что API вернет объект PromoCodeListResponse
-            const response = await api.get<PromoCodeListResponse>("/promocodes/");
+            // limit=100 — максимум бэкенда: без него список молча обрезается до 10
+            const response = await api.get<PromoCodeListResponse>("/promocodes/", {
+                params: { skip: 0, limit: 100 },
+            });
             // 2. Возвращаем весь объект { items: [...], total: ... }
             return response.data;
         },

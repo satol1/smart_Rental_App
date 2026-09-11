@@ -19,7 +19,7 @@
 | Файл | Назначение |
 |---|---|
 | `docker-compose.yml` | Основная (продакшен): db + redis + backend + frontend (nginx, 80/443), healthchecks |
-| `docker-compose.override.yml` | Локальная разработка: подхватывается автоматически (DEBUG=true, фронт на :5173, dev-nginx) |
+| `docker-compose.dev.yml` | Локальная разработка: подключается только явно через `-f` (DEBUG=true, фронт на :5173, dev-nginx) |
 | `docker-compose.limited-resources.yml` | Слабые VPS (1 vCPU / 2 ГБ RAM) — с лимитами ресурсов |
 | `RentalApp_FASTAPI/docker-compose.*-tests.yml` | Изолированные тестовые стеки (unit / integration / e2e / full-architecture / csp-nonce) |
 | `rental-app-main/docker-compose.test.yml` | Тесты фронтенда (vitest) в Docker, профиль `test` |
@@ -89,8 +89,7 @@ cp env.example .env && nano .env
 ### 3. Запуск
 
 ```bash
-# Прод-конфигурация БЕЗ override (override = dev-режим!)
-rm docker-compose.override.yml   # или переименуйте
+# Прод-конфигурация (dev-файл больше не подхватывается автоматически)
 docker compose -f docker-compose.yml up -d --build
 
 # Получение SSL-сертификата (профиль ssl; certbot получает сертификат,

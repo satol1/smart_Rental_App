@@ -144,7 +144,8 @@ class AvailabilityService:
         self,
         equipment_ids: List[int],
         start_date: date,
-        end_date: date
+        end_date: date,
+        include_client_name: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Возвращает события для календаря в формате FullCalendar.
@@ -153,12 +154,13 @@ class AvailabilityService:
             equipment_ids: Список ID оборудования
             start_date: Дата начала периода
             end_date: Дата окончания периода
+            include_client_name: Показывать ФИО клиента (только для менеджеров)
             
         Returns:
             Список событий для календаря
         """
         return await self._calendar_service.get_calendar_events(
-            equipment_ids, start_date, end_date
+            equipment_ids, start_date, end_date, include_client_name
         )
 
     # === МЕТОДЫ ДЛЯ РАБОТЫ С SQL-ЗАПРОСАМИ ===

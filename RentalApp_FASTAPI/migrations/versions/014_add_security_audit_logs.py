@@ -7,6 +7,7 @@ Create Date: 2024-01-15 10:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -17,6 +18,11 @@ depends_on = None
 
 
 def upgrade():
+    bind = op.get_bind()
+    if 'security_audit_logs' in inspect(bind).get_table_names():
+        # Дубликат: таблица уже создана миграцией на параллельной ветке истории
+        return
+
     # Create security_audit_logs table
     op.create_table('security_audit_logs',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -56,6 +62,9 @@ def upgrade():
 
 def downgrade():
     # Drop indexes
+    bind = op.get_bind()
+    if 'security_audit_logs' not in inspect(bind).get_table_names():
+        return
     op.drop_index('ix_security_audit_logs_session_id', table_name='security_audit_logs')
     op.drop_index('ix_security_audit_logs_created_at', table_name='security_audit_logs')
     op.drop_index('ix_security_audit_logs_request_id', table_name='security_audit_logs')

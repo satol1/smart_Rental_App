@@ -74,19 +74,28 @@ export function useBulkDeleteEquipment() {
 
     return useMutation({
         mutationFn: async (equipmentIds: number[]) => {
-            // Выполняем параллельное удаление
-            const deletePromises = equipmentIds.map(id => 
-                api.delete(`/equipment/${id}`)
+            // Параллельное удаление с индивидуальной обработкой отказов:
+            // часть единиц может быть заблокирована активными заказами (409)
+            const results = await Promise.allSettled(
+                equipmentIds.map(id => api.delete(`/equipment/${id}`))
             );
-            await Promise.all(deletePromises);
-            return { deleted_count: equipmentIds.length };
+            const deleted = results.filter(r => r.status === "fulfilled").length;
+            const rejected = results.filter(r => r.status === "rejected").length;
+            return { deleted_count: deleted, blocked_count: rejected };
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["equipment"] });
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
             queryClient.invalidateQueries({ queryKey: ["availability"] });
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
-            toast.success(`Удалено ${data.deleted_count} единиц оборудования`);
+            if (data.blocked_count > 0) {
+                toast.warning(
+                    `Удалено ${data.deleted_count} из ${data.deleted_count + data.blocked_count}. ` +
+                    `${data.blocked_count} ед. участвуют в незавершённых заказах.`
+                );
+            } else {
+                toast.success(`Удалено ${data.deleted_count} единиц оборудования`);
+            }
         },
         onError: () => {
             toast.error("Ошибка при массовом удалении оборудования");

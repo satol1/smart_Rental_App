@@ -21,8 +21,8 @@ cp env.example .env
 ### 2. Запуск системы
 
 ```bash
-# Подхватится docker-compose.override.yml (dev: DEBUG=true, фронт на :5173)
-docker compose up -d --build
+# Прод-конфиг по умолчанию; для dev-режима добавьте -f docker-compose.dev.yml
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 docker compose ps    # все сервисы должны быть healthy
 ```

@@ -146,9 +146,9 @@ cd rental-app-main && docker compose -f docker-compose.test.yml --profile test u
 Примечание: `docker compose exec backend pytest` не работает — тесты и pytest
 не копируются в прод-образ (см. .dockerignore); используйте стеки выше.
 
-⚠️ `docker compose up` без `-f` подхватывает `docker-compose.override.yml`
-(dev-режим: DEBUG=true, порт 5173). Для прод-запуска на сервере используйте
-`docker compose -f docker-compose.yml up -d` и переименуйте/удалите override.
+ℹ️ `docker compose up` без `-f` запускает только прод-конфиг. Dev-настройки
+(DEBUG=true, порт 5173) подключаются явно: `docker compose -f docker-compose.yml
+-f docker-compose.dev.yml up -d`.
 
 ## Бэкапы и восстановление БД
 

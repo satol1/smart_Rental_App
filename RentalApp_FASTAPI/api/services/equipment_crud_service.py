@@ -1,12 +1,29 @@
 # api/services/equipment_crud_service.py
 
-from typing import Type
+from datetime import date, datetime
+from typing import Tuple, Type
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
 from api.models.equipment import Equipment
+from api.models.rental import Rental
+from api.models.reservation import Reservation
 from api.repositories.equipment_repository import EquipmentRepository
+from shared.constants.order_status import OrderStatus
 from shared.schemas.equipment_schema import EquipmentUpdateExtended, EquipmentCopyRequest
+
+# Статусы, при которых заказ больше не занимает оборудование
+INACTIVE_RESERVATION_STATUSES = [
+    OrderStatus.COMPLETED.value,
+    OrderStatus.CANCELLED.value,
+    OrderStatus.FULFILLED.value,
+]
+INACTIVE_RENTAL_STATUSES = [
+    OrderStatus.COMPLETED.value,
+    OrderStatus.CANCELLED.value,
+]
 
 
 class EquipmentCRUDService:
@@ -49,13 +66,52 @@ class EquipmentCRUDService:
         # Транзакция коммитится middleware
         return equipment
 
+    async def count_active_links(self, equipment_id: int) -> Tuple[int, int]:
+        """Считает незавершённые резервы и аренды, ссылающиеся на оборудование."""
+        today_start_of_day = datetime.combine(date.today(), datetime.min.time())
+
+        reservations_result = await self.db.execute(
+            select(func.count(Reservation.id)).filter(
+                Reservation.equipment.any(Equipment.id == equipment_id),
+                Reservation.end_date >= today_start_of_day,
+                Reservation.status.notin_(INACTIVE_RESERVATION_STATUSES),
+            )
+        )
+        active_reservations_count = reservations_result.scalar_one()
+
+        rentals_result = await self.db.execute(
+            select(func.count(Rental.id)).filter(
+                Rental.equipment.any(Equipment.id == equipment_id),
+                Rental.end_date >= today_start_of_day,
+                Rental.status.notin_(INACTIVE_RENTAL_STATUSES),
+            )
+        )
+        active_rentals_count = rentals_result.scalar_one()
+
+        return active_reservations_count, active_rentals_count
+
     async def delete_equipment(self, equipment_id: int) -> None:
-        """Удаляет оборудование."""
+        """Удаляет оборудование, запрещая удаление при активных резервах/арендах."""
         # Проверяем, существует ли оборудование
         equipment = await self.repo.get_by_id(equipment_id)
         if not equipment:
             raise HTTPException(status_code=404, detail="Оборудование не найдено")
-        
+
+        active_reservations_count, active_rentals_count = await self.count_active_links(equipment_id)
+        if active_reservations_count or active_rentals_count:
+            details = []
+            if active_reservations_count:
+                details.append(f"активных резервов: {active_reservations_count}")
+            if active_rentals_count:
+                details.append(f"активных аренд: {active_rentals_count}")
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Нельзя удалить оборудование, участвующее в незавершённых заказах "
+                    f"({', '.join(details)}). Завершите или отмените их сначала."
+                ),
+            )
+
         await self.repo.delete(equipment_id)
         # Коммитим транзакцию для сохранения изменений в базе данных
         # Транзакция коммитится middleware

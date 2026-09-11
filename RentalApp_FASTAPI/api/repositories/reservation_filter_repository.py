@@ -123,27 +123,10 @@ class ReservationFilterRepository(ReservationBaseRepository):
         # Применяем поиск по пользователю
         if search_query:
             query = self._apply_user_search(query, search_query)
-        
-        # Применяем фильтрацию по статусу
-        if status == OrderStatus.ACTIVE:
-            query = query.filter(
-                Reservation.status == OrderStatus.ACTIVE,
-                Reservation.end_date >= date.today()
-            )
-        elif status == OrderStatus.COMPLETED:
-            query = query.filter(
-                Reservation.status.in_([
-                    OrderStatus.FULFILLED, 
-                    OrderStatus.CANCELLED, 
-                    OrderStatus.OVERDUE
-                ])
-            )
-        elif status == OrderStatus.OVERDUE:
-            query = query.filter(
-                Reservation.status == OrderStatus.ACTIVE,
-                Reservation.end_date < date.today()
-            )
-        
+
+        # Применяем фильтрацию по статусу (единая логика для user/admin списков)
+        query = self._apply_status_filter(query, status)
+
         # Добавляем фильтр по ID, если указан
         if reservation_id:
             query = query.filter(Reservation.id == reservation_id)

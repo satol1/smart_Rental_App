@@ -7,7 +7,7 @@
 ### Основные
 - `docker-compose.yml` — продакшен (db, redis, backend, frontend; healthchecks у всех)
 - `docker-compose.limited-resources.yml` — имитация слабого сервера (1 vCore, 2 ГБ RAM, лимиты ресурсов)
-- `docker-compose.override.yml` — локальная разработка (подхватывается автоматически: DEBUG=true, фронт :5173, dev-nginx)
+- `docker-compose.dev.yml` — локальная разработка (подключается только явно через `-f`: DEBUG=true, фронт :5173, dev-nginx; автоматически НЕ подхватывается)
 
 ### Тестовые (из `RentalApp_FASTAPI/`, изолированные стеки на tmpfs)
 - `docker-compose.unit-tests.yml` — юнит-тесты

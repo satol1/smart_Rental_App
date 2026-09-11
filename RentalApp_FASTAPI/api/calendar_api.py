@@ -25,6 +25,7 @@ from shared.schemas.calendar_schema import (
 
 # Импортируем зависимости из отдельного модуля
 from api.dependencies import get_current_user_optional
+from api.permissions import require_user
 from api.services.calendar_service import CalendarService
 
 logger = logging.getLogger(__name__)
@@ -153,15 +154,21 @@ async def get_calendar_events(
         equipment_ids: List[int] = Query(None, alias="ids"),
         skip: int = Query(0, ge=0, description="Сколько записей пропустить"),
         limit: int = Query(10, ge=1, le=100, description="Максимальное количество записей на странице"),
+        current_user: ApiUser = Depends(require_user),
         availability_service: AvailabilityService = Depends(Provide[Container.availability_service]),
         equipment_repo: EquipmentRepository = Depends(Provide[Container.equipment_repo])
 ):
+    # События содержат данные о заказах клиентов: только для авторизованных,
+    # ФИО в заголовке — только для менеджеров и админов.
+    include_client_name = current_user.role in ("manager", "admin")
+
     equipment_ids = await get_equipment_ids(equipment_ids, equipment_repo)
 
     events = await availability_service.get_calendar_events(
         equipment_ids=equipment_ids,
         start_date=start,
         end_date=end,
+        include_client_name=include_client_name,
     )
 
     total_events = len(events)

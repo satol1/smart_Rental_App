@@ -1,10 +1,8 @@
 # api/equipment_api.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from typing import List, Optional
-from datetime import date, datetime
+from typing import Optional
+from datetime import date
 from collections import defaultdict
 from fastapi_csrf_protect import CsrfProtect
 # Удален импорт get_db_session
@@ -13,8 +11,6 @@ from dependency_injector.wiring import inject, Provide
 from containers import Container
 from api.models.equipment import Equipment
 from api.models.user import User
-from api.models.rental import Rental
-from api.models.reservation import Reservation
 from api.repositories.equipment_repository import EquipmentRepository
 from api.permissions import require_manager
 # --- ИЗМЕНЕНИЕ: Импортируем новый сервисный класс и схему ответа ---
@@ -164,33 +160,17 @@ async def get_equipment_by_id(
 @inject
 async def get_equipment_availability_status(
         equipment_id: int,
-        repo: EquipmentRepository = Depends(Provide[Container.equipment_repo]),
+        equipment_crud_service: EquipmentCRUDService = Depends(Provide[Container.equipment_crud_service]),
         _current_user: User = Depends(require_manager)
 ):
     """
     Проверяет, участвует ли оборудование в НЕЗАВЕРШЕННЫХ резервах или арендах.
     """
-    equipment = await repo.get_by_id_with_details(equipment_id)
-    if not equipment:
-        raise HTTPException(status_code=404, detail="Оборудование не найдено")
+    await equipment_crud_service.get_equipment_by_id(equipment_id)
 
-    today_start_of_day = datetime.combine(date.today(), datetime.min.time())
-
-    reservations_result = await repo.db.execute(
-        select(func.count(Reservation.id)).filter(
-            Reservation.equipment.any(Equipment.id == equipment_id),
-            Reservation.end_date >= today_start_of_day
-        )
+    active_reservations_count, active_rentals_count = (
+        await equipment_crud_service.count_active_links(equipment_id)
     )
-    active_reservations_count = reservations_result.scalar_one()
-
-    rentals_result = await repo.db.execute(
-        select(func.count(Rental.id)).filter(
-            Rental.equipment.any(Equipment.id == equipment_id),
-            Rental.end_date >= today_start_of_day
-        )
-    )
-    active_rentals_count = rentals_result.scalar_one()
 
     return EquipmentAvailabilityStatus(
         has_active_reservations=active_reservations_count > 0,
