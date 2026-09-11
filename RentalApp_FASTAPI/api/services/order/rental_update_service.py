@@ -19,6 +19,7 @@ from api.services.balance_service import BalanceService
 from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
+from api.services.post_commit import schedule_after_commit
 from shared.constants.balance_operations import BalanceOperationType
 from shared.constants.order_status import OrderStatus
 from shared.schemas.rental_schema import AdminRentalUpdate
@@ -70,7 +71,7 @@ class RentalUpdateService:
             # Логируем успешное обновление
             self.notification_helper.log_rental_updated(rental, manager, updated_fields)
             # end_date/prepayment/final_cost влияют на метрики дашборда
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
 
             return rental_with_details
         except Exception as e:

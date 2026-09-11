@@ -243,6 +243,7 @@ class ServicesContainer(containers.DeclarativeContainer):
         HolidayService, db=db_session, repo=holiday_repo,
         rental_repo=_rental_repo_temp, reservation_repo=reservation_repo,
         notification_service=notification_service,
+        order_validator=order_validator_with_financial,
     )
 
     # holiday_service_with_repos (полный, с реальным rental_repo)
@@ -250,6 +251,7 @@ class ServicesContainer(containers.DeclarativeContainer):
         HolidayService, db=db_session, repo=holiday_repo,
         rental_repo=rental_repo, reservation_repo=reservation_repo,
         notification_service=notification_service,
+        order_validator=order_validator_with_financial,
     )
 
     # User service

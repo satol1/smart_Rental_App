@@ -15,6 +15,7 @@ from api.services.order.rental_notification_helper import RentalNotificationHelp
 from api.services.balance_service import BalanceService
 from api.services.financial_service import FinancialService
 from api.services.cache_service import invalidate_dashboard_summary
+from api.services.post_commit import schedule_after_commit
 from shared.constants.balance_operations import BalanceOperationType
 from shared.schemas.rental_schema import RentalReturnRequest
 
@@ -92,7 +93,7 @@ class RentalReturnService:
             
             # Логируем успешный возврат
             self.notification_helper.log_rental_returned(rental, manager, request.actual_return_date)
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
 
             return rental_with_details
         except Exception as e:

@@ -127,29 +127,39 @@ class TestEquipmentServiceExtended:
 
     @pytest.mark.asyncio
     async def test_validate_equipment_fields(self, equipment_service):
-        """Тест валидации полей оборудования."""
-        # Создаем моки оборудования с некорректными полями
-        mock_equipment1 = MagicMock()
-        mock_equipment1.name = None
-        mock_equipment1.daily_rate = None
-        mock_equipment1.condition = None
-        
-        mock_equipment2 = MagicMock()
-        mock_equipment2.name = "Valid Equipment"
-        mock_equipment2.daily_rate = 100.0
-        mock_equipment2.condition = "Отлично"
-        
-        equipment_list = [mock_equipment1, mock_equipment2]
-        
+        """Дефолты проставляются через set_committed_value (без записи в БД)."""
+        from api.models.equipment import Equipment
+        from sqlalchemy import inspect as sa_inspect
+
+        # Реальные ORM-объекты: set_committed_value работает с инструментами ORM
+        equipment1 = Equipment(id=1)
+        equipment1.name = None
+        equipment1.daily_rate = None
+        equipment1.condition = None
+
+        equipment2 = Equipment(id=2)
+        equipment2.name = "Valid Equipment"
+        equipment2.daily_rate = 100.0
+        equipment2.condition = "Отлично"
+
+        equipment_list = [equipment1, equipment2]
+
         # Вызываем приватный метод валидации
         equipment_service._validate_equipment_fields(equipment_list)
-        
+
         # Проверяем, что поля были исправлены
-        assert mock_equipment1.name == "Неизвестное оборудование"
-        assert mock_equipment1.daily_rate == 0.0
-        assert mock_equipment1.condition == "Великолепно"
-        
+        assert equipment1.name == "Неизвестное оборудование"
+        assert equipment1.daily_rate == 0.0
+        assert equipment1.condition == "Великолепно"
+
         # Проверяем, что валидные поля не изменились
-        assert mock_equipment2.name == "Valid Equipment"
-        assert mock_equipment2.daily_rate == 100.0
-        assert mock_equipment2.condition == "Отлично"
+        assert equipment2.name == "Valid Equipment"
+        assert equipment2.daily_rate == 100.0
+        assert equipment2.condition == "Отлично"
+
+        # Ключевое: история изменений атрибутов чиста — flush не запишет
+        # «починенные» дефолты в БД (в отличие от прежнего прямого присваивания)
+        state = sa_inspect(equipment1)
+        assert not state.attrs.name.history.has_changes()
+        assert not state.attrs.daily_rate.history.has_changes()
+        assert not state.attrs.condition.history.has_changes()

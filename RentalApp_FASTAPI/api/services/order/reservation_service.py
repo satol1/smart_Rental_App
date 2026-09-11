@@ -17,6 +17,7 @@ from api.services.order.order_validator import OrderValidator
 from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
+from api.services.post_commit import schedule_after_commit
 from shared.constants.order_status import OrderStatus
 from shared.constants.user_status import UserStatus
 from shared.utils.user_status_utils import parse_user_status
@@ -296,12 +297,10 @@ class ReservationLifecycleService:
                 reservation = await self._create_reservation_core(request, user)
 
             logger.info(f"User {user.id} created reservation #{reservation.id}")
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
             created_reservation = await self.reservation_repo.get_by_id_with_details(reservation.id)
             if self.telegram_service:
-                self.telegram_service.send_in_background(
-                    self.telegram_service.notify_new_reservation(created_reservation, user)
-                )
+                schedule_after_commit(self.db, lambda: self.telegram_service.send_in_background(self.telegram_service.notify_new_reservation(created_reservation, user)))
             return created_reservation
 
         except Exception as e:
@@ -337,24 +336,14 @@ class ReservationLifecycleService:
 
             logger.info(f"User {user.id} updated reservation #{reservation.id}")
             # даты/состав/стоимость влияют на метрики дашборда
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
             updated_reservation = await self.reservation_repo.get_by_id_with_details(reservation.id)
             dates_changed = (old_start_date != updated_reservation.start_date or old_end_date != updated_reservation.end_date)
             new_equipment_ids = set(updated_reservation.equipment_ids)
             equipment_changed = (old_equipment_ids != new_equipment_ids)
 
             if self.telegram_service and (dates_changed or equipment_changed):
-                self.telegram_service.send_in_background(
-                    self.telegram_service.notify_reservation_updated(
-                        reservation=updated_reservation,
-                        old_start_date=old_start_date,
-                        old_end_date=old_end_date,
-                        old_equipment_names=old_equipment_names,
-                        dates_changed=dates_changed,
-                        equipment_changed=equipment_changed,
-                        user=user,
-                    )
-                )
+                schedule_after_commit(self.db, lambda: self.telegram_service.send_in_background(self.telegram_service.notify_reservation_updated( reservation=updated_reservation, old_start_date=old_start_date, old_end_date=old_end_date, old_equipment_names=old_equipment_names, dates_changed=dates_changed, equipment_changed=equipment_changed, user=user, )))
             return updated_reservation
 
         except Exception as e:
@@ -385,18 +374,9 @@ class ReservationLifecycleService:
                 await self._delete_reservation_record(reservation)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.info(f"User {user.id} cancelled reservation #{reservation_id}")
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
             if self.telegram_service:
-                self.telegram_service.send_in_background(
-                    self.telegram_service.notify_reservation_cancelled(
-                        reservation_id=reservation_id,
-                        user=user,
-                        start_date=cancelled_start_date,
-                        end_date=cancelled_end_date,
-                        equipment_names=cancelled_equipment_names,
-                        total_cost=cancelled_total_cost,
-                    )
-                )
+                schedule_after_commit(self.db, lambda: self.telegram_service.send_in_background(self.telegram_service.notify_reservation_cancelled( reservation_id=reservation_id, user=user, start_date=cancelled_start_date, end_date=cancelled_end_date, equipment_names=cancelled_equipment_names, total_cost=cancelled_total_cost, )))
 
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
@@ -434,7 +414,7 @@ class ReservationLifecycleService:
                 reservation = await self._create_reservation_core(request, user)
 
             logger.info(f"Admin created reservation #{reservation.id} for user {user.id}")
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -461,7 +441,7 @@ class ReservationLifecycleService:
                 await self._update_reservation_core(reservation, request, user)
 
             logger.info(f"Admin updated reservation #{reservation.id}")
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
             return await self.reservation_repo.get_by_id_with_details(reservation.id)
 
         except Exception as e:
@@ -486,7 +466,7 @@ class ReservationLifecycleService:
                 await self._delete_reservation_record(reservation)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.warning(f"Admin cancelled reservation #{reservation_id}")
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
         except Exception as e:
             # Явный rollback больше не нужен. Он выполнился автоматически при выходе из блока `with` с ошибкой.
             logger.error(
@@ -526,33 +506,3 @@ class ReservationLifecycleService:
                 f"Ошибка при пакетном удалении резервов: {e}", exc_info=True
             )
             raise
-
-    # Обертки для совместимости с тестами
-    async def update_reservation(self, reservation_id: int, update_data: dict):
-        """Обновление резерва."""
-        # Получаем резерв
-        reservation = await self.reservation_repo.get_by_id_with_details(reservation_id)
-        if not reservation:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Резерв не найден")
-
-        # Создаем запрос обновления
-        update_request = ReservationUpdateRequest(**update_data)
-        return await self.update_user_reservation(reservation_id, update_request, reservation.user)
-
-    async def cancel_reservation(self, reservation_id: int):
-        """Отмена резерва."""
-        reservation = await self.reservation_repo.get_by_id_with_details(reservation_id)
-        if not reservation:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Резерв не найден")
-
-        return await self.cancel_user_reservation(reservation_id, reservation.user)
-
-    async def get_user_reservations(self, user_id: int, status_filter: str = None):
-        """Получение резервов пользователя."""
-        return await self.reservation_repo.get_reservations_by_user_id(user_id, status_filter)
-
-    async def get_reservation_by_id(self, reservation_id: int):
-        """Получение резерва по ID."""
-        return await self.reservation_repo.get_by_id_with_details(reservation_id)

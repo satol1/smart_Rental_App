@@ -85,8 +85,15 @@ class ReservationQueryService:
         )
 
         result = []
+        skipped = 0
         for r_orm in reservations_orm:
             if not r_orm.user:
+                # Осиротевший резерв не должен молча исчезать из списка: считаем
+                # и логируем, чтобы расхождение len(items) != total было объяснимо
+                skipped += 1
+                logger.warning(
+                    "Резерв #%s без пользователя исключён из админ-списка", r_orm.id
+                )
                 continue
             try:
                 # Используем FinancialService для обогащения админ-резерва
@@ -94,5 +101,18 @@ class ReservationQueryService:
                 result.append(final_output)
             except Exception as e:
                 logger.error(f"Ошибка валидации админ-резерва ID {r_orm.id}: {e}", exc_info=True)
-                continue
+                # Fallback на сырую схему: запись остаётся в списке, а не теряется
+                try:
+                    result.append(AdminReservationOut.model_validate(r_orm))
+                except Exception:
+                    skipped += 1
+                    logger.error(
+                        "Резерв #%s: сырая сериализация тоже не удалась — запись потеряна",
+                        r_orm.id, exc_info=True,
+                    )
+        if skipped:
+            logger.error(
+                "Админ-список резервов: потеряно записей %d из %d на странице",
+                skipped, len(reservations_orm),
+            )
         return result

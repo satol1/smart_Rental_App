@@ -15,3 +15,4 @@ services:
   backend:
     environment:
       - DEBUG=true
+      - TZ=Europe/Astrakhan

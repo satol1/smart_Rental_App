@@ -135,15 +135,13 @@ class ReservationRepository(ReservationBaseRepository):
         from sqlalchemy import update
         from api.models.reservation import Reservation
 
-        # TODO(этап 2.7 аудита): метод меняет дату БЕЗ анти-овербукинг проверки.
-        # Потребитель — HolidayService._auto_extend_orders_on_holiday_creation
-        # (продление резервов при создании выходного). Продление может создать
-        # пересечение с другим резервом/арендой на это же оборудование.
-        # Нужно прогонять новый интервал через OrderValidator.validate_equipment_availability
-        # (с pg_advisory_xact_lock) и отклонять/разрешать конфликт явно.
-        logging.getLogger(__name__).warning(
+        # Метод меняет дату без собственной проверки занятости: вызывающая
+        # сторона (HolidayService._auto_extend_orders_on_holiday_creation)
+        # обязана прогнать интервал через OrderValidator.validate_equipment_availability
+        # (advisory-лок) ДО вызова — этап 2.1 аудита 2026-09-12.
+        logging.getLogger(__name__).debug(
             "[anti-overbooking] update_reservation_end_date(reservation_id=%s, new_end_date=%s): "
-            "дата меняется без проверки пересечений (см. TODO этапа 2.7)",
+            "валидация интервала выполнена вызывающей стороной",
             reservation_id, new_end_date,
         )
 

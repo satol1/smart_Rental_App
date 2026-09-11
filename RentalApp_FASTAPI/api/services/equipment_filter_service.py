@@ -287,11 +287,6 @@ class EquipmentFilterService:
         return await self.equipment_repo.get_available_associations(equipment_conditions)
     
     def _validate_equipment_fields(self, equipment_list: List[Equipment]) -> None:
-        """Валидирует и исправляет поля оборудования."""
-        for equipment in equipment_list:
-            if equipment.name is None:
-                equipment.name = "Неизвестное оборудование"
-            if equipment.daily_rate is None:
-                equipment.daily_rate = 0.0
-            if equipment.condition is None:
-                equipment.condition = "Великолепно"
+        """Дефолты nullable-полей без пометки объекта dirty (GET не пишет в БД)."""
+        from api.services.equipment_defaults import apply_equipment_field_defaults
+        apply_equipment_field_defaults(equipment_list)

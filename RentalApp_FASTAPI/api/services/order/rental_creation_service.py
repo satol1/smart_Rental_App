@@ -20,6 +20,7 @@ from api.services.balance_service import BalanceService
 from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
+from api.services.post_commit import schedule_after_commit
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from shared.constants.balance_operations import BalanceOperationType
@@ -101,7 +102,7 @@ class RentalCreationService:
             
             # Логируем успешную конвертацию
             self.notification_helper.log_rental_converted_from_reservation(rental, reservation, manager)
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
 
             return rental_with_details
 
@@ -173,7 +174,7 @@ class RentalCreationService:
             # Логируем успешное создание
             logger.info(f"Успешно создана аренда #{rental.id}")
             self.notification_helper.log_rental_created(rental, manager, user)
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
 
             return rental_with_details
         except Exception as e:

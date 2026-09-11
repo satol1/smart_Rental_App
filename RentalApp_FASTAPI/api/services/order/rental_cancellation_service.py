@@ -14,6 +14,7 @@ from api.services.balance_service import BalanceService
 from api.services.order.system_repository import SystemService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
+from api.services.post_commit import schedule_after_commit
 from fastapi import HTTPException, status
 from shared.constants.balance_operations import BalanceOperationType
 from shared.constants.order_status import OrderStatus
@@ -64,7 +65,7 @@ class RentalCancellationService:
 
             # Логируем успешную отмену
             self.notification_helper.log_rental_reverted(rental_id, reservation, manager)
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
         except Exception as e:
             self.notification_helper.log_rental_error("отмене аренды", rental_id, e, manager)
             raise
@@ -96,7 +97,7 @@ class RentalCancellationService:
 
             # Логируем успешное удаление
             self.notification_helper.log_rental_deleted(rental_id)
-            invalidate_dashboard_summary()
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
         except Exception as e:
             self.notification_helper.log_rental_error("удалении аренды", rental_id, e)
             raise

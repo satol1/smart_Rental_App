@@ -55,15 +55,40 @@ class TestHolidayAutoExtension:
         return service
 
     @pytest.fixture
-    def holiday_service(self, mock_db_session, mock_holiday_repo, mock_rental_repo, mock_reservation_repo, mock_notification_service):
+    def mock_order_validator(self):
+        """Мок валидатора занятости: по умолчанию оборудование свободно"""
+        from api.services.order.order_validator import OrderValidator
+        validator = Mock(spec=OrderValidator)
+        validator.validate_equipment_availability = AsyncMock()
+        return validator
+
+    @pytest.fixture
+    def holiday_service(self, mock_db_session, mock_holiday_repo, mock_rental_repo, mock_reservation_repo, mock_notification_service, mock_order_validator):
         """Создает экземпляр HolidayService с мок-зависимостями"""
         return HolidayService(
             mock_db_session, 
             mock_holiday_repo, 
             mock_rental_repo, 
             mock_reservation_repo,
-            mock_notification_service
+            mock_notification_service,
+            order_validator=mock_order_validator,
         )
+
+    @pytest.fixture
+    def rental_with_equipment(self, sample_rental):
+        """Аренда с загруженным оборудованием (lazy=selectin эмуляция)"""
+        equipment = Mock()
+        equipment.id = 10
+        sample_rental.equipment = [equipment]
+        return sample_rental
+
+    @pytest.fixture
+    def reservation_with_equipment(self, sample_reservation):
+        """Резерв с загруженным оборудованием"""
+        equipment = Mock()
+        equipment.id = 20
+        sample_reservation.equipment = [equipment]
+        return sample_reservation
 
     @pytest.fixture
     def sample_user(self):
@@ -101,6 +126,42 @@ class TestHolidayAutoExtension:
             total_cost=1200.0
         )
 
+
+    def _equipment(self, equipment_id):
+        from api.models.equipment import Equipment
+        return Equipment(
+            id=equipment_id,
+            name="Test Equipment",
+            equipment_type="ski",
+            brand="Test Brand",
+            condition="Good",
+            daily_rate=100.0,
+        )
+
+    def _rental_with_equipment(self, rental_id=1, equipment_id=10):
+        rental = Rental(
+            id=rental_id,
+            user_id=1,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=5),
+            status=OrderStatus.ACTIVE,
+            total_cost=1000.0,
+        )
+        rental.equipment = [self._equipment(equipment_id)]
+        return rental
+
+    def _reservation_with_equipment(self, reservation_id=2, equipment_id=20):
+        reservation = Reservation(
+            id=reservation_id,
+            user_id=1,
+            start_date=date.today() + timedelta(days=1),
+            end_date=date.today() + timedelta(days=6),
+            status=OrderStatus.ACTIVE,
+            total_cost=1200.0,
+        )
+        reservation.equipment = [self._equipment(equipment_id)]
+        return reservation
+
     @pytest.mark.asyncio
     async def test_auto_extend_orders_on_holiday_creation_no_conflicts(
         self, 
@@ -123,7 +184,7 @@ class TestHolidayAutoExtension:
         result = await holiday_service._auto_extend_orders_on_holiday_creation(holiday_date)
         
         # Assert
-        assert result["message"] == "Автоматически продлено 0 аренд и 0 резервов"
+        assert result["message"] == "Автоматически продлено 0 аренд и 0 резервов."
         assert result["next_working_day"] == next_working_day
         assert result["extended_rentals"] == []
         assert result["extended_reservations"] == []
@@ -155,12 +216,15 @@ class TestHolidayAutoExtension:
         mock_holiday_repo.check_conflicting_reservations_end_date.return_value = []
         mock_holiday_repo.find_next_working_day.return_value = next_working_day
         mock_rental_repo.update_rental_end_date.return_value = True
+        mock_rental_repo.get_by_id_with_details = AsyncMock(
+            side_effect=[self._rental_with_equipment(1), self._rental_with_equipment(2)]
+        )
         
         # Act
         result = await holiday_service._auto_extend_orders_on_holiday_creation(holiday_date)
         
         # Assert
-        assert result["message"] == "Автоматически продлено 2 аренд и 0 резервов"
+        assert result["message"] == "Автоматически продлено 2 аренд и 0 резервов."
         assert result["next_working_day"] == next_working_day
         assert len(result["extended_rentals"]) == 2
         assert len(result["extended_reservations"]) == 0
@@ -192,12 +256,18 @@ class TestHolidayAutoExtension:
         mock_holiday_repo.check_conflicting_reservations_end_date.return_value = conflicting_reservation_ids
         mock_holiday_repo.find_next_working_day.return_value = next_working_day
         mock_reservation_repo.update_reservation_end_date.return_value = True
+        mock_reservation_repo.get_by_id = AsyncMock(
+            side_effect=[
+                self._reservation_with_equipment(3),
+                self._reservation_with_equipment(4),
+            ]
+        )
         
         # Act
         result = await holiday_service._auto_extend_orders_on_holiday_creation(holiday_date)
         
         # Assert
-        assert result["message"] == "Автоматически продлено 0 аренд и 2 резервов"
+        assert result["message"] == "Автоматически продлено 0 аренд и 2 резервов."
         assert result["next_working_day"] == next_working_day
         assert len(result["extended_rentals"]) == 0
         assert len(result["extended_reservations"]) == 2
@@ -231,12 +301,18 @@ class TestHolidayAutoExtension:
         mock_holiday_repo.find_next_working_day.return_value = next_working_day
         mock_rental_repo.update_rental_end_date.return_value = True
         mock_reservation_repo.update_reservation_end_date.return_value = True
+        mock_rental_repo.get_by_id_with_details = AsyncMock(
+            return_value=self._rental_with_equipment(1)
+        )
+        mock_reservation_repo.get_by_id = AsyncMock(
+            return_value=self._reservation_with_equipment(2)
+        )
         
         # Act
         result = await holiday_service._auto_extend_orders_on_holiday_creation(holiday_date)
         
         # Assert
-        assert result["message"] == "Автоматически продлено 1 аренд и 1 резервов"
+        assert result["message"] == "Автоматически продлено 1 аренд и 1 резервов."
         assert result["next_working_day"] == next_working_day
         assert len(result["extended_rentals"]) == 1
         assert len(result["extended_reservations"]) == 1
@@ -267,6 +343,9 @@ class TestHolidayAutoExtension:
         mock_holiday_repo.check_conflicting_reservations_end_date.return_value = []
         mock_holiday_repo.find_next_working_day.return_value = next_working_day
         
+        mock_rental_repo.get_by_id_with_details = AsyncMock(
+            side_effect=[self._rental_with_equipment(1), self._rental_with_equipment(2)]
+        )
         # Первое обновление успешно, второе - неудачно
         mock_rental_repo.update_rental_end_date.side_effect = [True, False]
         
@@ -274,7 +353,7 @@ class TestHolidayAutoExtension:
         result = await holiday_service._auto_extend_orders_on_holiday_creation(holiday_date)
         
         # Assert
-        assert result["message"] == "Автоматически продлено 1 аренд и 0 резервов"
+        assert result["message"] == "Автоматически продлено 1 аренд и 0 резервов."
         assert len(result["extended_rentals"]) == 1  # Только успешное обновление
         assert len(result["extended_reservations"]) == 0
         
@@ -319,6 +398,9 @@ class TestHolidayAutoExtension:
         mock_holiday_repo.check_conflicting_reservations_end_date.return_value = []
         mock_holiday_repo.find_next_working_day.return_value = next_working_day
         mock_rental_repo.update_rental_end_date.return_value = True
+        mock_rental_repo.get_by_id_with_details = AsyncMock(
+            return_value=self._rental_with_equipment(1)
+        )
         
         # Ошибка при отправке уведомлений
         mock_notification_service.notify_auto_extension.side_effect = Exception("Notification error")
@@ -328,7 +410,7 @@ class TestHolidayAutoExtension:
         
         # Assert
         # Основная функциональность должна работать, несмотря на ошибку уведомлений
-        assert result["message"] == "Автоматически продлено 1 аренд и 0 резервов"
+        assert result["message"] == "Автоматически продлено 1 аренд и 0 резервов."
         assert len(result["extended_rentals"]) == 1
         assert len(result["extended_reservations"]) == 0
         
@@ -370,10 +452,103 @@ class TestHolidayAutoExtension:
         assert "message" in result
         assert "date" in result
         assert "auto_extension" in result
-        assert result["auto_extension"]["message"] == "Автоматически продлено 1 аренд и 0 резервов"
+        assert result["auto_extension"]["message"] == "Автоматически продлено 1 аренд и 0 резервов."
         
         # Проверяем, что все необходимые методы были вызваны
         mock_holiday_repo.check_conflicting_reservations.assert_called_once()
         mock_holiday_repo.find_holiday_by_date.assert_called_once()
         mock_holiday_repo.save_holiday.assert_called_once()
         mock_notification_service.notify_auto_extension.assert_called_once()
+
+
+class TestAutoExtensionAvailabilityGuard:
+    """Продление только при свободном интервале (закрытие обхода анти-овербукинга)."""
+
+    @pytest.fixture
+    def service_with_mocks(self):
+        from api.services.order.order_validator import OrderValidator
+        db = AsyncMock()
+        holiday_repo = Mock(spec=HolidayRepository)
+        rental_repo = Mock(spec=RentalRepository)
+        reservation_repo = Mock(spec=ReservationRepository)
+        notification = Mock(spec=NotificationService)
+        validator = Mock(spec=OrderValidator)
+        validator.validate_equipment_availability = AsyncMock()
+        service = HolidayService(
+            db, holiday_repo, rental_repo, reservation_repo, notification,
+            order_validator=validator,
+        )
+        return service, holiday_repo, rental_repo, reservation_repo, validator
+
+    @pytest.mark.asyncio
+    async def test_rental_skipped_when_interval_busy(self, service_with_mocks):
+        """Оборудование занято на [start, next_working_day] — аренда НЕ продлевается."""
+        from fastapi import HTTPException
+        service, holiday_repo, rental_repo, _, validator = service_with_mocks
+
+        holiday_date = date.today() + timedelta(days=3)
+        next_working_day = holiday_date + timedelta(days=1)
+        holiday_repo.check_conflicting_rentals.return_value = [7]
+        holiday_repo.check_conflicting_reservations_end_date.return_value = []
+        holiday_repo.find_next_working_day.return_value = next_working_day
+
+        rental = Rental(id=7, user_id=1, start_date=date.today(),
+                        end_date=holiday_date, status=OrderStatus.ACTIVE)
+        eq = Mock(); eq.id = 10
+        rental.equipment = [eq]
+        rental_repo.get_by_id_with_details = AsyncMock(return_value=rental)
+
+        validator.validate_equipment_availability = AsyncMock(
+            side_effect=HTTPException(status_code=409, detail="Оборудование с ID [10] недоступно")
+        )
+
+        result = await service._auto_extend_orders_on_holiday_creation(holiday_date)
+
+        rental_repo.update_rental_end_date.assert_not_called()
+        assert result["extended_rentals"] == []
+        assert result["skipped_rentals"] == [
+            {"id": 7, "reason": "Оборудование с ID [10] недоступно"}
+        ]
+
+    @pytest.mark.asyncio
+    async def test_rental_extended_when_interval_free(self, service_with_mocks):
+        """Интервал свободен — аренда продлевается, валидатор вызван с exclude_rental_id."""
+        service, holiday_repo, rental_repo, _, validator = service_with_mocks
+
+        holiday_date = date.today() + timedelta(days=3)
+        next_working_day = holiday_date + timedelta(days=1)
+        holiday_repo.check_conflicting_rentals.return_value = [7]
+        holiday_repo.check_conflicting_reservations_end_date.return_value = []
+        holiday_repo.find_next_working_day.return_value = next_working_day
+
+        rental = Rental(id=7, user_id=1, start_date=date.today(),
+                        end_date=holiday_date, status=OrderStatus.ACTIVE)
+        eq = Mock(); eq.id = 10
+        rental.equipment = [eq]
+        rental_repo.get_by_id_with_details = AsyncMock(return_value=rental)
+        rental_repo.update_rental_end_date = AsyncMock(return_value=True)
+
+        result = await service._auto_extend_orders_on_holiday_creation(holiday_date)
+
+        validator.validate_equipment_availability.assert_awaited_once_with(
+            [10], rental.start_date, next_working_day, exclude_rental_id=7
+        )
+        rental_repo.update_rental_end_date.assert_awaited_once_with(7, next_working_day)
+        assert result["extended_rentals"][0]["id"] == 7
+
+    @pytest.mark.asyncio
+    async def test_reservation_skipped_without_validator(self, service_with_mocks):
+        """Валидатор не настроен — продление запрещено вслепую (fail-closed)."""
+        service, holiday_repo, rental_repo, reservation_repo, validator = service_with_mocks
+        service._order_validator = None
+
+        holiday_date = date.today() + timedelta(days=3)
+        holiday_repo.check_conflicting_rentals.return_value = []
+        holiday_repo.check_conflicting_reservations_end_date.return_value = [5]
+        holiday_repo.find_next_working_day.return_value = holiday_date + timedelta(days=1)
+        reservation_repo.update_reservation_end_date = AsyncMock(return_value=True)
+
+        result = await service._auto_extend_orders_on_holiday_creation(holiday_date)
+
+        reservation_repo.update_reservation_end_date.assert_not_called()
+        assert result["skipped_reservations"][0]["id"] == 5

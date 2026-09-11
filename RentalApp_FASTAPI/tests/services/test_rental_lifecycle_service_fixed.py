@@ -296,54 +296,6 @@ class TestRentalLifecycleServiceFixed:
         rental_service.creation_service.create_rental_from_scratch.assert_called_once_with(rental_data, sample_manager)
 
     @pytest.mark.asyncio
-    async def test_update_rental_success(self, rental_service, sample_rental):
-        """Тест успешного обновления аренды"""
-        from shared.schemas.rental_schema import AdminRentalUpdate
-        
-        # Создаем данные для обновления
-        update_data = AdminRentalUpdate(
-            start_date=date(2024, 1, 2),
-            end_date=date(2024, 1, 8),
-            status=OrderStatus.ACTIVE
-        )
-        
-        # Настраиваем мок для обновления аренды
-        rental_service.update_service.update_rental = AsyncMock(return_value=sample_rental)
-        
-        # Выполняем тест
-        result = await rental_service.update_rental(1, update_data)
-        
-        # Проверяем результат
-        assert result == sample_rental
-        rental_service.update_service.update_rental.assert_called_once_with(1, update_data)
-
-    @pytest.mark.asyncio
-    async def test_cancel_rental_success(self, rental_service):
-        """Тест успешной отмены аренды"""
-        # Настраиваем мок для отмены аренды
-        rental_service.cancellation_service.cancel_rental = AsyncMock(return_value=True)
-        
-        # Выполняем тест
-        result = await rental_service.cancel_rental(1)
-        
-        # Проверяем результат
-        assert result is True
-        rental_service.cancellation_service.cancel_rental.assert_called_once_with(1)
-
-    @pytest.mark.asyncio
-    async def test_delete_rental_success(self, rental_service):
-        """Тест успешного удаления аренды"""
-        # Настраиваем мок для удаления аренды
-        rental_service.cancellation_service.delete_rental = AsyncMock(return_value=True)
-        
-        # Выполняем тест
-        result = await rental_service.delete_rental(1)
-        
-        # Проверяем результат
-        assert result is True
-        rental_service.cancellation_service.delete_rental.assert_called_once_with(1)
-
-    @pytest.mark.asyncio
     async def test_revert_rental_success(self, rental_service, sample_rental, sample_manager):
         """Тест успешного отката аренды"""
         from shared.schemas.rental_schema import RentalRevertRequest
@@ -369,18 +321,16 @@ class TestRentalLifecycleServiceFixed:
         assert hasattr(rental_service, 'convert_reservation_to_rental')
         assert hasattr(rental_service, 'return_rental')
         assert hasattr(rental_service, 'create_rental_from_scratch')
-        assert hasattr(rental_service, 'update_rental')
-        assert hasattr(rental_service, 'cancel_rental')
-        assert hasattr(rental_service, 'delete_rental')
+        assert hasattr(rental_service, 'update_rental_details_by_admin')
+        assert hasattr(rental_service, 'delete_rental_by_admin')
         assert hasattr(rental_service, 'revert_rental')
         
         # Проверяем, что методы являются callable
         assert callable(rental_service.convert_reservation_to_rental)
         assert callable(rental_service.return_rental)
         assert callable(rental_service.create_rental_from_scratch)
-        assert callable(rental_service.update_rental)
-        assert callable(rental_service.cancel_rental)
-        assert callable(rental_service.delete_rental)
+        assert callable(rental_service.update_rental_details_by_admin)
+        assert callable(rental_service.delete_rental_by_admin)
         assert callable(rental_service.revert_rental)
 
     def test_service_has_specialized_services(self, rental_service):

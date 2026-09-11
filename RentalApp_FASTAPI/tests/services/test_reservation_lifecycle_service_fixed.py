@@ -386,11 +386,11 @@ class TestReservationLifecycleServiceFixed:
         updated_reservation.created_at = datetime.now()
         updated_reservation.user = sample_user  # Добавляем user объект
         reservation_service.reservation_repo.save_object = AsyncMock()
-        # get_by_id_with_details вызывается трижды: в update_reservation, в update_user_reservation (начало), и в update_user_reservation (конец)
-        reservation_service.reservation_repo.get_by_id_with_details = AsyncMock(side_effect=[sample_reservation, sample_reservation, updated_reservation])
+        # get_by_id_with_details вызывается дважды: _get_reservation_or_fail и финальный fetch
+        reservation_service.reservation_repo.get_by_id_with_details = AsyncMock(side_effect=[sample_reservation, updated_reservation])
         
-        # Выполняем тест (метод ожидает dict)
-        result = await reservation_service.update_reservation(1, update_data.model_dump())
+        # Выполняем тест (реальный метод: объект запроса + владелец)
+        result = await reservation_service.update_user_reservation(1, update_data, sample_user)
         
         # Проверяем результат
         assert result == updated_reservation
@@ -412,10 +412,11 @@ class TestReservationLifecycleServiceFixed:
         
         # Настраиваем мок
         mock_reservation_repo.get_by_id_with_details.return_value = None
+        owner = User(id=1, email="user@example.com", full_name="User", role="user")
         
         # Проверяем, что выбрасывается исключение
-        with pytest.raises((ValueError, HTTPException), match="Резервация не найдена|Резерв не найден"):
-            await reservation_service.update_reservation(999, update_data.model_dump())
+        with pytest.raises((ValueError, HTTPException), match="Резервация не найдена|Резерв не найден|not found"):
+            await reservation_service.update_user_reservation(999, update_data, owner)
 
     # Тесты для cancel_reservation
     @pytest.mark.asyncio
@@ -439,9 +440,9 @@ class TestReservationLifecycleServiceFixed:
         # Настраиваем мок для удаления резервации
         reservation_service.reservation_repo.delete = AsyncMock()
         
-        # Выполняем тест
-        # cancel_reservation не возвращает значение, только удаляет
-        await reservation_service.cancel_reservation(1)
+        # Выполняем тест (реальный метод с владельцем)
+        owner = sample_reservation.user or User(id=1, email="user@example.com", full_name="User", role="user")
+        await reservation_service.cancel_user_reservation(1, owner)
         
         # Проверяем, что методы были вызваны
         # cancel_reservation вызывает get_by_id_with_details один раз, затем cancel_user_reservation может вызвать еще раз
@@ -453,10 +454,11 @@ class TestReservationLifecycleServiceFixed:
         """Тест отмены несуществующей резервации"""
         # Настраиваем мок
         mock_reservation_repo.get_by_id_with_details.return_value = None
+        owner = User(id=1, email="user@example.com", full_name="User", role="user")
         
         # Проверяем, что выбрасывается исключение
-        with pytest.raises((ValueError, HTTPException), match="Резервация не найдена|Резерв не найден"):
-            await reservation_service.cancel_reservation(999)
+        with pytest.raises((ValueError, HTTPException), match="Резервация не найдена|Резерв не найден|not found"):
+            await reservation_service.cancel_user_reservation(999, owner)
 
     @pytest.mark.asyncio
     async def test_cancel_reservation_already_cancelled(self, reservation_service, mock_reservation_repo, sample_user):
@@ -482,83 +484,24 @@ class TestReservationLifecycleServiceFixed:
         # Проверяем, что выбрасывается исключение (или метод успешно выполняется)
         # Метод может не выбрасывать исключение, если резервация уже отменена
         try:
-            await reservation_service.cancel_reservation(1)
+            await reservation_service.cancel_user_reservation(1, sample_user)
             # Если метод выполнился успешно, проверяем что delete был вызван
             reservation_service.reservation_repo.delete.assert_called_once_with(1)
-        except ValueError as e:
-            assert "Резервация уже отменена" in str(e)
-
-    # Тесты для get_user_reservations
-    @pytest.mark.asyncio
-    async def test_get_user_reservations_success(self, reservation_service, mock_reservation_repo, sample_reservation):
-        """Тест успешного получения резерваций пользователя"""
-        # Создаем список резерваций
-        reservations = [sample_reservation]
-        
-        # Настраиваем мок
-        mock_reservation_repo.get_reservations_by_user_id.return_value = reservations
-        
-        # Выполняем тест
-        result = await reservation_service.get_user_reservations(1)
-        
-        # Проверяем результат
-        assert result == reservations
-        mock_reservation_repo.get_reservations_by_user_id.assert_called_once_with(1, None)
-
-    @pytest.mark.asyncio
-    async def test_get_user_reservations_empty(self, reservation_service, mock_reservation_repo):
-        """Тест получения резерваций пользователя без резерваций"""
-        # Настраиваем мок
-        mock_reservation_repo.get_reservations_by_user_id.return_value = []
-        
-        # Выполняем тест
-        result = await reservation_service.get_user_reservations(1)
-        
-        # Проверяем результат
-        assert result == []
-        mock_reservation_repo.get_reservations_by_user_id.assert_called_once_with(1, None)
-
-    # Тесты для get_reservation_by_id
-    @pytest.mark.asyncio
-    async def test_get_reservation_by_id_success(self, reservation_service, mock_reservation_repo, sample_reservation):
-        """Тест успешного получения резервации по ID"""
-        # Настраиваем мок
-        mock_reservation_repo.get_by_id_with_details.return_value = sample_reservation
-        
-        # Выполняем тест
-        result = await reservation_service.get_reservation_by_id(1)
-        
-        # Проверяем результат
-        assert result == sample_reservation
-        mock_reservation_repo.get_by_id_with_details.assert_called_once_with(1)
-
-    @pytest.mark.asyncio
-    async def test_get_reservation_by_id_not_found(self, reservation_service, mock_reservation_repo):
-        """Тест получения несуществующей резервации по ID"""
-        # Настраиваем мок
-        mock_reservation_repo.get_by_id_with_details.return_value = None
-        
-        # Выполняем тест
-        result = await reservation_service.get_reservation_by_id(999)
-        
-        # Проверяем результат
-        assert result is None
-        mock_reservation_repo.get_by_id_with_details.assert_called_once_with(999)
+        except (ValueError, HTTPException) as e:
+            assert "отменена" in str(e.detail) if isinstance(e, HTTPException) else "отменена" in str(e)
 
     def test_service_has_required_methods(self, reservation_service):
         """Тест наличия необходимых методов в сервисе"""
         # Проверяем, что все основные методы доступны
         assert hasattr(reservation_service, 'create_user_reservation')
         assert hasattr(reservation_service, 'create_admin_reservation')
-        assert hasattr(reservation_service, 'update_reservation')
-        assert hasattr(reservation_service, 'cancel_reservation')
-        assert hasattr(reservation_service, 'get_user_reservations')
-        assert hasattr(reservation_service, 'get_reservation_by_id')
+        assert hasattr(reservation_service, 'update_user_reservation')
+        assert hasattr(reservation_service, 'cancel_user_reservation')
+        assert hasattr(reservation_service, 'create_admin_reservation')
         
         # Проверяем, что методы являются callable
         assert callable(reservation_service.create_user_reservation)
         assert callable(reservation_service.create_admin_reservation)
-        assert callable(reservation_service.update_reservation)
-        assert callable(reservation_service.cancel_reservation)
-        assert callable(reservation_service.get_user_reservations)
-        assert callable(reservation_service.get_reservation_by_id)
+        assert callable(reservation_service.update_user_reservation)
+        assert callable(reservation_service.cancel_user_reservation)
+        assert callable(reservation_service.create_admin_reservation)

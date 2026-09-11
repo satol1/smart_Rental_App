@@ -265,7 +265,7 @@ class UserService:
         return {"message": f"Пользователь {user_orm.email} разблокирован"}
 
     async def delete_user(self, user_id: int, current_user: User) -> dict:
-        """Полностью удаляет пользователя из системы."""
+        """Удаляет пользователя, защищая активные заказы и финансовый аудит-след."""
         if user_id == current_user.id:
             raise HTTPException(status_code=400, detail="Нельзя удалить самого себя.")
 
@@ -273,11 +273,87 @@ class UserService:
         if not user_to_delete:
             raise HTTPException(status_code=404, detail="Пользователь не найден")
 
+        await self._validate_user_deletable(user_id)
+
         email = user_to_delete.email
         await self.user_repo.delete(user_to_delete)
         # Транзакция коммитится middleware  # Транзакция коммитится здесь
         logging.info(f"Admin {current_user.email} deleted user {email} (ID: {user_id})")
         return {"message": f"Пользователь {email} полностью удален из системы"}
+
+    async def _validate_user_deletable(self, user_id: int) -> None:
+        """Запрет удаления, если у пользователя есть активные заказы или финансовая история.
+
+        CASCADE по balance_history/payments стёр бы аудит-след денег, а активные
+        заказы остались бы «осиротевшими». Альтернатива — блокировка (block_user).
+        """
+        from sqlalchemy import select, func
+        from api.models.reservation import Reservation
+        from api.models.rental import Rental
+        from api.models.balance_history import BalanceHistory
+        from api.models.payment import Payment
+        from shared.constants.order_status import OrderStatus
+
+        active_reservations = await self.db.scalar(
+            select(func.count()).select_from(Reservation).where(
+                Reservation.user_id == user_id,
+                Reservation.status == OrderStatus.ACTIVE.value,
+            )
+        )
+        fulfilled_reservations = await self.db.scalar(
+            select(func.count()).select_from(Reservation).where(
+                Reservation.user_id == user_id,
+                Reservation.status == OrderStatus.FULFILLED.value,
+            )
+        )
+        if active_reservations or fulfilled_reservations:
+            parts = []
+            if active_reservations:
+                parts.append(f"{active_reservations} активных")
+            if fulfilled_reservations:
+                parts.append(f"{fulfilled_reservations} выполненных (связаны с арендами)")
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"У пользователя {', '.join(parts)} резервов. "
+                    "Завершите или отмените их перед удалением."
+                ),
+            )
+
+        active_rentals = await self.db.scalar(
+            select(func.count()).select_from(Rental).where(
+                Rental.user_id == user_id,
+                Rental.status.in_([OrderStatus.ACTIVE.value]),
+            )
+        )
+        if active_rentals:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"У пользователя {active_rentals} активных аренд. "
+                    "Завершите их перед удалением."
+                ),
+            )
+
+        has_balance_history = await self.db.scalar(
+            select(func.count()).select_from(BalanceHistory).where(
+                BalanceHistory.user_id == user_id
+            )
+        )
+        has_payments = await self.db.scalar(
+            select(func.count()).select_from(Payment).where(
+                Payment.user_id == user_id
+            )
+        )
+        if has_balance_history or has_payments:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "У пользователя есть финансовая история (движения баланса или платежи) — "
+                    "удаление уничтожило бы аудит-след денег. "
+                    "Заблокируйте его вместо удаления."
+                ),
+            )
 
     async def delete_balance_history_entry(self, history_id: int):
         """

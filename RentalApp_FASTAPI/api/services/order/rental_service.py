@@ -106,19 +106,6 @@ class RentalLifecycleService:
         """Удаляет аренду администратором."""
         return await self.cancellation_service.delete_rental_by_admin(rental_id)
     
-    # Обертки для совместимости с тестами
-    async def update_rental(self, rental_id: int, update_data: dict):
-        """Обновление аренды."""
-        return await self.update_service.update_rental(rental_id, update_data)
-    
-    async def cancel_rental(self, rental_id: int):
-        """Отмена аренды."""
-        return await self.cancellation_service.cancel_rental(rental_id)
-    
-    async def delete_rental(self, rental_id: int):
-        """Удаление аренды."""
-        return await self.cancellation_service.delete_rental(rental_id)
-    
     async def revert_rental(self, rental_id: int, manager: User, request: RentalRevertRequest):
         """Отмена аренды и возврат к резерву."""
         return await self.cancellation_service.revert_rental_to_reservation(rental_id, manager, request)

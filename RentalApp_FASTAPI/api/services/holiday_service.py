@@ -16,7 +16,11 @@ from shared.schemas.holiday_schema import HolidayCreate, RecurringHolidayRuleCre
 class HolidayService:
     """Сервис для управления выходными днями и правилами их генерации."""
     
-    def __init__(self, db: AsyncSession, repo: HolidayRepository, rental_repo=None, reservation_repo=None, notification_service=None):
+    def __init__(self, db: AsyncSession, repo: HolidayRepository, rental_repo=None,
+                 reservation_repo=None, notification_service=None, order_validator=None):
+        from typing import Optional
+        from api.services.order.order_validator import OrderValidator
+        self._order_validator: Optional[OrderValidator] = order_validator
         self.db = db
         self.repo = repo
         self.rental_repo = rental_repo
@@ -211,7 +215,11 @@ class HolidayService:
             Словарь с информацией о продленных заказах
         """
         if not self.rental_repo or not self.reservation_repo:
-            return {"message": "Репозитории не инициализированы", "extended_rentals": [], "extended_reservations": []}
+            return {
+                "message": "Репозитории не инициализированы",
+                "extended_rentals": [], "extended_reservations": [],
+                "skipped_rentals": [], "skipped_reservations": [],
+            }
         
         # Находим следующий рабочий день
         next_working_day = await self.repo.find_next_working_day(holiday_date + timedelta(days=1))
@@ -222,9 +230,20 @@ class HolidayService:
         
         extended_rentals = []
         extended_reservations = []
+        skipped_rentals = []
+        skipped_reservations = []
         
-        # Продлеваем аренды
+        # Продлеваем аренды — только если новый интервал [start, next_working_day]
+        # свободен (advisory-лок + проверка пересечений в validate_equipment_availability).
+        # Иначе продление создавало бы овербукинг — единственный живой обход
+        # анти-овербукинга (закрытие хвоста 2.7 аудита)
         for rental_id in conflicting_rental_ids:
+            reason = await self._check_extension_availability(
+                rental_id, next_working_day, order_type="rental"
+            )
+            if reason:
+                skipped_rentals.append({"id": rental_id, "reason": reason})
+                continue
             success = await self.rental_repo.update_rental_end_date(rental_id, next_working_day)
             if success:
                 extended_rentals.append({
@@ -233,8 +252,14 @@ class HolidayService:
                     "new_end_date": next_working_day
                 })
         
-        # Продлеваем резервы
+        # Продлеваем резервы — с той же проверкой
         for reservation_id in conflicting_reservation_ids:
+            reason = await self._check_extension_availability(
+                reservation_id, next_working_day, order_type="reservation"
+            )
+            if reason:
+                skipped_reservations.append({"id": reservation_id, "reason": reason})
+                continue
             success = await self.reservation_repo.update_reservation_end_date(reservation_id, next_working_day)
             if success:
                 extended_reservations.append({
@@ -258,9 +283,58 @@ class HolidayService:
                 logger = logging.getLogger(__name__)
                 logger.error(f"Ошибка при отправке уведомлений об автоматическом продлении: {e}")
         
+        skipped_note = ""
+        if skipped_rentals or skipped_reservations:
+            skipped_note = (
+                f" Пропущено без продления: {len(skipped_rentals)} аренд и "
+                f"{len(skipped_reservations)} резервов (конфликт занятости оборудования)."
+            )
         return {
-            "message": f"Автоматически продлено {len(extended_rentals)} аренд и {len(extended_reservations)} резервов",
+            "message": (
+                f"Автоматически продлено {len(extended_rentals)} аренд и "
+                f"{len(extended_reservations)} резервов.{skipped_note}"
+            ),
             "next_working_day": next_working_day,
             "extended_rentals": extended_rentals,
-            "extended_reservations": extended_reservations
+            "extended_reservations": extended_reservations,
+            "skipped_rentals": skipped_rentals,
+            "skipped_reservations": skipped_reservations,
         }
+
+    async def _check_extension_availability(
+        self, order_id: int, next_working_day: date, order_type: str
+    ) -> "str | None":
+        """Проверяет, свободно ли оборудование заказа на интервал продления.
+
+        Возвращает None, если продление допустимо, иначе текст причины отказа
+        (заказ не продлевается — овербукинг не создаётся).
+        """
+        if self._order_validator is None:
+            # Валидатор не настроен — продление запрещено: не создаём овербукинг вслепую
+            return "валидатор доступности оборудования не настроен"
+
+        if order_type == "rental":
+            rental = await self.rental_repo.get_by_id_with_details(order_id)
+            if rental is None:
+                return "аренда не найдена"
+            equipment_ids = [eq.id for eq in rental.equipment]
+            start_date = rental.start_date
+            exclude = {"exclude_rental_id": order_id}
+        else:
+            reservation = await self.reservation_repo.get_by_id(order_id)
+            if reservation is None:
+                return "резерв не найден"
+            equipment_ids = [eq.id for eq in reservation.equipment]
+            start_date = reservation.start_date
+            exclude = {"exclude_reservation_id": order_id}
+
+        if not equipment_ids:
+            return None
+
+        try:
+            await self._order_validator.validate_equipment_availability(
+                equipment_ids, start_date, next_working_day, **exclude
+            )
+            return None
+        except HTTPException as e:
+            return e.detail if isinstance(e.detail, str) else str(e.detail)

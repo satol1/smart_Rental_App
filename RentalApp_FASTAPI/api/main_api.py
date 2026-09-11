@@ -325,6 +325,11 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
                 
                 # Коммитим транзакцию
                 await session.commit()
+
+                # Побочные эффекты сервисов (уведомления, инвалидация кэша)
+                # запускаются только после успешного commit
+                from api.services.post_commit import run_post_commit_callbacks
+                run_post_commit_callbacks(session)
                 
                 # Добавляем метрики в заголовки ответа
                 duration = time.time() - start_time
