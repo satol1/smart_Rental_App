@@ -118,3 +118,7 @@ RentalApp_FASTAPI/uploads/*
 
 # Исключение скомпилированного JS из исходников фронтенда
 rental-app-main/src/**/*.js
+
+# OpenAPI-схема генерируется из кода (scripts/export_openapi.py), не коммитится
+RentalApp_FASTAPI/openapi.json
+rental-app-main/schema.check.d.ts

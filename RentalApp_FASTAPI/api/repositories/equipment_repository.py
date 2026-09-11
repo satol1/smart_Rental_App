@@ -81,6 +81,19 @@ class EquipmentRepository(EquipmentBaseRepository):
         """Получает оборудование по списку ID."""
         return await self._query_repo.get_equipment_by_ids_or_fail(equipment_ids)
 
+    async def get_existing_by_ids(self, equipment_ids: List[int]) -> List[Equipment]:
+        """
+        Пакетная выборка оборудования по списку ID без ошибки для отсутствующих.
+        Отсутствующие ID просто пропускаются (в отличие от get_by_ids /
+        get_equipment_by_ids_or_fail). Порядок результата не гарантируется.
+        """
+        if not equipment_ids:
+            return []
+        result = await self.db.execute(
+            select(Equipment).where(Equipment.id.in_(equipment_ids))
+        )
+        return list(result.scalars().all())
+
     async def count_filtered_equipment_excluding_ids(
         self,
         exclude_equipment_ids: List[int],

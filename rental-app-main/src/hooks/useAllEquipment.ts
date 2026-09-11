@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { EquipmentService } from "@/core/services";
 import type { Equipment } from "@/types/equipment";
+import { isEquipmentItem } from "@/types/catalog";
 
 /**
  * Надежный справочник ВСЕГО оборудования в системе.
@@ -25,7 +26,8 @@ export function useAllEquipment() {
             // Запрашиваем ОЧЕНЬ большую "страницу", чтобы получить все
             // **ВАЖНО: принудительно отключаем группировку**
             const response = await EquipmentService.getAllEquipment(0, 1000, { groupSimilar: false });
-            return response.items; // Возвращаем только массив оборудования
+            // items — union каталога (оборудование + пачки); справочнику нужны только Equipment
+            return response.items.filter(isEquipmentItem);
         },
         staleTime: 60 * 60 * 1000, // Кэшируем данные на 1 час
         gcTime: 2 * 60 * 60 * 1000,  // Храним в кэше 2 часа

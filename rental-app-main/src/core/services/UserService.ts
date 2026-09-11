@@ -171,7 +171,7 @@ export class UserService {
      */
     static async getCurrentUserProfile(): Promise<UserOut> {
         try {
-            const response = await api.get("/user/");
+            const response = await api.get("/auth/me");
             return response.data;
         } catch (error) {
             console.error("Ошибка при получении профиля пользователя:", error);
@@ -189,6 +189,24 @@ export class UserService {
             return response.data;
         } catch (error) {
             console.error("Ошибка при обновлении профиля пользователя:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Изменяет пароль текущего пользователя.
+     * Бэкенд: PUT /user/change-password, тело { current_password, new_password },
+     * ответ { message }; ошибки 400 (слабый/неверный пароль), 404, 500.
+     */
+    static async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+        try {
+            const response = await api.put<{ message: string }>("/user/change-password", {
+                current_password: currentPassword,
+                new_password: newPassword
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Ошибка при смене пароля:", error);
             throw error;
         }
     }

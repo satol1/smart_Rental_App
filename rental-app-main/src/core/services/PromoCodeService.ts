@@ -56,30 +56,26 @@ export class PromoCodeService {
     }
 
     /**
-     * Активирует/деактивирует промокод
-     */
-    static async togglePromoCodeStatus(id: number, isActive: boolean): Promise<PromoCodeOut> {
-        const response = await api.patch(`/promocodes/${id}/toggle-status`, { is_active: isActive });
-        return response.data;
-    }
-
-    /**
-     * Валидирует промокод для конкретного заказа
+     * Валидирует промокод для конкретного заказа.
+     * Бэкенд: POST /promocodes/validate, тело { code, order_amount, equipment_ids },
+     * ответ { code, discount_percentage, message } (snake_case).
      */
     static async validatePromoCode(
         code: string,
         equipmentIds: number[],
-        totalAmount: number,
-        userId?: number
+        orderAmount: number
     ): Promise<PromoCodeValidationResult> {
         try {
-            const response = await api.post("/promocodes/validate", {
+            const response = await api.post<{ code: string; discount_percentage: number; message: string }>("/promocodes/validate", {
                 code,
-                equipment_ids: equipmentIds,
-                total_amount: totalAmount,
-                user_id: userId
+                order_amount: orderAmount,
+                equipment_ids: equipmentIds
             });
-            return response.data;
+            return {
+                isValid: true,
+                message: response.data.message,
+                discountPercentage: response.data.discount_percentage
+            };
         } catch (error: unknown) {
             return {
                 isValid: false,
@@ -206,15 +202,13 @@ export class PromoCodeService {
     static generateValidationCacheKey(
         code: string,
         equipmentIds: number[],
-        totalAmount: number,
-        userId?: number
+        orderAmount: number
     ): string {
         return JSON.stringify([
             "promo-code-validation",
             code,
-            equipmentIds.sort(),
-            totalAmount,
-            userId
+            [...equipmentIds].sort(),
+            orderAmount
         ]);
     }
 } 

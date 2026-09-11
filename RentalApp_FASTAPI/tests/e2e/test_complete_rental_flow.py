@@ -108,7 +108,7 @@ class TestCompleteRentalFlow:
         
         # Шаг 5: Менеджер конвертирует резерв в аренду
         rental_response = await e2e_client.post(
-            f"/api/admin/rentals/from-reservation/{reservation_id}",
+            f"/api/admin/reservations/{reservation_id}/convert-to-rental",
             json={},  # Пустой JSON для конвертации
             headers=manager_auth_headers
         )
@@ -244,7 +244,7 @@ class TestCompleteRentalFlow:
 
         # Шаг 4: Конвертируем в аренду
         rental_response = await e2e_client.post(
-            f"/api/admin/rentals/from-reservation/{reservation_id}",
+            f"/api/admin/reservations/{reservation_id}/convert-to-rental",
             json={},  # Пустой JSON для конвертации
             headers=manager_auth_headers
         )
@@ -388,7 +388,7 @@ class TestCompleteRentalFlow:
 
         # Шаг 4: Конвертируем в аренду
         rental_response = await e2e_client.post(
-            f"/api/admin/rentals/from-reservation/{reservation_id}",
+            f"/api/admin/reservations/{reservation_id}/convert-to-rental",
             json={},  # Пустой JSON для конвертации
             headers=manager_auth_headers
         )
@@ -581,7 +581,7 @@ class TestCompleteRentalFlow:
 
         # Шаг 3: Менеджер конвертирует резерв в аренду
         rental_response = await e2e_client.post(
-            f"/api/admin/rentals/from-reservation/{reservation_id}",
+            f"/api/admin/reservations/{reservation_id}/convert-to-rental",
             json={
                 "deposit_amount": 1000.0,
                 "prepayment_amount": 500.0,

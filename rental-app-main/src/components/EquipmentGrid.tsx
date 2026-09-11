@@ -13,7 +13,7 @@ import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger
 import type { Equipment } from "@/types/equipment";
 import type { AvailabilityInfo, DayStatus, EquipmentStatus } from "@/types/availability";
 import type { ViewMode } from '@/store/viewModeStore';
-import type { CatalogItem, CatalogEquipmentItem, CatalogPackItem } from '@/types/pack';
+import type { CatalogItem, CatalogEquipmentItem, CatalogPackItem } from '@/types/catalog';
 
 // Отдельный компонент для карточки оборудования в сетке
 interface GridEquipmentCardProps {

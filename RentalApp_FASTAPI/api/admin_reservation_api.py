@@ -46,6 +46,8 @@ async def delete_multiple_reservations(
     try:
         await service.bulk_cancel_admin_reservations(request.reservation_ids)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error during bulk deletion service call: {e}", exc_info=True)
         raise HTTPException(
@@ -144,5 +146,5 @@ async def convert_reservation_to_rental(
     """Конвертировать резерв в аренду."""
     new_rental_orm = await rental_service.convert_reservation_to_rental(reservation_id, request, current_user)
     # Обогащаем данные перед отправкой клиенту
-    enriched_rental = await query_service._enrich_rental_with_dynamic_fields(new_rental_orm)
+    enriched_rental = await query_service.enrich_rental_with_dynamic_fields(new_rental_orm)
     return enriched_rental

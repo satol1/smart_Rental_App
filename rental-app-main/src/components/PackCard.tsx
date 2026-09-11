@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { CardImage } from '@/components/equipment-card/CardImage';
 import { usePackCardViewModel } from '@/hooks/features/usePackCardViewModel';
 import { buttonGesture, springs, transitionBase } from '@/lib/motion';
-import type { CatalogPackItem } from '@/types/pack';
+import type { CatalogPackItem } from '@/types/catalog';
 
 const MotionButton = motion.create(Button);
 

@@ -142,7 +142,7 @@ class TestAuthAPI:
         test_user: User,
         auth_headers: dict):
         """Тест получения информации о текущем пользователе."""
-        response = await client.get("/api/user/me", headers=auth_headers)
+        response = await client.get("/api/auth/me", headers=auth_headers)
         
         assert response.status_code == 200
         data = response.json()
@@ -154,7 +154,7 @@ class TestAuthAPI:
         self, 
         client: AsyncClient):
         """Тест получения информации о пользователе без авторизации."""
-        response = await client.get("/api/user/me")
+        response = await client.get("/api/auth/me")
         
         assert response.status_code == 401
 
@@ -163,7 +163,7 @@ class TestAuthAPI:
         client: AsyncClient):
         """Тест получения информации о пользователе с неверным токеном."""
         headers = {"Authorization": "Bearer invalid_token"}
-        response = await client.get("/api/user/me", headers=headers)
+        response = await client.get("/api/auth/me", headers=headers)
         
         assert response.status_code == 401
 

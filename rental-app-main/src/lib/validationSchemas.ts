@@ -68,6 +68,36 @@ export type AuthSchema = z.infer<typeof authSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 
+// --- Смена пароля (профиль) ---
+// Правила повторяют бэкендовый validate_password_strength (config/core.py,
+// PASSWORD_MIN_LENGTH=8, REQUIRE_UPPERCASE/LOWERCASE/DIGITS=true):
+// длина, регистры, цифры, запрет распространённых и слишком повторяющихся паролей.
+const COMMON_PASSWORDS = [
+    'password', '123456', '123456789', 'qwerty', 'abc123',
+    'password123', 'admin', 'letmein', 'welcome', 'monkey',
+    '1234567890', 'password1', 'qwerty123', 'dragon', 'master',
+];
+
+export const changePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "Введите текущий пароль"),
+    newPassword: z.string()
+        .min(8, "Пароль должен содержать минимум 8 символов")
+        .regex(/[a-z]/, "Пароль должен содержать строчные буквы")
+        .regex(/[A-Z]/, "Пароль должен содержать заглавные буквы")
+        .regex(/\d/, "Пароль должен содержать цифры")
+        .refine(pw => new Set(pw).size >= pw.length * 0.5, {
+            message: "Пароль содержит слишком много повторяющихся символов",
+        })
+        .refine(pw => !COMMON_PASSWORDS.includes(pw.toLowerCase()), {
+            message: "Пароль слишком простой. Выберите более сложный пароль.",
+        }),
+    confirmPassword: z.string().min(1, "Подтвердите новый пароль"),
+}).refine(data => data.newPassword === data.confirmPassword, {
+    message: "Пароли не совпадают",
+    path: ["confirmPassword"],
+});
+export type ChangePasswordSchema = z.infer<typeof changePasswordSchema>;
+
 
 // --- Резервы ---
 // Эта Zod-схема теперь является ЕДИНСТВЕННЫМ источником правды для типа данных при создании резерва.

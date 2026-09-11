@@ -11,7 +11,7 @@ import { useServerFilters } from "@/hooks/features/useServerFilters";
 import { useAvailabilityForEquipment } from "@/hooks/useAvailabilityForEquipment";
 import { useReservationManagement } from "@/hooks/useReservationManagement";
 import { useViewModeStore } from "@/store/viewModeStore";
-import type { CatalogPackItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/catalog";
 
 interface EquipmentCatalogProps {
     collections?: ReactNode;

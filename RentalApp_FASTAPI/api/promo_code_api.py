@@ -1,9 +1,8 @@
 # api/promo_code_api.py
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
 from typing import List
 
 from dependency_injector.wiring import inject, Provide
@@ -23,6 +22,8 @@ from api.services.promo_code.promo_code_manager import PromoCodeManager
 from api.services.promo_code import PromoCodeBusinessLogic
 
 router = APIRouter(prefix="/promocodes", tags=["Промокоды"])
+
+logger = logging.getLogger(__name__)
 
 # Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
 
@@ -46,7 +47,8 @@ async def create_promo_code(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при создании промокода: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.get("/", response_model=PromoCodeListResponse)
@@ -69,8 +71,11 @@ async def get_all_promo_codes(
             items=[PromoCodeOut.model_validate(pc) for pc in paginated_promo_codes],
             total=total_promo_codes
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при получении списка промокодов: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.get("/{promo_code_id}", response_model=PromoCodeOut)
@@ -89,7 +94,8 @@ async def get_promo_code_by_id(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при получении промокода {promo_code_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.get("/generate/new-code", response_model=dict)
@@ -102,8 +108,11 @@ async def generate_promo_code(
     try:
         generated_code = await manager.generate_unique_code()
         return {"generated_code": generated_code}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при генерации кода промокода: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.put("/{promo_code_id}", response_model=PromoCodeOut)
@@ -122,7 +131,8 @@ async def update_promo_code(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при обновлении промокода {promo_code_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.delete("/{promo_code_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -140,7 +150,8 @@ async def delete_promo_code(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при удалении промокода {promo_code_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")
 
 
 @router.post("/validate", response_model=PromoCodeValidateResponse)
@@ -170,4 +181,5 @@ async def validate_promo_code_endpoint(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Ошибка при валидации промокода {request.code}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Внутренняя ошибка сервера")

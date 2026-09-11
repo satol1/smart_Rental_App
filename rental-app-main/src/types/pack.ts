@@ -38,9 +38,5 @@ export interface PublicPackOut {
   equipment_ids: number[];
 }
 
-// Типы-обертки для использования в едином массиве
-export type CatalogEquipmentItem = Equipment & { entity_type: 'equipment' };
-export type CatalogPackItem = PublicPackOut; // entity_type уже есть в PublicPackOut
-
-// Главный тип-объединение для элемента каталога
-export type CatalogItem = CatalogEquipmentItem | CatalogPackItem;
+// Типы для единого каталога (CatalogItem и тайп-гарды) живут в ./catalog —
+// единый источник правды для union оборудования и пачек.

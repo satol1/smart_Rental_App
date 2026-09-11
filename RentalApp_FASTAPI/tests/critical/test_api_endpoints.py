@@ -141,7 +141,7 @@ class TestCriticalAPIEndpoints:
         headers = {"Authorization": f"Bearer {token}"}
         
         # Получаем текущий баланс
-        response = await client.get("/api/user/me", headers=headers)
+        response = await client.get("/api/auth/me", headers=headers)
         assert response.status_code == 200
         
         initial_balance = response.json()["balance"]
@@ -192,11 +192,11 @@ class TestCriticalAPIEndpoints:
         # Конвертируем резервацию в аренду
         rental_data = {
             "prepayment_amount": 100.0,
-            "notes": "Test rental conversion"
+            "notes_on_issue": "Test rental conversion"
         }
         
         response = await client.post(
-            f"/api/admin/rentals/from-reservation/{reservation_id}",
+            f"/api/admin/reservations/{reservation_id}/convert-to-rental",
             json=rental_data,
             headers=manager_headers
         )
@@ -210,7 +210,7 @@ class TestCriticalAPIEndpoints:
     async def test_error_handling(self, client: AsyncClient):
         """Тест: Обработка ошибок API."""
         # Тест неавторизованного доступа
-        response = await client.get("/api/user/me")
+        response = await client.get("/api/auth/me")
         assert response.status_code == 401
         
         # Тест невалидных данных (без авторизации возвращает 401, что правильно)

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useEquipmentCardViewModel } from "@/hooks/features/useEquipmentCardViewModel";
 import CompactEquipmentCard from "@/components/CompactEquipmentCard";
 import { EquipmentCard } from "@/components/equipment-card/EquipmentCard";
-import type { CatalogPackItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/catalog";
 import type { Equipment } from "@/types/equipment";
 import type { AvailabilityInfo, DayStatus, EquipmentStatus } from "@/types/availability";
 import type { EquipmentCardOptions } from "@/types/equipmentCard";

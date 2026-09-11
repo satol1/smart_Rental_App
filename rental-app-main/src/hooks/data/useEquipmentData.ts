@@ -7,6 +7,7 @@ import { useDailyAvailability } from "@/hooks/useDailyAvailability";
 import { useReserveStore } from "@/store/reserveStore";
 import type { Equipment } from "@/types/equipment";
 import type { AvailabilityInfo, DailyAvailabilityData } from "@/types/availability";
+import { isPackItem, isEquipmentItem } from "@/types/catalog";
 
 export interface EquipmentFilters {
     query?: string;
@@ -45,21 +46,22 @@ export const useEquipmentData = (filters: EquipmentFilters): UseEquipmentDataRet
         isFetchingNextPage
     } = useEquipment(filters);
 
-    // Извлекаем плоский массив оборудования
+    // Извлекаем плоский массив оборудования (пачки остаются в items и не являются Equipment)
     const equipment = useMemo(() =>
-        equipmentPages?.pages.flatMap(page => page.items) ?? [],
+        equipmentPages?.pages.flatMap(page => page.items.filter(isEquipmentItem)) ?? [],
         [equipmentPages]
     );
 
     const totalEquipmentCount = equipmentPages?.pages[0]?.total ?? 0;
 
-    // Собираем все ID оборудования, включая то, что находится в пачках
+    // Собираем все ID оборудования, включая то, что находится в пачках.
+    // Пачки приходят внутри items вместе с оборудованием (union CatalogItem)
     const allEquipmentIds = useMemo(() => {
         const equipmentIds = equipment.map(item => item.id);
-        const packEquipmentIds = equipmentPages?.pages.flatMap(page => 
-            page.packs?.flatMap(pack => pack.equipment_ids) || []
+        const packEquipmentIds = equipmentPages?.pages.flatMap(page =>
+            page.items.filter(isPackItem).flatMap(pack => pack.equipment_ids)
         ) || [];
-        
+
         // Объединяем и убираем дубликаты
         const allIds = [...new Set([...equipmentIds, ...packEquipmentIds])];
         return allIds;

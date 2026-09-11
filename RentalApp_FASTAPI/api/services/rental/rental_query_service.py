@@ -28,7 +28,7 @@ class RentalQueryService:
         self.rental_repo = rental_repo
 
 
-    async def _enrich_rental_with_dynamic_fields(self, rental: Rental) -> RentalOut:
+    async def enrich_rental_with_dynamic_fields(self, rental: Rental) -> RentalOut:
         """Обогащает объект аренды динамическими полями через FinancialService."""
         rental_out = RentalOut.model_validate(rental)
         today = date.today()
@@ -78,10 +78,10 @@ class RentalQueryService:
         
         # Обогащаем данные через FinancialService
         try:
-            enriched_rentals = [await self._enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
+            enriched_rentals = [await self.enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
             return enriched_rentals, total
         except Exception as e:
-            logger.error(f"Ошибка в _enrich_rental_with_dynamic_fields: {e}", exc_info=True)
+            logger.error(f"Ошибка в enrich_rental_with_dynamic_fields: {e}", exc_info=True)
             # Fallback: возвращаем простые объекты
             simple_rentals = [RentalOut.model_validate(r) for r in rentals_orm]
             return simple_rentals, total
@@ -100,9 +100,9 @@ class RentalQueryService:
         )
 
         try:
-            enriched_rentals = [await self._enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
+            enriched_rentals = [await self.enrich_rental_with_dynamic_fields(r) for r in rentals_orm]
             return enriched_rentals, total
         except Exception as e:
-            logger.error(f"Ошибка в _enrich_rental_with_dynamic_fields: {e}", exc_info=True)
+            logger.error(f"Ошибка в enrich_rental_with_dynamic_fields: {e}", exc_info=True)
             simple_rentals = [RentalOut.model_validate(r) for r in rentals_orm]
             return simple_rentals, total

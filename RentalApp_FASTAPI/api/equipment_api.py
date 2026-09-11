@@ -3,13 +3,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 from datetime import date
-from collections import defaultdict
 from api.csrf import validate_csrf_dependency
 # Удален импорт get_db_session
 
 from dependency_injector.wiring import inject, Provide
 from containers import Container
-from api.models.equipment import Equipment
 from api.models.user import User
 from api.repositories.equipment_repository import EquipmentRepository
 from api.permissions import require_manager
@@ -19,13 +17,11 @@ from api.services.equipment_crud_service import EquipmentCRUDService
 from shared.schemas.equipment_schema import (
     EquipmentOut,
     EquipmentCreateOut,
-    EquipmentTreeItem,
     EquipmentUpdateExtended,
     EquipmentCreate,
     EquipmentCopyRequest,
     EquipmentAvailabilityStatus,
-    EquipmentListResponse,
-    EquipmentTreeListResponse
+    EquipmentListResponse
 )
 
 router = APIRouter(prefix="/equipment", tags=["Оборудование"])
@@ -57,40 +53,6 @@ async def list_equipment_paginated(
     )
     # ✅ Возвращаем ответ в новом формате
     return EquipmentListResponse(items=items, total=total, availableFilters=available_filters)
-
-
-# Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
-
-@router.get("/tree", response_model=EquipmentTreeListResponse)
-@inject
-async def get_equipment_tree(
-        skip: int = Query(0, ge=0),
-        limit: int = Query(10, ge=1, le=100),
-        equipment_repo: EquipmentRepository = Depends(Provide[Container.equipment_repo])
-):
-    """Возвращает оборудование, сгруппированное в виде дерева по типу и бренду с пагинацией."""
-    all_equipment = await equipment_repo.get_all()
-    grouped: dict[str, dict[str, list[Equipment]]] = defaultdict(lambda: defaultdict(list))
-    for eq in all_equipment:
-        grouped[eq.equipment_type][eq.brand].append(eq)
-
-    result = []
-    for eq_type, brands in grouped.items():
-        type_node = EquipmentTreeItem(label=eq_type, children=[])
-        for brand, items in brands.items():
-            brand_node = EquipmentTreeItem(label=brand, children=[
-                EquipmentTreeItem(label=item.name, value=item.id) for item in items
-            ])
-            type_node.children.append(brand_node)
-        result.append(type_node)
-
-    total_items = len(result)
-    paginated_result = result[skip:skip + limit]
-
-    return EquipmentTreeListResponse(
-        items=paginated_result,
-        total=total_items
-    )
 
 
 @router.put("/{equipment_id}", response_model=EquipmentOut)

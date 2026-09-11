@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useReserveStore } from "@/store/reserveStore";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
 import { usePackPriceCalculator } from "@/hooks/usePackPriceCalculator";
-import type { CatalogPackItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/catalog";
 
 export const usePackCardViewModel = (pack: CatalogPackItem) => {
     const { add, remove, items } = useReserveStore(); // Получаем items напрямую для реактивности

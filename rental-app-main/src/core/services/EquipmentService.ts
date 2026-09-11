@@ -2,7 +2,7 @@
 
 import { api } from "@/lib/api";
 import type { Equipment } from "@/types/equipment";
-import type { PublicPackOut } from "@/types/pack";
+import type { CatalogItem } from "@/types/catalog";
 import type { AvailabilityInfo, AvailabilityListResponse } from "@/types/availability";
 import { formatDate } from "@/lib/utils"; // 1. Убедитесь, что этот импорт присутствует
 
@@ -20,8 +20,8 @@ export interface AvailableFilters {
 }
 
 export interface EquipmentListResponse {
-    items: Equipment[];
-    packs: PublicPackOut[];
+    // Единый список каталога: оборудование и пачки (union, дискриминатор entity_type)
+    items: CatalogItem[];
     total: number;
     availableFilters: AvailableFilters;
 }

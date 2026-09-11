@@ -6,7 +6,7 @@ import { useReserveStore } from "@/store/reserveStore";
 import { X } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { CuratedCollections } from '@/components/catalog/CuratedCollections';
-import type { CatalogPackItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/catalog";
 
 // Компоненты
 import DateRangeSelector from "@/components/DateRangeSelector";

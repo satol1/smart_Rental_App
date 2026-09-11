@@ -23,7 +23,6 @@ class Container(containers.DeclarativeContainer):
             "api.user_profile_api",
             "api.admin_user_api",
             "api.admin_balance_api",
-            "api.admin_security_api",
             "api.auth_api",
             "api.accessory_api",
             "api.association_api",
@@ -136,6 +135,7 @@ class Container(containers.DeclarativeContainer):
     notification_service = ServicesContainer.notification_service
     telegram_notification_service = ServicesContainer.telegram_notification_service
     calendar_service = ServicesContainer.calendar_service
+    calendar_view_service = ServicesContainer.calendar_view_service
 
     # --- Lifecycle ---
     rental_creation_service = ServicesContainer.rental_creation_service

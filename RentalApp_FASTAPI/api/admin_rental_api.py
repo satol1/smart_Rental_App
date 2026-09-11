@@ -10,7 +10,7 @@ from api.models.user import User
 from api.services.rental.rental_query_service import RentalQueryService
 from api.services.order.rental_service import RentalLifecycleService
 from shared.schemas.rental_schema import (
-    RentalOut, RentalListResponse, RentalCreateFromReservationRequest,
+    RentalOut, RentalListResponse,
     RentalReturnRequest, RentalCreateFromScratchRequest,
     AdminRentalUpdate, RentalRevertRequest
 )
@@ -55,7 +55,7 @@ async def create_rental_from_scratch(
     """Создать новую аренду без предварительного резерва."""
     new_rental_orm = await service.create_rental_from_scratch(request, current_user)
     # Обогащаем данные перед отправкой клиенту
-    enriched_rental = await query_service._enrich_rental_with_dynamic_fields(new_rental_orm)
+    enriched_rental = await query_service.enrich_rental_with_dynamic_fields(new_rental_orm)
     return enriched_rental
 
 
@@ -72,24 +72,7 @@ async def update_rental_details(
     """Обновить детали существующей аренды."""
     updated_rental_orm = await service.update_rental_details_by_admin(rental_id, request, current_user)
     # Обогащаем данные перед отправкой клиенту
-    enriched_rental = await query_service._enrich_rental_with_dynamic_fields(updated_rental_orm)
-    return enriched_rental
-
-
-@router.post("/from-reservation/{reservation_id}", response_model=RentalOut)
-@inject
-async def convert_reservation_to_rental(
-        reservation_id: int,
-        request: RentalCreateFromReservationRequest,
-        current_user: User = Depends(require_manager),
-        _csrf: None = Depends(validate_csrf_dependency),
-        service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
-        query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
-):
-    """Конвертировать резерв в аренду."""
-    new_rental_orm = await service.convert_reservation_to_rental(reservation_id, request, current_user)
-    # Обогащаем данные перед отправкой клиенту
-    enriched_rental = await query_service._enrich_rental_with_dynamic_fields(new_rental_orm)
+    enriched_rental = await query_service.enrich_rental_with_dynamic_fields(updated_rental_orm)
     return enriched_rental
 
 
@@ -106,7 +89,7 @@ async def return_rental(
     """Оформить возврат аренды."""
     returned_rental_orm = await service.return_rental(rental_id, request, current_user)
     # Обогащаем данные перед отправкой клиенту
-    enriched_rental = await query_service._enrich_rental_with_dynamic_fields(returned_rental_orm)
+    enriched_rental = await query_service.enrich_rental_with_dynamic_fields(returned_rental_orm)
     return enriched_rental
 
 

@@ -71,14 +71,6 @@ export class AccessoryService {
     }
 
     /**
-     * Получает аксессуары для конкретного оборудования
-     */
-    static async getAccessoriesForEquipment(equipmentId: number): Promise<Accessory[]> {
-        const response = await api.get(`/equipment/${equipmentId}/accessories`);
-        return response.data;
-    }
-
-    /**
      * Фильтрует аксессуары по заданным критериям
      */
     static filterAccessories(

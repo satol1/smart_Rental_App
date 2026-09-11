@@ -18,7 +18,7 @@ vi.mock('@/hooks/useAssociations', () => ({ useAssociations: () => ({ data: mock
 vi.mock('@/hooks/useDebounce', () => ({ useDebounce: (value: unknown) => value }));
 
 const metadata: EquipmentListResponse = {
-  items: [], packs: [], total: 200,
+  items: [], total: 200,
   availableFilters: {
     types: ['Фотокамеры', 'Объективы'],
     brands: [{ id: 1, name: 'Canon' }, { id: 2, name: 'Sony' }],
@@ -26,12 +26,16 @@ const metadata: EquipmentListResponse = {
   },
 };
 const emptyResponse: EquipmentListResponse = {
-  items: [], packs: [], total: 0,
+  items: [], total: 0,
   availableFilters: { types: [], brands: [], associations: [] },
 };
+// Пачки приходят внутри items (union CatalogItem), отдельного поля packs больше нет
 const sonyResponse: EquipmentListResponse = {
-  items: [{ id: 42, name: 'Sony A7 IV', brand: 'Sony', equipment_type: 'Фотокамеры', condition: 'good', daily_rate: 2000, accessories: [] }],
-  packs: [], total: 1,
+  items: [
+    { id: 42, entity_type: 'equipment', name: 'Sony A7 IV', brand: 'Sony', equipment_type: 'Фотокамеры', condition: 'good', daily_rate: 2000, accessories: [] },
+    { id: 7, entity_type: 'pack', name: 'Базовый набор Sony', equipment_type: 'Фотокамеры', brand: 'Sony', total_count: 3, available_count: 2, min_daily_rate: 1500, equipment_ids: [42, 43] },
+  ],
+  total: 2,
   availableFilters: { types: ['Фотокамеры'], brands: [{ id: 2, name: 'Sony' }], associations: [] },
 };
 
@@ -56,7 +60,7 @@ describe('persistent server filter options', () => {
   it('keeps the selected Sony option and all types and associations after an empty search', async () => {
     const { result } = renderHook(() => useServerFilters(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.combinedItems).toHaveLength(1);
+    expect(result.current.combinedItems).toHaveLength(2);
     mocks.filteredRequest.mockResolvedValue(emptyResponse);
     act(() => useSearchStore.getState().setQuery('нет-такого-оборудования'));
     await waitFor(() => expect(result.current.totalCount).toBe(0));

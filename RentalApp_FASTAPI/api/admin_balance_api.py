@@ -1,5 +1,7 @@
 # api/admin_balance_api.py
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +17,8 @@ from api.services.user_service import UserService
 
 
 # Анти-паттерны get_*_service() удалены - теперь используется Depends(Provide[...])
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/users", tags=["Управление балансом пользователей"])
 
@@ -41,7 +45,10 @@ async def get_user_balance_history_by_admin(
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Ошибка при получении истории баланса пользователя {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -61,7 +68,10 @@ async def add_payment_to_user(
         return await user_service.process_user_payment(user_id, payment_data, current_user)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Ошибка при регистрации платежа пользователя {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 

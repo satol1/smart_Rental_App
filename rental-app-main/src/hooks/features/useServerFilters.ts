@@ -10,7 +10,7 @@ import { useAssociations } from '@/hooks/useAssociations';
 import { EquipmentService } from '@/core/services/EquipmentService';
 
 import type { Association } from '@/types/association';
-import type { CatalogItem } from '@/types/pack';
+import type { CatalogItem } from '@/types/catalog';
 
 interface UseServerFiltersReturn {
   // Объединенный список элементов каталога для отображения (оборудование + пачки)

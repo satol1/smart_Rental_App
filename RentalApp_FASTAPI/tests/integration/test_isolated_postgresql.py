@@ -138,21 +138,6 @@ async def test_isolated_api_equipment_list_with_filters(isolated_client: AsyncCl
 
 
 @pytest.mark.asyncio
-async def test_isolated_api_equipment_tree_empty(isolated_client: AsyncClient):
-    """Тест получения пустого дерева оборудования через API."""
-    response = await isolated_client.get("/api/equipment/tree")
-    assert response.status_code == 200
-    
-    data = response.json()
-    assert "items" in data
-    assert "total" in data
-    assert isinstance(data["items"], list)
-    assert len(data["items"]) == 0
-    
-    print("✅ API получения дерева оборудования работает")
-
-
-@pytest.mark.asyncio
 async def test_isolated_multiple_queries_sequential(isolated_db_session: AsyncSession):
     """Тест множественных последовательных запросов."""
     for i in range(10):

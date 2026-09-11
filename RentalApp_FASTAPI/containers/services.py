@@ -20,7 +20,7 @@ from containers.constants import (
     DashboardService, FocusService, KpiService, ActivityService,
     DashboardEquipmentService,
     BalanceService, DiscountService, AssociationService,
-    HolidayService, NotificationService, CalendarService,
+    HolidayService, NotificationService, CalendarService, CalendarViewService,
     TelegramNotificationService,
     ErrorHandlerService, SettingsService,
     RentalRepository, RentalQueryRepository, RentalCommandRepository, RentalFinancialRepository,
@@ -138,6 +138,11 @@ class ServicesContainer(containers.DeclarativeContainer):
 
     notification_service = providers.Factory(NotificationService, db=db_session, notification_repo=notification_repo)
     calendar_service = providers.Factory(CalendarService, db=db_session, calendar_repo=calendar_repo)
+    calendar_view_service = providers.Factory(
+        CalendarViewService,
+        equipment_repo=equipment_repo,
+        availability_service=availability_service,
+    )
     brand_system_service = providers.Factory(BrandSystemService, repo=brand_system_repo)
     accessory_service = providers.Factory(AccessoryService, db=db_session, repo=accessory_repo)
     equipment_crud_service = providers.Factory(EquipmentCRUDService, db=db_session, repo=equipment_repo)

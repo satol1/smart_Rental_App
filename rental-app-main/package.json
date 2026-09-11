@@ -12,7 +12,8 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "gen:api": "openapi-typescript ../RentalApp_FASTAPI/openapi.json -o src/types/api/schema.d.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -75,6 +76,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "jsdom": "^23.0.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.1",
     "typescript": "~5.8.3",

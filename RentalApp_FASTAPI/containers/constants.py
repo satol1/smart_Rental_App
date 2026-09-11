@@ -122,6 +122,7 @@ from api.services.holiday_service import HolidayService
 from api.services.notification_service import NotificationService
 from api.services.telegram_notification_service import TelegramNotificationService
 from api.services.calendar_service import CalendarService
+from api.services.calendar_view_service import CalendarViewService
 from api.services.pack_service import PackService
 from api.services.equipment_crud_service import EquipmentCRUDService
 from api.services.equipment_filter_service import EquipmentFilterService

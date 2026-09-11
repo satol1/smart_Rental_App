@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.tsx
 
 import { useState, useEffect } from "react"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQueryClient, useMutation } from "@tanstack/react-query"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,9 @@ import { toast } from "sonner"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { adminUserUpdateSchema, type AdminUserUpdateSchema } from "@/lib/validationSchemas"
+import { UserService } from "@/core/services/UserService"
+import { getApiErrorMessage } from "@/lib/queryHelpers"
+import { adminUserUpdateSchema, type AdminUserUpdateSchema, changePasswordSchema, type ChangePasswordSchema } from "@/lib/validationSchemas"
 // ✅ 1. Импортируем наш новый компонент для отображения истории
 import BalanceHistoryTable from "@/components/profile/BalanceHistoryTable";
 import { SkeletonList } from "@/components/ui/skeleton-list";
@@ -29,6 +31,36 @@ export default function ProfilePage() {
 
     const { data: user, isLoading } = useCurrentUser()
     const updateProfile = useProfileUpdate()
+
+    // --- Смена пароля ---
+    const passwordForm = useForm<ChangePasswordSchema>({
+        resolver: zodResolver(changePasswordSchema),
+        mode: "onChange",
+        defaultValues: {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+        }
+    })
+
+    const {
+        register: registerPassword,
+        handleSubmit: handlePasswordSubmit,
+        formState: { errors: passwordErrors, isValid: isPasswordValid, isDirty: isPasswordDirty },
+        reset: resetPasswordForm
+    } = passwordForm
+
+    const changePasswordMutation = useMutation({
+        mutationFn: (data: ChangePasswordSchema) =>
+            UserService.changePassword(data.currentPassword, data.newPassword),
+        onSuccess: () => {
+            toast.success("Пароль изменён")
+            resetPasswordForm()
+        },
+        onError: (err) => {
+            toast.error(getApiErrorMessage(err, "Не удалось изменить пароль"))
+        }
+    })
 
     const [, setEmailChanged] = useState(false)
     const [originalEmail, setOriginalEmail] = useState("")
@@ -216,9 +248,6 @@ export default function ProfilePage() {
                 </form>
 
                 <div className="pt-4 border-t text-center space-y-2">
-                    <p className="text-xs text-gray-500">
-                        Для изменения пароля обратитесь к администратору.
-                    </p>
                     <Button
                         variant="link"
                         className="text-red-600"
@@ -230,6 +259,67 @@ export default function ProfilePage() {
                         Выйти из аккаунта
                     </Button>
                 </div>
+            </div>
+
+            {/* Смена пароля */}
+            <div className="bg-white border rounded-lg shadow-sm p-6 space-y-4">
+                <h2 className="text-xl font-bold">Смена пароля</h2>
+
+                <form
+                    onSubmit={handlePasswordSubmit(data => changePasswordMutation.mutate(data))}
+                    className="space-y-4"
+                >
+                    <div>
+                        <Label htmlFor="currentPassword">Текущий пароль</Label>
+                        <Input
+                            id="currentPassword"
+                            type="password"
+                            autoComplete="current-password"
+                            {...registerPassword("currentPassword")}
+                        />
+                        {passwordErrors.currentPassword && (
+                            <p className="text-xs text-red-600 mt-1">{passwordErrors.currentPassword.message}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="newPassword">Новый пароль</Label>
+                        <Input
+                            id="newPassword"
+                            type="password"
+                            autoComplete="new-password"
+                            {...registerPassword("newPassword")}
+                        />
+                        {passwordErrors.newPassword && (
+                            <p className="text-xs text-red-600 mt-1">{passwordErrors.newPassword.message}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                            Минимум 8 символов, заглавные и строчные буквы, цифры.
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="confirmPassword">Подтвердите новый пароль</Label>
+                        <Input
+                            id="confirmPassword"
+                            type="password"
+                            autoComplete="new-password"
+                            {...registerPassword("confirmPassword")}
+                        />
+                        {passwordErrors.confirmPassword && (
+                            <p className="text-xs text-red-600 mt-1">{passwordErrors.confirmPassword.message}</p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button
+                            type="submit"
+                            disabled={!isPasswordDirty || !isPasswordValid || changePasswordMutation.isPending}
+                        >
+                            {changePasswordMutation.isPending ? "Сохранение..." : "Изменить пароль"}
+                        </Button>
+                    </div>
+                </form>
             </div>
 
             {/* ✅ 3. Добавляем новый блок с историей баланса */}

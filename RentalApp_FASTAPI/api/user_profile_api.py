@@ -1,7 +1,6 @@
 # api/user_profile_api.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from dependency_injector.wiring import inject, Provide
@@ -22,19 +21,6 @@ from api.services.user_service import UserService
 router = APIRouter(prefix="/user", tags=["Профиль пользователя"])
 
 # Dependency providers
-@router.get("/", response_model=UserOut)
-@router.get("/me", response_model=UserOut)
-@inject
-def get_my_profile(
-        current_user: PermissionUser = Depends(require_user),
-        user_service: UserService = Depends(Provide[Container.user_service])
-):
-    """
-    Возвращает профиль текущего авторизованного пользователя.
-    """
-    return user_service.get_current_user_info(current_user)
-
-
 @router.get("/rentals", response_model=RentalListResponse)
 @inject
 async def get_my_rentals(

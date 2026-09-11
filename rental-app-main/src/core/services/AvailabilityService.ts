@@ -2,7 +2,7 @@
 
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import type { AvailabilityInfo, AvailabilityListResponse, DayStatus } from "@/types/availability";
+import type { AvailabilityInfo, AvailabilityListResponse, DailyAvailabilityData } from "@/types/availability";
 
 export interface AvailabilityStatusParams {
     equipmentIds: number[];
@@ -59,17 +59,18 @@ export class AvailabilityService {
     /**
      * Получает статусы по дням для календаря-полоски.
      * Вызывает эндпоинт /calendar/day-statuses.
+     * Бэкенд возвращает конверт { equipment_day_statuses: Record<id, Record<date, DayStatus>> }.
      */
-    static async getDailyStatuses(params: DailyStatusParams): Promise<Record<number, DayStatus[]>> {
+    static async getDailyStatuses(params: DailyStatusParams): Promise<DailyAvailabilityData> {
         if (!params.startDate || !params.endDate || params.equipmentIds.length === 0) {
             return {};
         }
 
         const searchParams = new URLSearchParams();
-        
+
         searchParams.append("start", formatDate(params.startDate));
         searchParams.append("end", formatDate(params.endDate));
-        
+
         params.equipmentIds.forEach(id => {
             searchParams.append("ids", id.toString());
         });
@@ -78,8 +79,8 @@ export class AvailabilityService {
             searchParams.append("exclude_reservation_id", params.excludeReservationId.toString());
         }
 
-        const response = await api.get<Record<number, DayStatus[]>>(`/calendar/day-statuses?${searchParams.toString()}`);
-        return response.data;
+        const response = await api.get<{ equipment_day_statuses?: DailyAvailabilityData }>(`/calendar/day-statuses?${searchParams.toString()}`);
+        return response.data.equipment_day_statuses ?? {};
     }
 
     /**

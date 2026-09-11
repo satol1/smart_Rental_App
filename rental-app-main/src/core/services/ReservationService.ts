@@ -172,14 +172,6 @@ export class ReservationService {
     }
 
     /**
-     * Получает детали резерва по ID
-     */
-    static async getReservationById(id: number) {
-        const response = await api.get(`/reservations/${id}`);
-        return response.data;
-    }
-
-    /**
      * Преобразует резервы, добавляя имена оборудования
      */
     static createReservationsWithNames(

@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { buttonGesture, springs } from "@/lib/motion";
-import type { CatalogPackItem } from "@/types/pack";
+import type { CatalogPackItem } from "@/types/catalog";
 import { usePackCardViewModel } from "@/hooks/features/usePackCardViewModel";
 
 const MotionButton = motion.create(Button);

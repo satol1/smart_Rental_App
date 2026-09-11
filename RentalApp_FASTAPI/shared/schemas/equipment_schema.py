@@ -128,13 +128,6 @@ class EquipmentUpdateExtended(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class EquipmentTreeItem(BaseModel):
-    label: str
-    value: Optional[int] = None
-    children: List[EquipmentTreeItem] = []
-    model_config = ConfigDict(from_attributes=True)
-
-
 class EquipmentAvailabilityStatus(BaseModel):
     has_active_reservations: bool
     has_active_rentals: bool
@@ -168,10 +161,5 @@ class EquipmentCopyRequest(BaseModel):
     serial_number: Optional[str] = None
     notes: Optional[str] = None
     # Остальные поля копируются как есть
-    
+
     model_config = ConfigDict(from_attributes=True)
-
-
-class EquipmentTreeListResponse(BaseModel):
-    items: List[EquipmentTreeItem]
-    total: int
