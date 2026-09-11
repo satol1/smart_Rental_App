@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import select, and_, or_, func, desc, asc
 from datetime import date
 
-from api.models.reservation import Reservation, ReservationAccessory
+from api.models.reservation import Reservation, ReservationAccessory, reservation_equipment_association
 from api.models.equipment import Equipment
 from api.models.user import User
 from shared.constants.order_status import OrderStatus
@@ -224,11 +224,22 @@ class ReservationFilterRepository(ReservationBaseRepository):
             )
         )
 
+    # Соответствие значений сортировки из UI фронтенда (start_asc, ...) и
+    # исторических имён (start_date_asc, ...) — принимаем оба варианта
+    _SORT_ALIASES = {
+        "start_asc": "start_date_asc",
+        "start_desc": "start_date_desc",
+        "end_asc": "end_date_asc",
+        "end_desc": "end_date_desc",
+    }
+
     def _apply_sorting(self, query, sort: Optional[str]):
         """Применяет сортировку."""
         if not sort:
             return query.order_by(Reservation.id.desc())
-            
+
+        sort = self._SORT_ALIASES.get(sort, sort)
+
         if sort == "start_date_asc":
             return query.order_by(Reservation.start_date.asc())
         elif sort == "start_date_desc":
@@ -241,5 +252,21 @@ class ReservationFilterRepository(ReservationBaseRepository):
             return query.order_by(Reservation.created_at.asc())
         elif sort == "created_at_desc":
             return query.order_by(Reservation.created_at.desc())
+        elif sort == "id_asc":
+            return query.order_by(Reservation.id.asc())
+        elif sort == "id_desc":
+            return query.order_by(Reservation.id.desc())
+        elif sort in ("count_asc", "count_desc"):
+            # Количество единиц оборудования в резерве — коррелированный подзапрос,
+            # чтобы не ломать eager-стратегию основного запроса
+            equipment_count = (
+                select(func.count())
+                .select_from(reservation_equipment_association)
+                .where(reservation_equipment_association.c.reservation_id == Reservation.id)
+                .correlate(Reservation)
+                .scalar_subquery()
+            )
+            direction = asc if sort == "count_asc" else desc
+            return query.order_by(direction(equipment_count), Reservation.id.desc())
         else:
             return query.order_by(Reservation.id.desc())

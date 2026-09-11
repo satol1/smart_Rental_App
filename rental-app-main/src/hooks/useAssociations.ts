@@ -12,7 +12,9 @@ export function useAssociations() {
         queryKey: ASSOCIATIONS_QUERY_KEY,
         queryFn: async () => {
             // Запрашиваем у API объект AssociationListResponse
-            const response = await api.get<AssociationListResponse>("/associations/");
+            const response = await api.get<AssociationListResponse>("/associations/", {
+                params: { limit: 100 },
+            });
             // А возвращаем только массив `items`
             return response.data.items;
         },

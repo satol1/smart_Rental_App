@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { RentalService, type AdminRentalsParams, type ConvertReservationPayload, type ReturnRentalPayload } from "@/core/services";
 import type { AdminRentalListResponse, RentalCreateFromScratchData } from "@/types/rental";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
-import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { getApiErrorMessage, invalidateAvailability } from "@/lib/queryHelpers";
 import type { AdminRentalUpdateData } from "@/core/services";
 
 const ADMIN_RENTALS_QUERY_KEY = ["adminRentals"];
@@ -98,7 +98,7 @@ export function useReturnRental() {
         onSuccess: () => {
             toast.success("Возврат аренды успешно оформлен!");
             queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
         onError: (error) => {
@@ -157,7 +157,7 @@ export function useCreateAdminRentalFromScratch() {
             
             // Инвалидируем кеш
             queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
         onError: (error) => {

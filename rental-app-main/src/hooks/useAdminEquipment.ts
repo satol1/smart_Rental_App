@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { getApiErrorMessage, invalidateAvailability } from "@/lib/queryHelpers";
 import type { Equipment } from "@/types/equipment";
 import { EquipmentService, type EquipmentCopyRequest } from "@/core/services/EquipmentService";
 
@@ -36,7 +36,7 @@ export function useCreateEquipment() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["equipment"] });
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование успешно создано");
         },
@@ -58,7 +58,7 @@ export function useDeleteEquipment() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["equipment"] });
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование удалено");
         },
@@ -86,7 +86,7 @@ export function useBulkDeleteEquipment() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["equipment"] });
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             if (data.blocked_count > 0) {
                 toast.warning(
@@ -138,7 +138,7 @@ export function useCopyEquipment() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["equipment"] });
             queryClient.invalidateQueries({ queryKey: ["allEquipment"] });
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             toast.success("Оборудование успешно скопировано");
         },

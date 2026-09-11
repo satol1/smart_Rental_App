@@ -124,7 +124,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
             // Игнорируем ошибку - локальная очистка всегда происходит
         }
 
-        // Очищаем кэш пользователя
-        queryClient.invalidateQueries({ queryKey: ["current_user"] })
+        // Отменяем in-flight запросы/мутации: onSuccess завершающейся после
+        // logout мутации мог бы пересоздать кэш-записи с данными прошлого аккаунта
+        await queryClient.cancelQueries()
+        // Очищаем весь кэш react-query: ключи списков не содержат user-id,
+        // без clear() следующий аккаунт увидит резервы/баланс предыдущего.
+        // Профиль рефетчится при следующем входе сам (login/register инвалидируют current_user)
+        queryClient.clear()
     },
 }))

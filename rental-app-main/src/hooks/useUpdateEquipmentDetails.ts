@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { invalidateAvailability } from "@/lib/queryHelpers";
 import type { Equipment } from "@/types/equipment";
 import type { EquipmentUpdateExtendedSchema } from "@/lib/validationSchemas";
 
@@ -49,7 +50,7 @@ export function useUpdateEquipmentDetails() {
             );
 
             // 3. Инвалидируем данные о доступности
-            await queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             await queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
             await queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
         },

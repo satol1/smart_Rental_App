@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const apiPost = vi.fn();
 const baseApiPost = vi.fn();
 const invalidateQueries = vi.fn();
+const clearCache = vi.fn();
 
 vi.mock('@/lib/api', () => ({
     api: { post: (...args: unknown[]) => apiPost(...args) },
@@ -13,7 +14,11 @@ vi.mock('@/lib/api', () => ({
 }));
 
 vi.mock('@/lib/queryClient', () => ({
-    queryClient: { invalidateQueries: (...args: unknown[]) => invalidateQueries(...args) },
+    queryClient: {
+        invalidateQueries: (...args: unknown[]) => invalidateQueries(...args),
+        clear: (...args: unknown[]) => clearCache(...args),
+        cancelQueries: vi.fn().mockResolvedValue(undefined),
+    },
 }));
 
 import { useAuthStore } from '@/store/authStore';
@@ -152,6 +157,8 @@ describe('authStore', () => {
 
             expect(baseApiPost).toHaveBeenCalledWith('/auth/logout');
             expect(getAccessToken()).toBeNull();
+            // Кэш react-query обязан очищаться целиком: данные между аккаунтами не текут
+            expect(clearCache).toHaveBeenCalledTimes(1);
         });
 
         it('не падает, если серверный logout недоступен', async () => {

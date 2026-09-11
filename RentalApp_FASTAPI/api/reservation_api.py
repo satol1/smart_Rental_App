@@ -68,7 +68,7 @@ async def get_user_reservations(
         query_service: ReservationQueryService = Depends(Provide[Container.reservation_query_service]),
         status: Optional[str] = Query(None, description="Фильтр по статусу: active, completed, overdue"),
         search: Optional[str] = Query(None, description="Поиск по названию, бренду или типу оборудования"),
-        sort: Optional[str] = Query(None, description="Сортировка: id_desc, id_asc, start_date_desc, start_date_asc, end_date_desc, end_date_asc, count_desc, count_asc"),
+        sort: Optional[str] = Query(None, description="Сортировка: id_desc, id_asc, start_desc, start_asc, end_desc, end_asc, count_desc, count_asc (синонимы start_date_*/end_date_*/created_at_* также принимаются)"),
         skip: int = Query(0, ge=0, description="Количество записей для пропуска"),
         limit: int = Query(100, ge=1, le=100, description="Максимальное количество записей на странице")
 ):

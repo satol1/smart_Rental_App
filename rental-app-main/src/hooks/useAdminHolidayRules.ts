@@ -38,7 +38,9 @@ export function useGetHolidayRules() {
         queryKey: HOLIDAY_RULES_KEY,
         queryFn: async () => {
             // 1. Ожидаем от API объект HolidayRuleListResponse
-            const response = await api.get<HolidayRuleListResponse>("/holidays/rules");
+            const response = await api.get<HolidayRuleListResponse>("/holidays/rules", {
+                params: { limit: 100 },
+            });
             return response.data;
         },
         // 2. С помощью `select` извлекаем и возвращаем только массив `items`

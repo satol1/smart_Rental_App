@@ -1,5 +1,5 @@
 # shared/schemas/dashboard_schema.py
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime, date
 from typing import List, Optional
 
@@ -28,7 +28,9 @@ class TodayFocusItem(BaseModel):
 class ActivityFeedItem(BaseModel):
     id: int  # Добавлено для консистентности с фронтендом
     timestamp: datetime
-    activity_type: str  # "new_reservation", "new_user", "rental_return"
+    # Фронтенд читает поле `type`; сериализуем под него, оставляя
+    # activity_type как alias для конструирования из репозитория
+    activity_type: str = Field(alias="activity_type", serialization_alias="type")
     description: str
     user_name: Optional[str] = None  # Имя пользователя для обогащения ленты событий
     equipment_name: Optional[str] = None  # Название оборудования для обогащения ленты событий

@@ -2,13 +2,13 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
-from sqlalchemy import select, and_, or_, func, case
+from sqlalchemy import select, and_, or_, func, case, asc, desc
 from datetime import date
 from typing import List, Optional, Tuple
 import logging
 
 from .rental_base_repository import RentalBaseRepository
-from api.models.rental import Rental, RentalAccessory
+from api.models.rental import Rental, RentalAccessory, rental_equipment_association
 from api.models.equipment import Equipment
 from shared.constants.order_status import OrderStatus
 from shared.services.period_service import PeriodService
@@ -203,33 +203,7 @@ class RentalQueryRepository(RentalBaseRepository):
         )
 
         # Применяем сортировку
-        if sort:
-            if sort == "start_date_asc":
-                base_query = base_query.order_by(Rental.start_date.asc())
-            elif sort == "start_date_desc":
-                base_query = base_query.order_by(Rental.start_date.desc())
-            elif sort == "end_date_asc":
-                base_query = base_query.order_by(Rental.end_date.asc())
-            elif sort == "end_date_desc":
-                base_query = base_query.order_by(Rental.end_date.desc())
-            elif sort == "total_cost_asc":
-                base_query = base_query.order_by(Rental.total_cost.asc())
-            elif sort == "total_cost_desc":
-                base_query = base_query.order_by(Rental.total_cost.desc())
-            else:
-                # По умолчанию: сначала просроченные, затем по ID в убывающем порядке
-                overdue_case = case(
-                    (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
-                    else_=1
-                ).asc()
-                base_query = base_query.order_by(overdue_case, Rental.id.desc())
-        else:
-            # По умолчанию: сначала просроченные, затем по ID в убывающем порядке
-            overdue_case = case(
-                (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
-                else_=1
-            ).asc()
-            base_query = base_query.order_by(overdue_case, Rental.id.desc())
+        base_query = self._apply_sorting(base_query, sort)
 
         # Применяем пагинацию
         base_query = base_query.offset(skip).limit(limit)
@@ -239,6 +213,62 @@ class RentalQueryRepository(RentalBaseRepository):
         rentals = result.unique().scalars().all()
 
         return rentals, total
+
+    # Соответствие значений сортировки из UI фронтенда (start_asc, ...) и
+    # исторических имён (start_date_asc, ...) — принимаем оба варианта
+    _SORT_ALIASES = {
+        "start_asc": "start_date_asc",
+        "start_desc": "start_date_desc",
+        "end_asc": "end_date_asc",
+        "end_desc": "end_date_desc",
+    }
+
+    def _apply_sorting(self, query, sort: Optional[str]):
+        """Применяет сортировку аренд; по умолчанию — просроченные сначала, затем новые."""
+        def _default(q):
+            overdue_case = case(
+                (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
+                else_=1
+            ).asc()
+            return q.order_by(overdue_case, Rental.id.desc())
+
+        if not sort:
+            return _default(query)
+
+        sort = self._SORT_ALIASES.get(sort, sort)
+
+        if sort == "start_date_asc":
+            return query.order_by(Rental.start_date.asc())
+        if sort == "start_date_desc":
+            return query.order_by(Rental.start_date.desc())
+        if sort == "end_date_asc":
+            return query.order_by(Rental.end_date.asc())
+        if sort == "end_date_desc":
+            return query.order_by(Rental.end_date.desc())
+        if sort == "total_cost_asc":
+            return query.order_by(Rental.total_cost.asc())
+        if sort == "total_cost_desc":
+            return query.order_by(Rental.total_cost.desc())
+        if sort == "created_at_asc":
+            return query.order_by(Rental.created_at.asc())
+        if sort == "created_at_desc":
+            return query.order_by(Rental.created_at.desc())
+        if sort == "id_asc":
+            return query.order_by(Rental.id.asc())
+        if sort == "id_desc":
+            return query.order_by(Rental.id.desc())
+        if sort in ("count_asc", "count_desc"):
+            # Количество единиц оборудования в аренде — коррелированный подзапрос
+            equipment_count = (
+                select(func.count())
+                .select_from(rental_equipment_association)
+                .where(rental_equipment_association.c.rental_id == Rental.id)
+                .correlate(Rental)
+                .scalar_subquery()
+            )
+            direction_fn = asc if sort == "count_asc" else desc
+            return query.order_by(direction_fn(equipment_count), Rental.id.desc())
+        return _default(query)
 
     async def get_rentals_for_return_today(self, today: date) -> List[Rental]:
         """

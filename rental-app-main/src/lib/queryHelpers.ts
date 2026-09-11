@@ -1,6 +1,18 @@
 // src/lib/queryHelpers.ts
 import { toast } from "sonner"
+import type { QueryClient } from "@tanstack/react-query"
 import i18n from "@/i18n"
+
+/**
+ * Инвалидация всех кэшей занятости оборудования.
+ * Реальные ключи запросов: availability-check / daily-availability /
+ * equipment-availability — инвалидация по "availability" ничего не матчит.
+ */
+export function invalidateAvailability(queryClient: QueryClient) {
+    void queryClient.invalidateQueries({ queryKey: ["availability-check"] })
+    void queryClient.invalidateQueries({ queryKey: ["daily-availability"] })
+    void queryClient.invalidateQueries({ queryKey: ["equipment-availability"] })
+}
 
 export function handleQueryError(error: unknown) {
     const message =

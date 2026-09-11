@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { ReservationService } from "@/core/services";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { getApiErrorMessage, invalidateAvailability } from "@/lib/queryHelpers";
 import type { AdminReservationListResponse } from "@/types/reservation";
 
 interface EditReservationInput {
@@ -121,7 +121,7 @@ export function useEditReservation({
             if (onClearState) onClearState();
 
             // 5. Инвалидация связанных данных (хорошая практика)
-            queryClient.invalidateQueries({ queryKey: ["availability"] });
+            invalidateAvailability(queryClient);
             queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
         onError: (error: unknown, variables) => {

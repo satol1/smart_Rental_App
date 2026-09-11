@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ReservationService, type ReservationCreateInput, type ReservationUpdateInput } from "@/core/services/ReservationService";
 import type { Reservation } from "@/types/reservation";
-import { handleQueryError } from "@/lib/queryHelpers";
+import { handleQueryError, invalidateAvailability } from "@/lib/queryHelpers";
 import { useCurrentUser } from "./useProfile";
 import { toast } from "sonner";
 import { transformAccessoryLinks } from "@/lib/utils";
@@ -14,7 +14,7 @@ const RESERVATIONS_KEY = ["reservations"];
 
 const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
     void queryClient.invalidateQueries({ queryKey: RESERVATIONS_KEY });
-    void queryClient.invalidateQueries({ queryKey: ["availability"] });
+    invalidateAvailability(queryClient);
     void queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
 };
 

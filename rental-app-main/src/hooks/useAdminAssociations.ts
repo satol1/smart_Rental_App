@@ -17,7 +17,9 @@ export function useAdminAssociations() {
         queryKey: ADMIN_ASSOCIATIONS_KEY,
         queryFn: async () => {
             // 1. Ожидаем от API объект AssociationListResponse
-            const response = await api.get<AssociationListResponse>("/associations/");
+            const response = await api.get<AssociationListResponse>("/associations/", {
+                params: { limit: 100 },
+            });
             return response.data; // Возвращаем весь объект { items: [...], total: ... }
         },
         // 2. С помощью `select` извлекаем и возвращаем только массив `items`

@@ -59,7 +59,9 @@ export const useSandboxCalculatorStore = create<SandboxCalculatorStore>((set, ge
         if (get().durationDiscountTiers.length > 0 || get().isLoadingTiers) return;
         set({ isLoadingTiers: true });
         try {
-            const response = await api.get<DiscountListResponse>("/discounts/");
+            const response = await api.get<DiscountListResponse>("/discounts/", {
+                params: { limit: 100 },
+            });
             set({ durationDiscountTiers: response.data.items, isLoadingTiers: false });
             const { dayCount } = useDateStore.getState();
             get()._calculateDurationDiscount(dayCount);
