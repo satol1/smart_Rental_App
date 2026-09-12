@@ -187,10 +187,13 @@ class UserService:
                 description=f"Пополнение баланса. Метод: {payment_data.payment_method}."
             )
             
-            # Коммитим транзакцию
-            # Транзакция коммитится middleware
-            # Обновляем объект пользователя после успешной транзакции
-            await self.db.refresh(user_to_update)
+            # Flush обязателен до возврата: add_transaction меняет user.balance
+            # в памяти, не отправляя UPDATE в БД. Прежний db.refresh() перечитывал
+            # объект из БД и сбрасывал это изменение — пополнение оставалось
+            # только в истории баланса, а users.balance не менялся (инцидент
+            # 12.09.2026: +73 070 ₽ в истории при балансе -73 670 ₽).
+            # Коммит выполняет middleware.
+            await self.db.flush()
             return UserOut.model_validate(user_to_update)
 
         except HTTPException:
