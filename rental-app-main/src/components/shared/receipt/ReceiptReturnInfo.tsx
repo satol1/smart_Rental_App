@@ -1,4 +1,5 @@
 import { Clock, AlertTriangle, Receipt } from "lucide-react";
+import { MoneyText } from "@/components/ui/money-text";
 import type { AdminRentalOut } from "@/types/rental";
 
 interface ReceiptReturnInfoProps {
@@ -52,7 +53,7 @@ export default function ReceiptReturnInfo({ rentalData }: ReceiptReturnInfoProps
                             <span className="text-sm font-medium text-success">Залог</span>
                         </div>
                         <p className="text-sm text-success">
-                            Внесенный залог в размере <strong>{rentalData.deposit_amount.toLocaleString()} ₽</strong> возвращается в полном объеме после проверки оборудования при возврате. В случае повреждений, из суммы залога удерживается стоимость ремонта.
+                            Внесенный залог в размере <strong><MoneyText value={rentalData.deposit_amount} /></strong> возвращается в полном объеме после проверки оборудования при возврате. В случае повреждений, из суммы залога удерживается стоимость ремонта.
                         </p>
                     </div>
                 )}

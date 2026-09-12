@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
+import { useDebounce } from "@/hooks/useDebounce";
 import { EquipmentService } from "@/core/services";
 import type { Equipment } from "@/types/equipment";
 
@@ -12,6 +13,8 @@ interface UseCreateReservationDataInputs {
     watchedStartDate: string;
     watchedEndDate: string;
     watchedEquipmentIds: number[];
+    /** Строка поиска пользователя (серверный поиск с debounce) */
+    userSearch?: string;
 }
 
 /**
@@ -22,15 +25,23 @@ export const useCreateReservationData = ({
     equipmentSearch,
     watchedStartDate,
     watchedEndDate,
-    watchedEquipmentIds
+    watchedEquipmentIds,
+    userSearch = "",
 }: UseCreateReservationDataInputs) => {
 
-    // 1. Загрузка исходных данных
-    const { data: usersResponse, isLoading: isLoadingUsers } = useAdminUsers();
+    // 1. Загрузка исходных данных (поиск пользователей — на сервере, с debounce)
+    const debouncedUserSearch = useDebounce(userSearch.trim(), 350);
+    const {
+        data: usersResponse,
+        isLoading: isLoadingUsers,
+        hasNextPage: usersHasNextPage,
+        fetchNextPage: usersFetchNextPage,
+        isFetchingNextPage: usersIsFetchingNextPage,
+    } = useAdminUsers(debouncedUserSearch || undefined);
     const { data: allEquipment = [], isLoading: isLoadingEquipment } = useAllEquipment();
 
-    const users = useMemo(() => 
-        usersResponse?.pages?.flatMap(page => page.items) ?? [], 
+    const users = useMemo(() =>
+        usersResponse?.pages?.flatMap(page => page.items) ?? [],
         [usersResponse]
     );
 
@@ -81,6 +92,9 @@ export const useCreateReservationData = ({
     return {
         users,
         isLoadingUsers,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         allEquipment,
         isLoadingEquipment,
         filteredAndGroupedEquipment,

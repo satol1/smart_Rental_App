@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PackagePlus, Edit, Trash2, Loader2, PackageSearch } from "lucide-react";
 import { useAdminPacks, useDeletePack } from "@/hooks/useAdminPacks";
+import { useTableSort } from "@/hooks/useTableSort";
 import PackDialog from "./PackDialog";
 import type { Pack } from "@/types/pack";
 
 export default function PackTable() {
     const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [editingPack, setEditingPack] = useState<Pack | null>(null);
-    
+    const [deletingPack, setDeletingPack] = useState<Pack | null>(null);
+
     const { data: packs, isLoading, error } = useAdminPacks();
     const deletePackMutation = useDeletePack();
 
@@ -20,16 +24,16 @@ export default function PackTable() {
         setEditingPack(pack);
     };
 
-    const handleDelete = async (packId: number) => {
-        if (window.confirm("Вы уверены, что хотите удалить эту пачку?")) {
-            await deletePackMutation.mutateAsync(packId);
-        }
-    };
-
     const handleCloseDialog = () => {
         setShowCreateDialog(false);
         setEditingPack(null);
     };
+
+    const { sortedItems, sortColumn, sortDirection, onSort } = useTableSort(packs ?? [], {
+        name: (pack) => pack.name,
+        size: (pack) => pack.equipment.length,
+        created: (pack) => pack.created_at,
+    }, { column: "name", direction: "asc" });
 
     if (isLoading) {
         return (
@@ -71,20 +75,20 @@ export default function PackTable() {
             </div>
 
             {/* Таблица пачек */}
-            {packs && packs.length > 0 ? (
+            {sortedItems.length > 0 ? (
                 <div className="border rounded-md">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Название</TableHead>
+                                <SortableTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Название</SortableTableHead>
                                 <TableHead>Описание</TableHead>
-                                <TableHead>Кол-во единиц</TableHead>
-                                <TableHead>Дата создания</TableHead>
+                                <SortableTableHead column="size" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Кол-во единиц</SortableTableHead>
+                                <SortableTableHead column="created" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Дата создания</SortableTableHead>
                                 <TableHead>Действия</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {packs.map((pack) => (
+                            {sortedItems.map((pack) => (
                                 <TableRow key={pack.id}>
                                     <TableCell className="font-medium">
                                         {pack.name}
@@ -120,7 +124,7 @@ export default function PackTable() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleDelete(pack.id)}
+                                                onClick={() => setDeletingPack(pack)}
                                                 disabled={deletePackMutation.isPending}
                                             >
                                                 {deletePackMutation.isPending ? (
@@ -151,6 +155,20 @@ export default function PackTable() {
                 open={showCreateDialog || !!editingPack}
                 onClose={handleCloseDialog}
                 pack={editingPack}
+            />
+
+            <ConfirmationDialog
+                open={!!deletingPack}
+                onOpenChange={(open) => { if (!open) setDeletingPack(null); }}
+                title="Удалить пачку?"
+                description={`Пачка «${deletingPack?.name ?? ""}» будет удалена. Составляющее её оборудование останется в каталоге.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    const pack = deletingPack;
+                    setDeletingPack(null);
+                    if (pack) deletePackMutation.mutate(pack.id);
+                }}
             />
         </div>
     );

@@ -41,16 +41,16 @@ export function getOperationTypeLabel(operationType: string): string {
 export function getOperationTypeColor(_operationType: string, amount: number): string {
   // Операции пополнения (положительные)
   if (amount > 0) {
-    return "text-green-600";
+    return "text-success";
   }
-  
+
   // Операции списания (отрицательные)
   if (amount < 0) {
-    return "text-red-600";
+    return "text-destructive";
   }
-  
+
   // Нейтральные операции
-  return "text-gray-600";
+  return "text-muted-foreground";
 }
 
 /**

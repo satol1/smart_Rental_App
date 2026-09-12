@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead, type SortDirection } from "@/components/ui/sortable-table-head";
 import { UserSearch } from "lucide-react";
 import { UserCreateDialog } from "./UserCreateDialog";
 import { useUserTableLogic } from "@/hooks/admin/useUserTableLogic";
@@ -13,6 +14,13 @@ import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger
 import { SkeletonTable } from '@/components/ui/skeleton-list';
 import type { UserOut } from "@/types/user";
 
+/** Колонки с серверной сортировкой: ключ таблицы → ключ API sort_by */
+const USER_SORT_KEYS: Record<string, { asc: string; desc: string }> = {
+    name: { asc: "name", desc: "name_desc" },
+    email: { asc: "email", desc: "email_desc" },
+    created: { asc: "created", desc: "created_desc" },
+};
+
 interface UserTableProps {
     users: UserOut[];
     isLoading: boolean;
@@ -21,6 +29,12 @@ interface UserTableProps {
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
     onUserUpdated?: (updatedUser: UserOut) => void;
+    /** Серверный поиск: значение поля и колбэк его изменения */
+    search?: string;
+    onSearchChange?: (value: string) => void;
+    /** Серверная сортировка: текущий ключ API и колбэк его изменения */
+    sortBy?: string;
+    onSortChange?: (sortBy: string) => void;
 }
 
 export default function UserTable({
@@ -31,6 +45,10 @@ export default function UserTable({
     hasNextPage,
     isFetchingNextPage,
     onUserUpdated,
+    search,
+    onSearchChange,
+    sortBy,
+    onSortChange,
 }: UserTableProps) {
     const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -46,7 +64,7 @@ export default function UserTable({
         confirmDelete,
         mutations,
         handlers,
-    } = useUserTableLogic(users);
+    } = useUserTableLogic(users, search);
 
     const handleEdit = (user: UserOut) => {
         setSelectedUser(user);
@@ -55,6 +73,21 @@ export default function UserTable({
 
     const handleAddPayment = (user: UserOut) => {
         setPaymentUser(user);
+    };
+
+    // Состояние сортировки выводится из серверного ключа (например "name_desc")
+    const serverSort = sortBy ?? "created_desc";
+    const activeColumn = Object.keys(USER_SORT_KEYS).find((column) =>
+        [USER_SORT_KEYS[column].asc, USER_SORT_KEYS[column].desc].includes(serverSort),
+    ) ?? null;
+    const sortDirection: SortDirection = activeColumn && serverSort === USER_SORT_KEYS[activeColumn].desc
+        ? "desc"
+        : "asc";
+
+    const onSort = (column: string) => {
+        if (!onSortChange || !USER_SORT_KEYS[column]) return;
+        const nextDirection: SortDirection = activeColumn === column && sortDirection === "asc" ? "desc" : "asc";
+        onSortChange(USER_SORT_KEYS[column][nextDirection]);
     };
 
     if (isLoading) {
@@ -73,8 +106,8 @@ export default function UserTable({
         <>
             <div className="space-y-4">
                 <UserTableToolbar
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
+                    searchQuery={search ?? ""}
+                    onSearchChange={(value) => (onSearchChange ? onSearchChange(value) : setSearchQuery(value))}
                     onAddUser={() => setCreateDialogOpen(true)}
                     filteredUserCount={filteredUsers.length}
                     isAdmin={isAdmin}
@@ -84,11 +117,11 @@ export default function UserTable({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Пользователь</TableHead>
-                                <TableHead>Email</TableHead>
+                                <SortableTableHead column="name" sortColumn={activeColumn} sortDirection={sortDirection} onSort={onSort}>Пользователь</SortableTableHead>
+                                <SortableTableHead column="email" sortColumn={activeColumn} sortDirection={sortDirection} onSort={onSort}>Email</SortableTableHead>
                                 <TableHead>Роль</TableHead>
                                 <TableHead>Статус</TableHead>
-                                <TableHead>Дата регистрации</TableHead>
+                                <SortableTableHead column="created" sortColumn={activeColumn} sortDirection={sortDirection} onSort={onSort}>Дата регистрации</SortableTableHead>
                                 {isAdmin && <TableHead className="text-right">Действия</TableHead>}
                             </TableRow>
                         </TableHeader>

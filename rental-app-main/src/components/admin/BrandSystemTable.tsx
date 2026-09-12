@@ -3,7 +3,10 @@
 import { useState, useMemo } from "react";
 import { useAdminBrandSystems, useDeleteBrandSystem } from "@/hooks/useAdminBrandSystems";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
+import { useTableSort } from "@/hooks/useTableSort";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Loader2, ShieldCheck } from "lucide-react";
 import BrandSystemDialog from "./BrandSystemDialog";
@@ -14,10 +17,16 @@ export default function BrandSystemTable() {
     const { data: allEquipment = [] } = useAllEquipment();
     const deleteMutation = useDeleteBrandSystem();
     
-    const [dialogState, setDialogState] = useState<{ isOpen: boolean; system: BrandSystem | null }>({ 
-        isOpen: false, 
-        system: null 
+    const [dialogState, setDialogState] = useState<{ isOpen: boolean; system: BrandSystem | null }>({
+        isOpen: false,
+        system: null
     });
+    const [deletingSystem, setDeletingSystem] = useState<BrandSystem | null>(null);
+
+    const { sortedItems, sortColumn, sortDirection, onSort } = useTableSort(systems, {
+        name: (system) => system.name,
+        count: (system) => system.equipment_ids.length,
+    }, { column: "name", direction: "asc" });
 
     // Преобразуем полный список оборудования в формат для выпадающего меню
     const equipmentOptions = useMemo(() =>
@@ -33,10 +42,8 @@ export default function BrandSystemTable() {
         setDialogState({ isOpen: true, system: null });
     };
 
-    const handleDelete = (id: number) => {
-        if (window.confirm("Удалить систему бренда? Это действие нельзя отменить.")) {
-            deleteMutation.mutate(id);
-        }
+    const handleDelete = (system: BrandSystem) => {
+        setDeletingSystem(system);
     };
 
     if (isLoading) {
@@ -65,18 +72,18 @@ export default function BrandSystemTable() {
                 </Button>
             </div>
 
-            {systems.length > 0 ? (
+            {sortedItems.length > 0 ? (
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Название</TableHead>
+                            <SortableTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Название</SortableTableHead>
                             <TableHead>Описание</TableHead>
-                            <TableHead>Кол-во оборудования</TableHead>
+                            <SortableTableHead column="count" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Кол-во оборудования</SortableTableHead>
                             <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {systems.map((system) => (
+                        {sortedItems.map((system) => (
                             <TableRow key={system.id}>
                                 <TableCell className="font-medium">
                                     {system.name}
@@ -104,7 +111,7 @@ export default function BrandSystemTable() {
                                             variant="ghost" 
                                             size="icon" 
                                             className="text-destructive"
-                                            onClick={() => handleDelete(system.id)}
+                                            onClick={() => handleDelete(system)}
                                             title="Удалить"
                                             aria-label="Удалить бренд"
                                         >
@@ -133,6 +140,20 @@ export default function BrandSystemTable() {
                 onClose={() => setDialogState({ isOpen: false, system: null })}
                 brandSystem={dialogState.system}
                 allEquipment={equipmentOptions}
+            />
+
+            <ConfirmationDialog
+                open={!!deletingSystem}
+                onOpenChange={(open) => { if (!open) setDeletingSystem(null); }}
+                title="Удалить систему бренда?"
+                description={`Система «${deletingSystem?.name ?? ""}» будет удалена безвозвратно.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    const system = deletingSystem;
+                    setDeletingSystem(null);
+                    if (system) deleteMutation.mutate(system.id);
+                }}
             />
         </div>
     );

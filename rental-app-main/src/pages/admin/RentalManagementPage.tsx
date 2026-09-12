@@ -12,6 +12,7 @@ import RentalReceiptDialog from "@/components/admin/RentalReceiptDialog";
 import type { AdminRentalOut } from "@/types/rental";
 import OrderToolbar from "@/components/shared/OrderToolbar";
 import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useDebounce } from "@/hooks/useDebounce";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
@@ -24,8 +25,9 @@ export default function RentalManagementPage() {
     const [returnTarget, setReturnTarget] = useState<AdminRentalOut | null>(null);
     const [isCreateRentalOpen, setCreateRentalOpen] = useState(false);
 
-    // Получаем параметры фильтрации из стора
-    const { searchQuery, statusFilter, periodType, periodOffset } = useOrderFilterStore();
+    // Получаем параметры фильтрации из стора (поиск — с debounce)
+    const { searchQuery: rawSearchQuery, statusFilter, periodType, periodOffset } = useOrderFilterStore();
+    const searchQuery = useDebounce(rawSearchQuery, 350);
     
     // Получаем состояние диалога бланка аренды
     const { isOpen, rentalData, closeReceipt } = useRentalReceiptStore();

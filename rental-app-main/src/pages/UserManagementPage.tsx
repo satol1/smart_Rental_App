@@ -1,8 +1,9 @@
 // src/pages/UserManagementPage.tsx
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useCurrentUser } from "@/hooks/useProfile";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useQueryClient } from "@tanstack/react-query";
 import UserTable from "@/components/admin/UserTable";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,12 @@ export default function UserManagementPage() {
     const { data: currentUser } = useCurrentUser();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    
+
+    // Поиск и сортировка выполняются на сервере; поиск — с debounce
+    const [search, setSearch] = useState("");
+    const debouncedSearch = useDebounce(search.trim(), 350);
+    const [sortBy, setSortBy] = useState("created_desc");
+
     // Получаем данные пользователей с пагинацией
     const {
         data: usersData,
@@ -22,7 +28,7 @@ export default function UserManagementPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useAdminUsers();
+    } = useAdminUsers(debouncedSearch || undefined, sortBy);
 
     // Объединяем все страницы в один массив пользователей
     const allUsers = useMemo(() => {
@@ -85,7 +91,7 @@ export default function UserManagementPage() {
 
             {/* Основной контент */}
             <div className="bg-card rounded-lg border shadow-sm p-6">
-                <UserTable 
+                <UserTable
                     users={allUsers}
                     isLoading={isLoading}
                     error={error}
@@ -93,27 +99,31 @@ export default function UserManagementPage() {
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={isFetchingNextPage}
                     onUserUpdated={handleUserUpdated}
+                    search={search}
+                    onSearchChange={setSearch}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
                 />
             </div>
 
             {/* Дополнительная информация для менеджеров */}
             {!isAdmin && (
-                <div className="bg-warning-soft border border-amber-200 rounded-lg p-4">
+                <div className="bg-warning-soft border border-warning/30 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                         <Shield className="w-5 h-5 text-warning mt-0.5" />
                         <div className="text-sm">
-                            <p className="font-medium text-amber-800 mb-1">
+                            <p className="font-medium text-warning mb-1">
                                 Ограниченный доступ
                             </p>
-                            <p className="text-amber-700">
+                            <p className="text-warning">
                                 Как менеджер, вы можете просматривать список пользователей, но не можете:
                             </p>
-                            <ul className="list-disc list-inside mt-2 text-amber-700 space-y-1">
+                            <ul className="list-disc list-inside mt-2 text-warning space-y-1">
                                 <li>Изменять роли пользователей</li>
                                 <li>Блокировать или разблокировать пользователей</li>
                                 <li>Удалять учетные записи</li>
                             </ul>
-                            <p className="text-amber-700 mt-2">
+                            <p className="text-warning mt-2">
                                 Для выполнения этих действий обратитесь к администратору.
                             </p>
                         </div>
@@ -134,7 +144,7 @@ export default function UserManagementPage() {
                         </ul>
                     </div>
                     <div className="bg-card p-3 rounded border">
-                        <div className="font-medium text-blue-900 mb-2">🛡️ Менеджер</div>
+                        <div className="font-medium text-primary mb-2">🛡️ Менеджер</div>
                         <ul className="text-muted-foreground space-y-1">
                             <li>• Все права пользователя</li>
                             <li>• Управление оборудованием</li>
@@ -143,7 +153,7 @@ export default function UserManagementPage() {
                         </ul>
                     </div>
                     <div className="bg-card p-3 rounded border">
-                        <div className="font-medium text-red-900 mb-2">👑 Администратор</div>
+                        <div className="font-medium text-destructive mb-2">👑 Администратор</div>
                         <ul className="text-muted-foreground space-y-1">
                             <li>• Все права менеджера</li>
                             <li>• Управление пользователями</li>

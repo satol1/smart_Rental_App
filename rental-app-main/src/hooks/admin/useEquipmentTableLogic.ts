@@ -25,6 +25,9 @@ export const useEquipmentTableLogic = (equipment: Equipment[] = []) => {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    // Удаление — через явное подтверждение в UI (ConfirmationDialog), не window.confirm
+    const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null);
+    const [pendingBulkDeleteCount, setPendingBulkDeleteCount] = useState<number | null>(null);
 
     const deleteEquipmentMutation = useDeleteEquipment();
     const bulkDeleteMutation = useBulkDeleteEquipment();
@@ -69,22 +72,33 @@ export const useEquipmentTableLogic = (equipment: Equipment[] = []) => {
             }
 
             const equipmentToDelete = filteredEquipment.find(item => item.id === itemId);
-            if (window.confirm(`Удалить "${equipmentToDelete?.name}"? Действие нельзя отменить.`)) {
-                deleteEquipmentMutation.mutate(itemId);
-            }
+            setPendingDelete({ id: itemId, name: equipmentToDelete?.name ?? `#${itemId}` });
         } catch (err) {
             toast.error("Ошибка при проверке статуса оборудования.");
             console.error("Availability check failed:", err);
         }
     };
 
+    const confirmDelete = () => {
+        if (!pendingDelete) return;
+        deleteEquipmentMutation.mutate(pendingDelete.id);
+        setPendingDelete(null);
+    };
+
     const handleBulkDelete = () => {
         if (!isManager || selectedIds.length === 0) return;
-        if (window.confirm(`Удалить ${selectedIds.length} ед. оборудования?`)) {
-            bulkDeleteMutation.mutate(selectedIds, {
-                onSuccess: () => setSelectedIds([]),
-            });
+        setPendingBulkDeleteCount(selectedIds.length);
+    };
+
+    const confirmBulkDelete = () => {
+        if (pendingBulkDeleteCount == null || selectedIds.length === 0) {
+            setPendingBulkDeleteCount(null);
+            return;
         }
+        bulkDeleteMutation.mutate(selectedIds, {
+            onSuccess: () => setSelectedIds([]),
+        });
+        setPendingBulkDeleteCount(null);
     };
 
     const handlers = {
@@ -107,5 +121,11 @@ export const useEquipmentTableLogic = (equipment: Equipment[] = []) => {
         deleteEquipmentMutation,
         bulkDeleteMutation,
         handlers,
+        pendingDelete,
+        cancelDelete: () => setPendingDelete(null),
+        confirmDelete,
+        pendingBulkDeleteCount,
+        cancelBulkDelete: () => setPendingBulkDeleteCount(null),
+        confirmBulkDelete,
     };
 };

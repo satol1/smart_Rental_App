@@ -31,14 +31,14 @@ export default function EmptyStateWithActions({
     return (
         <div className={`text-center py-12 ${className}`}>
             <div className="flex items-center justify-center mb-6">
-                <Icon className="w-16 h-16 text-gray-400" />
+                <Icon className="w-16 h-16 text-muted-foreground/60" />
             </div>
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+
+            <h3 className="text-xl font-semibold text-foreground mb-3">
                 {title}
             </h3>
-            
-            <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
                 {description}
             </p>
             

@@ -25,7 +25,7 @@ export default function EquipmentMediaInfo() {
                             {...control.register("image_url")}
                             placeholder="https://example.com/main_image.jpg"
                         />
-                        {errors.image_url && <p className="text-xs text-red-600 mt-1">{errors.image_url.message}</p>}
+                        {errors.image_url && <p className="text-xs text-destructive mt-1">{errors.image_url.message}</p>}
                     </div>
 
                     <div>
@@ -46,7 +46,7 @@ export default function EquipmentMediaInfo() {
                                 />
                             )}
                         />
-                        {errors.image_urls && <p className="text-xs text-red-600 mt-1">{errors.image_urls.message as string}</p>}
+                        {errors.image_urls && <p className="text-xs text-destructive mt-1">{errors.image_urls.message as string}</p>}
                     </div>
                 </div>
             </details>

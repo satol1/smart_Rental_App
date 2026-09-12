@@ -64,22 +64,22 @@ export default function EquipmentCopyDialog({ isOpen, onClose, sourceEquipment }
                         {/* Поля для изменения */}
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-foreground mb-1">
                                     Название *
                                 </label>
                                 <Input {...form.register("name")} />
                                 {form.formState.errors.name && (
-                                    <p className="text-red-500 text-sm mt-1">{form.formState.errors.name.message}</p>
+                                    <p className="text-destructive text-sm mt-1">{form.formState.errors.name.message}</p>
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-foreground mb-1">
                                     Серийный номер
                                 </label>
                                 <Input {...form.register("serial_number")} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-foreground mb-1">
                                     Заметки
                                 </label>
                                 <Textarea {...form.register("notes")} rows={3} />
@@ -87,24 +87,24 @@ export default function EquipmentCopyDialog({ isOpen, onClose, sourceEquipment }
                         </div>
                         
                         {/* Read-only поля из исходного оборудования */}
-                        <div className="space-y-2 p-4 bg-gray-50 rounded">
-                            <h4 className="font-medium text-gray-900">Копируемые данные:</h4>
+                        <div className="space-y-2 p-4 bg-muted rounded">
+                            <h4 className="font-medium text-foreground">Копируемые данные:</h4>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div>
-                                    <span className="font-medium text-gray-700">Тип:</span>
-                                    <span className="ml-2 text-gray-900">{sourceEquipment.equipment_type}</span>
+                                    <span className="font-medium text-muted-foreground">Тип:</span>
+                                    <span className="ml-2 text-foreground">{sourceEquipment.equipment_type}</span>
                                 </div>
                                 <div>
-                                    <span className="font-medium text-gray-700">Бренд:</span>
-                                    <span className="ml-2 text-gray-900">{sourceEquipment.brand}</span>
+                                    <span className="font-medium text-muted-foreground">Бренд:</span>
+                                    <span className="ml-2 text-foreground">{sourceEquipment.brand}</span>
                                 </div>
                                 <div>
-                                    <span className="font-medium text-gray-700">Состояние:</span>
-                                    <span className="ml-2 text-gray-900">{sourceEquipment.condition}</span>
+                                    <span className="font-medium text-muted-foreground">Состояние:</span>
+                                    <span className="ml-2 text-foreground">{sourceEquipment.condition}</span>
                                 </div>
                                 <div>
-                                    <span className="font-medium text-gray-700">Тариф:</span>
-                                    <span className="ml-2 text-gray-900">{sourceEquipment.daily_rate} ₽/день</span>
+                                    <span className="font-medium text-muted-foreground">Тариф:</span>
+                                    <span className="ml-2 text-foreground">{sourceEquipment.daily_rate} ₽/день</span>
                                 </div>
                             </div>
                         </div>

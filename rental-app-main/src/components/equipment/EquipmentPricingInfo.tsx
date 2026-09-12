@@ -36,7 +36,7 @@ export default function EquipmentPricingInfo() {
                     )}
                 />
                 {errors.condition && (
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="text-xs text-destructive mt-1">
                         {errors.condition.message}
                     </p>
                 )}
@@ -61,7 +61,7 @@ export default function EquipmentPricingInfo() {
                         />
                     )}
                 />
-                {errors.daily_rate && <p className="text-xs text-red-600 mt-1">{errors.daily_rate.message}</p>}
+                {errors.daily_rate && <p className="text-xs text-destructive mt-1">{errors.daily_rate.message}</p>}
             </div>
         </div>
     );

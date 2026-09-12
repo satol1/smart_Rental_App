@@ -20,10 +20,10 @@ export default function ViewModeToggle() {
           className="flex items-center"
           aria-label="Переключатель вида карточек"
       >
-        <ToggleGroupItem value="default" aria-label="Стандартный вид" className="p-2 h-9 w-9">
+        <ToggleGroupItem value="default" aria-label="Стандартный вид" className="p-2 h-11 w-11">
           <LayoutGrid className="h-4 w-4" />
         </ToggleGroupItem>
-        <ToggleGroupItem value="compact" aria-label="Компактный вид" className="p-2 h-9 w-9">
+        <ToggleGroupItem value="compact" aria-label="Компактный вид" className="p-2 h-11 w-11">
           <List className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>

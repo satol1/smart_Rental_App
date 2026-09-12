@@ -28,7 +28,7 @@ export default function ConflictIndicator({
     return null;
   }
 
-  const conflictColorClass = availability.status === 'rented' ? 'bg-red-100' : 'bg-amber-100';
+  const conflictColorClass = availability.status === 'rented' ? 'bg-danger-soft' : 'bg-warning-soft';
   const statusText = availability.status === 'rented' ? 'В аренде' : 'В резерве';
   
   // Форматируем диапазон дат конфликта
@@ -45,7 +45,7 @@ export default function ConflictIndicator({
   if (variant === 'minimal') {
     return (
       <div className={cn("flex items-center gap-1", className)}>
-        <AlertTriangle className="h-3 w-3 text-red-500" />
+        <AlertTriangle className="h-3 w-3 text-destructive" />
         <span className="text-xs font-medium">{statusText}</span>
       </div>
     );
@@ -56,7 +56,7 @@ export default function ConflictIndicator({
       <div className={cn("p-2 rounded-md transition-colors", conflictColorClass, className)}>
         {showDetails && conflictDateRange && (
           <div className="flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3 text-red-500" />
+            <AlertTriangle className="h-3 w-3 text-destructive" />
             <span className="text-xs font-medium">{conflictDateRange}</span>
           </div>
         )}
@@ -67,10 +67,10 @@ export default function ConflictIndicator({
   // variant === 'inline' (по умолчанию)
   return (
     <div className={cn("flex items-center gap-1", className)}>
-      <AlertTriangle className="h-3 w-3 text-red-500" />
+      <AlertTriangle className="h-3 w-3 text-destructive" />
       <span className="text-xs font-medium">{statusText}</span>
       {showDetails && conflictDateRange && (
-        <span className="text-xs text-red-600 ml-1">
+        <span className="text-xs text-destructive ml-1">
           ({conflictDateRange})
         </span>
       )}

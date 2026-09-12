@@ -21,6 +21,11 @@ interface CreateReservationStep1DetailsProps {
     form: UseFormReturn<CreateReservationFormData>;
     users: UserOut[];
     isLoadingUsers: boolean;
+    userSearch: string;
+    setUserSearch: (query: string) => void;
+    usersHasNextPage: boolean;
+    usersFetchNextPage: () => void;
+    usersIsFetchingNextPage: boolean;
     equipmentSearch: string;
     setEquipmentSearch: (query: string) => void;
     isLoadingEquipment: boolean;
@@ -32,6 +37,11 @@ export const CreateReservationStep1Details = ({
     form,
     users,
     isLoadingUsers,
+    userSearch,
+    setUserSearch,
+    usersHasNextPage,
+    usersFetchNextPage,
+    usersIsFetchingNextPage,
     equipmentSearch,
     setEquipmentSearch,
     isLoadingEquipment,
@@ -145,6 +155,11 @@ export const CreateReservationStep1Details = ({
                         label="Пользователь *"
                         users={users || []}
                         isLoading={isLoadingUsers}
+                        search={userSearch}
+                        onSearchChange={setUserSearch}
+                        hasNextPage={usersHasNextPage}
+                        onLoadMore={() => void usersFetchNextPage()}
+                        isFetchingNextPage={usersIsFetchingNextPage}
                         error={errors.user_id?.message}
                     />
                     {isPersonaNonGrata && (

@@ -17,6 +17,8 @@ interface Props {
 const CreateReservationDialogContent = () => {
     const {
         step, setStep, form, users, isLoadingUsers,
+        userSearch, setUserSearch,
+        usersHasNextPage, usersFetchNextPage, usersIsFetchingNextPage,
         equipmentSearch, setEquipmentSearch,
         isLoadingEquipment, filteredAndGroupedEquipment, availabilityMap,
         equipmentWithAccessories, isLoadingAvailability, hasConflictsInSelection,
@@ -47,6 +49,11 @@ const CreateReservationDialogContent = () => {
                             form={form}
                             users={users}
                             isLoadingUsers={isLoadingUsers}
+                            userSearch={userSearch}
+                            setUserSearch={setUserSearch}
+                            usersHasNextPage={usersHasNextPage}
+                            usersFetchNextPage={usersFetchNextPage}
+                            usersIsFetchingNextPage={usersIsFetchingNextPage}
                             equipmentSearch={equipmentSearch}
                             setEquipmentSearch={setEquipmentSearch}
                             isLoadingEquipment={isLoadingEquipment}

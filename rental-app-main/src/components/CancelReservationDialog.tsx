@@ -24,7 +24,7 @@ export default function CancelReservationDialog({ open, onClose, onConfirm }: Pr
                     <DialogTitle className="text-lg font-semibold">Отменить оформление?</DialogTitle>
                 </DialogHeader>
                 {/* 👇 ИСПОЛЬЗУЕМ DialogDescription вместо p */}
-                <DialogDescription className="text-sm text-gray-600">
+                <DialogDescription className="text-sm text-muted-foreground">
                     Все выбранные позиции будут удалены, а вы вернётесь на главную страницу.
                 </DialogDescription>
                 <DialogFooter className="pt-4">
@@ -32,7 +32,7 @@ export default function CancelReservationDialog({ open, onClose, onConfirm }: Pr
                         Отмена
                     </Button>
                     <Button
-                        className="bg-red-700 hover:bg-red-800 text-white"
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         onClick={onConfirm}
                     >
                         Подтвердить отмену

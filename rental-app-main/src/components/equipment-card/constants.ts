@@ -6,20 +6,20 @@ type StatusKey = EquipmentStatus | "my_reservation" | "added";
 
 // Стили ТОЛЬКО для цвета текста
 export const STATUS_TEXT_STYLES: Record<StatusKey, string> = {
-    available: "text-green-600",
+    available: "text-success",
     reserved: "text-reserved-foreground",
-    rented: "text-red-600",
-    my_reservation: "text-sky-700",
-    added: "text-emerald-600",
+    rented: "text-destructive",
+    my_reservation: "text-primary",
+    added: "text-success",
 };
 
 // Стили ТОЛЬКО для цвета фона
 export const STATUS_BACKGROUND_STYLES: Record<StatusKey, string> = {
-    available: "bg-white",
-    reserved: "bg-white",
-    rented: "bg-white",
-    my_reservation: "bg-sky-50",
-    added: "bg-emerald-50",
+    available: "bg-card",
+    reserved: "bg-card",
+    rented: "bg-card",
+    my_reservation: "bg-info-soft",
+    added: "bg-success-soft",
 };
 
 // Текстовые описания для статусов

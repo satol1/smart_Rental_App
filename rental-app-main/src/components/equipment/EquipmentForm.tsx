@@ -9,7 +9,7 @@ import { useAccessories } from "@/hooks/useAdminAccessories";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
 import type { Equipment } from "@/types/equipment";
 import { formatDate } from "@/lib/utils";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
 // Импорты подкомпонентов
@@ -25,9 +25,10 @@ type Props = {
     initialData?: Equipment;
     onSuccess: (data: Equipment) => void;
     onCancel: () => void;
+    onDirtyChange?: (dirty: boolean) => void;
 };
 
-export default function EquipmentForm({ mode, initialData, onSuccess, onCancel }: Props) {
+export default function EquipmentForm({ mode, initialData, onSuccess, onCancel, onDirtyChange }: Props) {
     const { data: allEquipmentData = [] } = useAllEquipment();
     const { data: allAccessories = [], isLoading: isLoadingAccessories } = useAccessories(1, 500);
 
@@ -101,9 +102,13 @@ export default function EquipmentForm({ mode, initialData, onSuccess, onCancel }
 
     const {
         handleSubmit,
-        reset,
         formState: { isDirty, isValid },
     } = form;
+
+    // Поднимаем признак несохранённых изменений наверх (guard закрытия диалога)
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Форма инициализируется с правильными defaultValues
 
@@ -127,7 +132,8 @@ export default function EquipmentForm({ mode, initialData, onSuccess, onCancel }
     };
 
     const handleCancel = () => {
-        reset();
+        // Диалог сам решает, закрываться ли (guard несохранённых изменений в EquipmentDialog).
+        // reset() здесь запрещён: он затирал бы правки ещё ДО подтверждения закрытия.
         onCancel();
     };
 

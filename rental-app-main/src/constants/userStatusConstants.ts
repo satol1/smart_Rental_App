@@ -92,11 +92,12 @@ export const USER_STATUS_BADGE_VARIANTS: Record<UserStatus, "default" | "seconda
  * Цвета для индикации статусов в UI
  */
 export const USER_STATUS_COLORS: Record<UserStatus, string> = {
-    [USER_STATUS.NEW]: "text-gray-600 bg-gray-100",
-    [USER_STATUS.REGULAR]: "text-blue-600 bg-blue-100",
-    [USER_STATUS.VIP]: "text-purple-600 bg-purple-100",
-    [USER_STATUS.BLOCKED]: "text-red-600 bg-red-100",
-    [USER_STATUS.PERSONA_NON_GRATA]: "text-red-800 bg-red-200",
+    [USER_STATUS.NEW]: "text-muted-foreground bg-muted",
+    [USER_STATUS.REGULAR]: "text-primary bg-info-soft",
+    [USER_STATUS.VIP]: "text-pastel-sky-fg bg-collection-sky",
+    [USER_STATUS.BLOCKED]: "text-destructive bg-danger-soft",
+    // Персона нон грата — сплошная заливка: визуально жёстче блокировки
+    [USER_STATUS.PERSONA_NON_GRATA]: "text-destructive-foreground bg-destructive",
 };
 
 /**

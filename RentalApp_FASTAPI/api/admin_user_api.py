@@ -39,13 +39,15 @@ async def get_all_users(
         repo: UserRepository = Depends(Provide[Container.user_repo]),
         current_user: PermissionUser = Depends(require_manager),
         skip: int = Query(0, ge=0, description="Сколько записей пропустить"),
-        limit: int = Query(10, ge=1, le=100, description="Максимальное количество записей на странице")
+        limit: int = Query(10, ge=1, le=100, description="Максимальное количество записей на странице"),
+        search: str | None = Query(None, min_length=1, max_length=100, description="Поиск по ФИО, email и телефону"),
+        sort_by: str = Query("created_desc", pattern="^(created|created_desc|name|name_desc|email|email_desc)$", description="Ключ сортировки"),
 ):
     """
-    Получает список всех пользователей в системе с пагинацией.
+    Получает список всех пользователей в системе с пагинацией, поиском и сортировкой.
     Доступно для пользователей с ролью 'manager' и 'admin'.
     """
-    users_orm, total_users = await repo.get_all_paginated(skip, limit)
+    users_orm, total_users = await repo.get_all_paginated(skip, limit, search=search, sort_by=sort_by)
 
     return UserListResponse(
         items=[UserOut.model_validate(user) for user in users_orm],

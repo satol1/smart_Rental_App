@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, X, Loader2, Calendar, DollarSign, FileText } from "lucide-react";
+import { MoneyText } from "@/components/ui/money-text";
 import { useAdminRentalEdit } from "@/hooks/admin/useAdminRentalEdit";
 
 import ActiveRentalFinancialBlock from "@/components/admin/ActiveRentalFinancialBlock";
@@ -86,7 +87,7 @@ export default function EditableRentalCard({ rental, onCancel }: Props) {
                                             placeholder="0.00"
                                         />
                                         <p className="text-xs text-muted-foreground">
-                                            Текущая предоплата: {rental.prepayment_amount.toLocaleString('ru-RU')} ₽
+                                            Текущая предоплата: <MoneyText value={rental.prepayment_amount} />
                                         </p>
                                         {errors.prepayment_amount && <p className="text-xs text-destructive mt-1">{errors.prepayment_amount.message}</p>}
                                     </div>

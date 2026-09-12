@@ -21,6 +21,7 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
     // 1. Состояние UI диалога
     const [step, setStep] = useState<'details' | 'accessories'>('details');
     const [equipmentSearch, setEquipmentSearch] = useState("");
+    const [userSearch, setUserSearch] = useState("");
 
     // 2. Управление формой через специализированный хук
     const { form, watch, trigger, handleSubmit, reset } = useCreateReservationForm();
@@ -33,6 +34,9 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
     const {
         users,
         isLoadingUsers,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         allEquipment,
         isLoadingEquipment,
         filteredAndGroupedEquipment,
@@ -45,6 +49,7 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
         watchedStartDate,
         watchedEndDate,
         watchedEquipmentIds,
+        userSearch,
     });
 
     // 4. Расчет финансов
@@ -111,6 +116,7 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
                 end_date: formatDate(tomorrowDate),
             });
             setEquipmentSearch("");
+            setUserSearch("");
             setStep('details');
             clearPromoCode(); // Сбрасываем промокод при закрытии диалога
         }
@@ -123,6 +129,11 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
         isSubmitting: createReservationMutation.isPending,
         users,
         isLoadingUsers,
+        userSearch,
+        setUserSearch,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         allEquipment,
         isLoadingEquipment,
         equipmentSearch,

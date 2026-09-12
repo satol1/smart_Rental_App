@@ -25,7 +25,7 @@ export default function EquipmentDescriptionEditor() {
                     </div>
                 )}
             />
-            {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>}
+            {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
         </div>
     );
 }

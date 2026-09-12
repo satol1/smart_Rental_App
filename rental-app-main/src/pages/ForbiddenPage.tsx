@@ -5,11 +5,11 @@ export default function ForbiddenPage() {
     const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 space-y-6">
-            <h1 className="text-8xl font-extrabold text-red-500">403</h1>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h1 className="text-8xl font-extrabold text-destructive">403</h1>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Доступ запрещен
             </h2>
-            <p className="max-w-md text-lg text-gray-600">
+            <p className="max-w-md text-lg text-muted-foreground">
                 У вас нет прав для просмотра этого раздела.
                 Если вы считаете, что это ошибка, обратитесь к администратору.
             </p>

@@ -58,7 +58,7 @@ export default function EquipmentDetailsView({
             {allImages.length > 0 ? (
                 <div className="space-y-3">
                     {/* Главное изображение */}
-                    <div className="w-full h-64 rounded-lg overflow-hidden bg-gray-100 border shadow-sm">
+                    <div className="w-full h-64 rounded-lg overflow-hidden bg-muted border shadow-sm">
                         <img 
                             src={allImages[currentImageIndex]} 
                             alt={`${equipment.name} - изображение ${currentImageIndex + 1}`} 
@@ -78,7 +78,7 @@ export default function EquipmentDetailsView({
                                     className={`flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border cursor-pointer transition-all p-0 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                                         index === currentImageIndex
                                             ? 'border-primary ring-2 ring-primary/30'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                            : 'border-border hover:border-input'
                                     }`}
                                     onClick={() => handleThumbnailClick(index)}
                                 >
@@ -95,24 +95,24 @@ export default function EquipmentDetailsView({
                     )}
                 </div>
             ) : (
-                <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg border">
-                    <ImageIcon className="w-16 h-16 text-gray-300" />
+                <div className="w-full h-64 bg-muted flex items-center justify-center rounded-lg border">
+                    <ImageIcon className="w-16 h-16 text-muted-foreground/40" />
                 </div>
             )}
 
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-tight pt-2">
+            <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight pt-2">
                 {equipment.equipment_type} {equipment.brand} {equipment.name}
             </h3>
 
             <div className="mt-2 space-y-1">
-                <p><span className="font-medium text-gray-700">Цена:</span> {equipment.daily_rate} ₽ / день</p>
-                <p><span className="font-medium text-gray-700">Состояние:</span> {equipment.condition}</p>
+                <p><span className="font-medium text-foreground">Цена:</span> {equipment.daily_rate} ₽ / день</p>
+                <p><span className="font-medium text-foreground">Состояние:</span> {equipment.condition}</p>
             </div>
 
             {equipment.accessories && equipment.accessories.length > 0 && (
                 <div className="pt-3 mt-3 border-t">
-                    <p className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                        <Paperclip className="w-4 h-4 text-gray-500"/>
+                    <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <Paperclip className="w-4 h-4 text-muted-foreground"/>
                         Доступные аксессуары:
                     </p>
                     <ul className="space-y-1.5">
@@ -123,10 +123,10 @@ export default function EquipmentDetailsView({
                                 : stagedAccessoryIds.has(acc.id);
 
                             return (
-                                <li key={acc.id} className="flex justify-between items-center bg-gray-50/70 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                                <li key={acc.id} className="flex justify-between items-center bg-muted/70 p-2 rounded-md hover:bg-muted transition-colors">
                                     <div>
                                         <span className="font-medium">{acc.name}</span>
-                                        <span className="text-xs text-gray-600 ml-2">{acc.price} ₽</span>
+                                        <span className="text-xs text-muted-foreground ml-2">{acc.price} ₽</span>
                                     </div>
                                     <Button
                                         size="icon"
@@ -160,8 +160,8 @@ export default function EquipmentDetailsView({
             {/* ... остальные блоки (описание, служебная информация) остаются без изменений ... */}
             {equipment.description && (
                 <div className="pt-3 mt-3 border-t">
-                    <p className="font-semibold text-gray-800 mb-1">Описание:</p>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
+                    <p className="font-semibold text-foreground mb-1">Описание:</p>
+                    <div className="prose prose-sm max-w-none text-muted-foreground bg-muted p-3 rounded-md border border-border dark:prose-invert">
                         <ReactMarkdown>{equipment.description}</ReactMarkdown>
                     </div>
                 </div>
@@ -169,14 +169,14 @@ export default function EquipmentDetailsView({
 
             {canViewAdminInfo && (equipment.notes || equipment.last_maintenance) && (
                 <div className="pt-3 mt-3 border-t space-y-2">
-                    <h4 className="text-sm font-semibold text-sky-700">Служебная информация:</h4>
+                    <h4 className="text-sm font-semibold text-primary">Служебная информация:</h4>
                     {equipment.last_maintenance && (
-                        <p className="text-xs text-gray-600"><strong>Последнее ТО:</strong> {formatDateEuropean(equipment.last_maintenance)}</p>
+                        <p className="text-xs text-muted-foreground"><strong>Последнее ТО:</strong> {formatDateEuropean(equipment.last_maintenance)}</p>
                     )}
                     {equipment.notes && (
                         <div>
-                            <p className="text-xs font-semibold text-gray-600 mb-0.5">Заметки:</p>
-                            <p className="text-xs text-gray-500 whitespace-pre-wrap bg-gray-50 p-2 rounded-md border border-gray-200">{equipment.notes}</p>
+                            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Заметки:</p>
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap bg-muted p-2 rounded-md border border-border">{equipment.notes}</p>
                         </div>
                     )}
                 </div>

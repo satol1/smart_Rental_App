@@ -31,6 +31,7 @@ export const EquipmentTableToolbar = ({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
                 placeholder="Поиск по названию, бренду, типу..."
+                aria-label="Поиск оборудования по названию, бренду или типу"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="pl-10"

@@ -25,36 +25,66 @@ class AccessoryRepository(BaseRepository[Accessory, AccessoryCreate, AccessoryUp
         """
         super().__init__(db, model=Accessory)
     
-    async def get_all_paginated(self, skip: int, limit: int) -> Tuple[List[Accessory], int]:
+    # Белый список колонок сортировки списка аксессуаров
+    SORT_COLUMNS = {
+        "id": Accessory.id,
+        "name": Accessory.name,
+        "type": Accessory.accessory_type,
+        "price": Accessory.price,
+    }
+
+    async def get_all_paginated(
+        self,
+        skip: int,
+        limit: int,
+        search: str | None = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ) -> Tuple[List[Accessory], int]:
         """
-        Получение всех аксессуаров с пагинацией.
-        
+        Получение всех аксессуаров с пагинацией и опциональным поиском.
+
         Выполняет два асинхронных запроса:
-        1. Подсчет общего количества аксессуаров
+        1. Подсчет общего количества аксессуаров (с учётом фильтра)
         2. Получение страницы аксессуаров с offset и limit
-        
+
         Args:
             skip: Количество записей для пропуска (offset)
             limit: Максимальное количество записей для возврата
-            
+            search: Подстрока для поиска по названию/типу (регистронезависимо)
+
         Returns:
             Кортеж, содержащий список объектов Accessory и общее количество
         """
-        # Первый запрос: подсчет общего количества аксессуаров
-        count_result = await self.db.execute(
-            select(func.count(Accessory.id))
-        )
+        search_filter = None
+        # Пустая/пробельная строка после strip не должна превращаться в шаблон "%%"
+        # (он отсекал бы строки с NULL в accessory_type)
+        if search and search.strip():
+            pattern = f"%{search.strip()}%"
+            search_filter = or_(
+                Accessory.name.ilike(pattern),
+                Accessory.accessory_type.ilike(pattern),
+            )
+
+        count_query = select(func.count(Accessory.id))
+        sort_column = self.SORT_COLUMNS.get(sort_by, Accessory.name)
+        order_expr = sort_column.desc() if sort_order == "desc" else sort_column.asc()
+        # id — tie-breaker для стабильной пагинации
+        page_query = select(Accessory).order_by(order_expr, Accessory.id)
+        if search_filter is not None:
+            count_query = count_query.where(search_filter)
+            page_query = page_query.where(search_filter)
+
+        count_result = await self.db.execute(count_query)
         total_count = count_result.scalar()
-        
-        # Второй запрос: получение страницы аксессуаров
+
         accessories_result = await self.db.execute(
-            select(Accessory)
+            page_query
             .offset(skip)
             .limit(limit)
-            .order_by(Accessory.name)  # Сортируем по имени для консистентности
         )
         accessories = accessories_result.scalars().all()
-        
+
         return accessories, total_count
     
     async def get_by_ids(self, accessory_ids: List[int]) -> List[Accessory]:

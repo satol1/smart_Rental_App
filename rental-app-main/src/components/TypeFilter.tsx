@@ -1,36 +1,15 @@
 // src/components/TypeFilter.tsx
-import React, { type ReactNode } from "react";
+import React from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useFilterStore } from "@/store/filterStore"
 import { getFilterToggleClass } from "@/components/ui/filter-toggle"
-import {
-    Camera,
-    Aperture,
-    Lightbulb,
-    Mic,
-    Video,
-    Grip,
-    Headphones,
-    Laptop,
-    Package,
-    List,
-} from "lucide-react"
+import { List } from "lucide-react"
+import { getEquipmentTypeIcon } from "@/lib/equipmentTypeIcons"
 
-// Вспомогательная функция для сопоставления типа оборудования с иконкой
-const getIconForType = (type: string): ReactNode => {
-    const iconMap: Record<string, ReactNode> = {
-        "Фотокамера": <Camera />,
-        "Объектив": <Aperture />,
-        "Свет": <Lightbulb />,
-        "Микрофон": <Mic />,
-        "Экшн камера": <Video />,
-        "Штативы": <Grip />,
-        "Аудиооборудование": <Headphones />,
-        "Компьютерная техника": <Laptop />,
-        "Прочее": <Package />,
-    }
-    // Возвращаем соответствующую иконку или null, если совпадения не найдены
-    return iconMap[type] || null
+// Иконка типа каталога: матчинг по подстрокам с fallback Package (см. lib/equipmentTypeIcons)
+const getIconForType = (type: string): React.ReactElement | null => {
+    const Icon = getEquipmentTypeIcon(type);
+    return Icon ? <Icon /> : null;
 }
 
 interface TypeFilterProps {

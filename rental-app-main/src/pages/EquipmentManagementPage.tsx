@@ -134,9 +134,9 @@ export default function EquipmentManagementPage() {
             </div>
 
             {/* Блоки с советами и состояниями остаются без изменений */}
-            <div className="bg-info-soft border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-3">💡 Полезные советы</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+            <div className="bg-info-soft border border-primary/30 rounded-lg p-4">
+                <h3 className="font-semibold text-foreground mb-3">💡 Полезные советы</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-foreground">
                     <div>
                         <p className="font-medium mb-2">Добавление оборудования:</p>
                         <ul className="space-y-1">
@@ -158,23 +158,23 @@ export default function EquipmentManagementPage() {
             <div className="bg-muted rounded-lg p-4">
                 <h3 className="font-semibold text-foreground mb-3">Состояния оборудования</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                    <div className="bg-green-100 text-green-800 p-2 rounded text-center">
+                    <div className="bg-success-soft text-success p-2 rounded text-center">
                         <div className="font-medium">Великолепно</div>
                         <div className="text-xs">Как новое</div>
                     </div>
-                    <div className="bg-blue-100 text-blue-800 p-2 rounded text-center">
+                    <div className="bg-info-soft text-foreground p-2 rounded text-center">
                         <div className="font-medium">Отлично</div>
                         <div className="text-xs">Минимальный износ</div>
                     </div>
-                    <div className="bg-yellow-100 text-yellow-800 p-2 rounded text-center">
+                    <div className="bg-warning-soft text-warning p-2 rounded text-center">
                         <div className="font-medium">Хорошо</div>
                         <div className="text-xs">Небольшие потертости</div>
                     </div>
-                    <div className="bg-orange-100 text-orange-800 p-2 rounded text-center">
+                    <div className="bg-warning-soft text-warning p-2 rounded text-center">
                         <div className="font-medium">Удовлетворительно</div>
                         <div className="text-xs">Заметный износ</div>
                     </div>
-                    <div className="bg-red-100 text-red-800 p-2 rounded text-center">
+                    <div className="bg-danger-soft text-destructive p-2 rounded text-center">
                         <div className="font-medium">Требует ремонта</div>
                         <div className="text-xs">Не сдается</div>
                     </div>

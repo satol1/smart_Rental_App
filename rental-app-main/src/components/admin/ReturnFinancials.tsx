@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MoneyText } from "@/components/ui/money-text";
 import type { AdminRentalOut } from "@/types/rental";
 import { formatBalance, getBalanceColor } from "@/lib/balanceUtils";
 
@@ -48,12 +49,12 @@ export default function ReturnFinancials({
                 </div>
                 <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Стоимость аренды:</span>
-                    <span className="font-medium">{rental.total_cost.toLocaleString()} ₽</span>
+                    <span className="font-medium"><MoneyText value={rental.total_cost} /></span>
                 </div>
                 {rental.discount_amount > 0 && (
                     <div className="flex justify-between text-success">
                         <span className="text-sm">Скидка:</span>
-                        <span className="font-medium">- {rental.discount_amount.toLocaleString()} ₽</span>
+                        <span className="font-medium">- <MoneyText value={rental.discount_amount} /></span>
                     </div>
                 )}
                 {rental.promo_code && (
@@ -64,22 +65,22 @@ export default function ReturnFinancials({
                 )}
                 <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Внесенная предоплата:</span>
-                    <span className="font-medium">{rental.prepayment_amount.toLocaleString()} ₽</span>
+                    <span className="font-medium"><MoneyText value={rental.prepayment_amount} /></span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Остаток к оплате:</span>
                     <span className={`font-medium ${dynamicRemainingAmount > 0 ? 'text-destructive' : 'text-success'}`}>
-                        {dynamicRemainingAmount.toLocaleString()} ₽
+                        <MoneyText value={dynamicRemainingAmount} />
                     </span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Внесенный залог:</span>
-                    <span className="font-medium">{rental.deposit_amount.toLocaleString()} ₽</span>
+                    <span className="font-medium"><MoneyText value={rental.deposit_amount} /></span>
                 </div>
                 {overdueSurcharge && overdueSurcharge > 0 && (
                     <div className="flex justify-between text-destructive font-semibold pt-2 border-t border-dashed">
                         <span>Штраф за просрочку:</span>
-                        <span>+ {overdueSurcharge.toLocaleString()} ₽</span>
+                        <span>+ <MoneyText value={overdueSurcharge} /></span>
                     </div>
                 )}
             </div>

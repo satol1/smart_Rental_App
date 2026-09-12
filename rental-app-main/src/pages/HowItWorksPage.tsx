@@ -129,7 +129,7 @@ export default function HowItWorksPage() {
                   {/* Статус "Новый" */}
                   <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-muted text-muted-foreground text-xs font-medium rounded">
                         {USER_STATUS.NEW}
                       </div>
                       <span className="text-sm text-muted-foreground">(по умолчанию для новых пользователей)</span>
@@ -140,7 +140,7 @@ export default function HowItWorksPage() {
                         <span>Максимум <strong>{MAX_RESERVATIONS_BY_STATUS[USER_STATUS.NEW]}</strong> активных резерва одновременно</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
                         <span>Редактирование и отмена резерва возможны только за <strong>более чем {EDIT_RESTRICTION_DAYS[USER_STATUS.NEW]} дня</strong> до начала</span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export default function HowItWorksPage() {
                   {/* Статус "Постоянный" */}
                   <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-blue-100 text-foreground text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-info-soft text-primary text-xs font-medium rounded">
                         {USER_STATUS.REGULAR}
                       </div>
                       <span className="text-sm text-muted-foreground">(от 3 успешных аренд)</span>
@@ -164,7 +164,7 @@ export default function HowItWorksPage() {
                         <span>Максимум <strong>{MAX_RESERVATIONS_BY_STATUS[USER_STATUS.REGULAR]}</strong> активных резервов одновременно</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
                         <span>Редактирование и отмена резерва возможны только за <strong>более чем {EDIT_RESTRICTION_DAYS[USER_STATUS.REGULAR]} день</strong> до начала</span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -177,7 +177,7 @@ export default function HowItWorksPage() {
                   {/* Статус "VIP" */}
                   <div className="border-b border-border py-5 last:border-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="px-2 py-1 bg-purple-100 text-foreground text-xs font-medium rounded">
+                      <div className="px-2 py-1 bg-collection-sky text-pastel-sky-fg text-xs font-medium rounded">
                         {USER_STATUS.VIP}
                       </div>
                       <span className="text-sm text-muted-foreground">(от 7 успешных аренд)</span>
@@ -195,7 +195,7 @@ export default function HowItWorksPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="mt-4 p-3 bg-warning-soft border border-warning/30 rounded-lg">
                   <p className="text-xs text-warning">
                     <strong>Важно:</strong> Если вы не можете отредактировать или отменить резерв самостоятельно, 
                     обратитесь к менеджеру через кнопку "Написать менеджеру" в карточке резерва.

@@ -16,31 +16,31 @@ export const STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
     active: {
         text: "Активен",
         Icon: Calendar,
-        colorClass: "text-blue-600",
-        badgeClass: "bg-blue-50 border-blue-200 text-blue-800"
+        colorClass: "text-primary",
+        badgeClass: "bg-info-soft border-primary/30 text-primary"
     },
     completed: {
         text: "Завершен",
         Icon: CheckCircle,
-        colorClass: "text-gray-600",
-        badgeClass: "bg-gray-100 border-gray-200 text-gray-800"
+        colorClass: "text-muted-foreground",
+        badgeClass: "bg-muted border-border text-muted-foreground"
     },
     overdue: {
         text: "Просрочен",
         Icon: AlertTriangle,
-        colorClass: "text-orange-600",
-        badgeClass: "bg-orange-50 border-orange-200 text-orange-800"
+        colorClass: "text-warning",
+        badgeClass: "bg-warning-soft border-warning/30 text-warning"
     },
     fulfilled: {
         text: "Выдан в аренду",
         Icon: Truck,
-        colorClass: "text-green-600",
-        badgeClass: "bg-green-50 border-green-200 text-green-800"
+        colorClass: "text-success",
+        badgeClass: "bg-success-soft border-success/30 text-success"
     },
     cancelled: {
         text: "Отменен",
         Icon: XCircle,
-        colorClass: "text-gray-600",
-        badgeClass: "bg-gray-100 border-gray-200 text-gray-800"
+        colorClass: "text-muted-foreground",
+        badgeClass: "bg-muted border-border text-muted-foreground"
     }
 };

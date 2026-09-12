@@ -72,9 +72,9 @@ export default function SimpleDatePickerField<TFieldValues extends FieldValues =
               id={name}
               type="date"
               className={cn(
-                "border rounded px-3 py-1 text-sm shadow-sm w-full focus:ring-sky-500 focus:border-sky-500",
-                (error || holidayError) && "border-red-500 focus:ring-red-500 focus:border-red-500",
-                disabled && "opacity-50 cursor-not-allowed bg-gray-100",
+                "border rounded px-3 py-1 text-sm shadow-sm w-full focus:ring-primary focus:border-primary",
+                (error || holidayError) && "border-destructive focus:ring-destructive focus:border-destructive",
+                disabled && "opacity-50 cursor-not-allowed bg-muted",
                 inputClassName
               )}
               value={field.value ? formatDateForInput(new Date(field.value)) : ""}
@@ -102,11 +102,11 @@ export default function SimpleDatePickerField<TFieldValues extends FieldValues =
       
       {/* Отображение ошибок */}
       {error && (
-        <p className="text-xs text-red-600">{error}</p>
+        <p className="text-xs text-destructive">{error}</p>
       )}
-      
+
       {holidayError && (
-        <p className="text-xs text-red-600">{holidayError}</p>
+        <p className="text-xs text-destructive">{holidayError}</p>
       )}
     </div>
   );

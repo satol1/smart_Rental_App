@@ -3,6 +3,7 @@ import { ArrowRight, Check, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { MoneyText } from '@/components/ui/money-text';
 import { CardImage } from '@/components/equipment-card/CardImage';
 import { usePackCardViewModel } from '@/hooks/features/usePackCardViewModel';
 import { buttonGesture, springs, transitionBase } from '@/lib/motion';
@@ -51,7 +52,7 @@ export default function PackCard({ pack, onOpenDetails }: PackCardProps) {
           <p>{pack.brand} · {pack.equipment_type}</p>
           <p>{t('catalogDesign.group')}</p>
           <div className="equipment-price">
-            {isLoadingPrice ? <span>{t('catalogDesign.priceLoading')}</span> : priceDetails && isAvailable ? <><strong>{priceDetails.final_total.toLocaleString('ru-RU')} ₽</strong><span>{t('catalogDesign.periodPrice')}</span></> : <span>{t('catalogDesign.unavailable')}</span>}
+            {isLoadingPrice ? <span>{t('catalogDesign.priceLoading')}</span> : priceDetails && isAvailable ? <><strong><MoneyText value={priceDetails.final_total} /></strong><span>{t('catalogDesign.periodPrice')}</span></> : <span>{t('catalogDesign.unavailable')}</span>}
           </div>
         </div>
         <div className="mt-auto space-y-3 pt-5">

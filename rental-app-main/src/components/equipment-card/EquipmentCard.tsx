@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { formatDateRangeEuropean } from "@/lib/utils";
+import { MoneyText } from "@/components/ui/money-text";
 import { springs, transitionBase } from "@/lib/motion";
 
 // Подкомпоненты
@@ -134,14 +135,14 @@ const EquipmentCardComponent: React.FC<EquipmentCardProps> = (props) => {
                 <div className="equipment-tile-body">
                     <div className="equipment-tile-info">
                         <h3><button type="button" className="equipment-tile-title" onClick={() => setShowDetails(true)} aria-label={t("catalogDesign.details", { name: equipment.name })}>{equipment.name}</button></h3>
-                        <p className="text-sm text-gray-500 mb-2">{equipment.brand} • {equipment.equipment_type}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{equipment.brand} • {equipment.equipment_type}</p>
                         {equipment.short_description && <p className="line-clamp-2">{equipment.short_description}</p>}
                         {isUnderRepair ? (
-                            <p className="text-base font-bold text-gray-500 mb-1">{getEquipmentStatusText(equipment)}</p>
+                            <p className="text-base font-bold text-muted-foreground mb-1">{getEquipmentStatusText(equipment)}</p>
                         ) : (
                             <>
                                 <p>{t("catalogDesign.condition", { condition: equipment.condition })}</p>
-                                <div className="equipment-price"><strong>{equipment.daily_rate.toLocaleString("ru-RU")} ₽</strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
+                                <div className="equipment-price"><strong><MoneyText value={equipment.daily_rate} /></strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
                             </>
                         )}
                         {isCalculatorVisible && <DiscountInfo {...discountData} />}
@@ -256,14 +257,14 @@ const EquipmentCardLegacyComponent: React.FC<EquipmentCardLegacyProps> = (props)
                 <div className="equipment-tile-body">
                     <div className="equipment-tile-info">
                         <h3><button type="button" className="equipment-tile-title" onClick={() => setShowDetails(true)} aria-label={t("catalogDesign.details", { name: equipment.name })}>{equipment.name}</button></h3>
-                        <p className="text-sm text-gray-500 mb-2">{equipment.brand} • {equipment.equipment_type}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{equipment.brand} • {equipment.equipment_type}</p>
                         {equipment.short_description && <p className="line-clamp-2">{equipment.short_description}</p>}
                         {isUnderRepair ? (
-                            <p className="text-base font-bold text-gray-500 mb-1">{getEquipmentStatusText(equipment)}</p>
+                            <p className="text-base font-bold text-muted-foreground mb-1">{getEquipmentStatusText(equipment)}</p>
                         ) : (
                             <>
                                 <p>{t("catalogDesign.condition", { condition: equipment.condition })}</p>
-                                <div className="equipment-price"><strong>{equipment.daily_rate.toLocaleString("ru-RU")} ₽</strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
+                                <div className="equipment-price"><strong><MoneyText value={equipment.daily_rate} /></strong><span>/ {t("catalogDesign.dailyRate")}</span></div>
                             </>
                         )}
                         {isCalculatorVisible && <DiscountInfo {...discountData} />}

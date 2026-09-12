@@ -58,24 +58,24 @@ export default function CalendarEventDetailsModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {hasExtendedAccess && ('user' in order ? order.user?.full_name : order.user_info?.full_name) ? (
                             <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-500" />
+                                <User className="w-4 h-4 text-muted-foreground" />
                                 <span>{'user' in order ? order.user?.full_name : order.user_info?.full_name}</span>
                             </div>
                         ) : isOwner ? (
                             <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-500" />
-                                <span className="text-blue-600 font-medium">
+                                <User className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-primary font-medium">
                                     {orderType === 'reservation' ? 'Мой резерв' : 'Моя аренда'}
                                 </span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-500" />
-                                <span className="text-gray-500">Информация недоступна</span>
+                                <User className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Информация недоступна</span>
                             </div>
                         )}
                         <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
                             <span>{formatDate(order.start_date)} - {formatDate(order.end_date)}</span>
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export default function CalendarEventDetailsModal({
                                 showTitle={false}
                             />
                         ) : (
-                            <div className="pl-6 text-gray-500">Информация недоступна</div>
+                            <div className="pl-6 text-muted-foreground">Информация недоступна</div>
                         )}
                     </div>
 

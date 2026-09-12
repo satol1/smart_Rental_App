@@ -28,11 +28,21 @@ export interface AccessoryValidationResult {
 
 export class AccessoryService {
     /**
-     * Получает все аксессуары с пагинацией
+     * Получает все аксессуары с пагинацией, поиском и сортировкой
      */
-    static async getAllAccessories(skip: number, limit: number): Promise<AccessoryListResponse> {
+    static async getAllAccessories(
+        skip: number,
+        limit: number,
+        options?: { search?: string; sortBy?: string; sortOrder?: "asc" | "desc" },
+    ): Promise<AccessoryListResponse> {
         const response = await api.get("/accessories/", {
-            params: { skip, limit }
+            params: {
+                skip,
+                limit,
+                ...(options?.search ? { search: options.search } : {}),
+                ...(options?.sortBy ? { sort_by: options.sortBy } : {}),
+                ...(options?.sortOrder ? { sort_order: options.sortOrder } : {}),
+            }
         });
         // ВАЖНО: API возвращает объект { items: [], total: 0 },
         // и теперь наш сервис корректно его обрабатывает.

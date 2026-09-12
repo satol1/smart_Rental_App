@@ -18,7 +18,7 @@ export default function EquipmentBasicInfo({ equipmentTypes, equipmentBrands }: 
             <div>
                 <Label htmlFor="name">Название</Label>
                 <Input id="name" {...control.register("name")} />
-                {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -46,7 +46,7 @@ export default function EquipmentBasicInfo({ equipmentTypes, equipmentBrands }: 
                             );
                         }}
                     />
-                    {errors.equipment_type && <p className="text-xs text-red-600 mt-1">{errors.equipment_type.message}</p>}
+                    {errors.equipment_type && <p className="text-xs text-destructive mt-1">{errors.equipment_type.message}</p>}
                 </div>
                 <div>
                     <Label htmlFor="brand">Бренд</Label>
@@ -72,7 +72,7 @@ export default function EquipmentBasicInfo({ equipmentTypes, equipmentBrands }: 
                             );
                         }}
                     />
-                    {errors.brand && <p className="text-xs text-red-600 mt-1">{errors.brand.message}</p>}
+                    {errors.brand && <p className="text-xs text-destructive mt-1">{errors.brand.message}</p>}
                 </div>
             </div>
 
@@ -83,13 +83,13 @@ export default function EquipmentBasicInfo({ equipmentTypes, equipmentBrands }: 
                     {...control.register("short_description")} 
                     placeholder="Например: Профессиональная беззеркальная камера..." 
                 />
-                {errors.short_description && <p className="text-xs text-red-600 mt-1">{errors.short_description.message}</p>}
+                {errors.short_description && <p className="text-xs text-destructive mt-1">{errors.short_description.message}</p>}
             </div>
 
             <div>
                 <Label htmlFor="serial_number">Серийный номер</Label>
                 <Input id="serial_number" {...control.register("serial_number")} />
-                {errors.serial_number && <p className="text-xs text-red-600 mt-1">{errors.serial_number.message}</p>}
+                {errors.serial_number && <p className="text-xs text-destructive mt-1">{errors.serial_number.message}</p>}
             </div>
         </>
     );

@@ -80,6 +80,8 @@ export default function EquipmentSelector<TFieldValues extends FieldValues = Fie
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Поиск..." 
+          aria-label="Поиск оборудования"
+
           value={searchQuery} 
           onChange={(e) => onSearchChange(e.target.value)} 
           className="pl-10" 
@@ -105,7 +107,7 @@ export default function EquipmentSelector<TFieldValues extends FieldValues = Fie
                           <button 
                             type="button" 
                             onClick={() => toggleSection(type)} 
-                            className="w-full flex items-center gap-1 font-semibold text-md sticky top-0 bg-white/80 backdrop-blur-sm py-1 cursor-pointer z-10"
+                            className="w-full flex items-center gap-1 font-semibold text-md sticky top-0 bg-card/80 backdrop-blur-sm py-1 cursor-pointer z-10"
                           >
                             <ChevronRight className={cn(
                               "w-4 h-4 transition-transform", 
@@ -122,7 +124,7 @@ export default function EquipmentSelector<TFieldValues extends FieldValues = Fie
                                 <button 
                                   type="button" 
                                   onClick={() => toggleSection(brandKey)} 
-                                  className="w-full flex items-center gap-1 font-medium text-sm text-gray-600 hover:text-black"
+                                  className="w-full flex items-center gap-1 font-medium text-sm text-muted-foreground hover:text-foreground"
                                 >
                                   <ChevronRight className={cn(
                                     "w-4 h-4 transition-transform", 
@@ -142,8 +144,8 @@ export default function EquipmentSelector<TFieldValues extends FieldValues = Fie
                                           key={item.id} 
                                           className={cn(
                                             "p-2 rounded-md transition-colors",
-                                            hasConflict && (availability.status === 'rented' ? 'bg-red-100' : 'bg-amber-100'),
-                                            !hasConflict && "hover:bg-gray-50"
+                                            hasConflict && (availability.status === 'rented' ? 'bg-danger-soft' : 'bg-warning-soft'),
+                                            !hasConflict && "hover:bg-muted"
                                           )}
                                         >
                                           <div className="flex items-center gap-3">
@@ -196,7 +198,7 @@ export default function EquipmentSelector<TFieldValues extends FieldValues = Fie
       </div>
       
       {error && (
-        <p className="text-xs text-red-600">{error}</p>
+        <p className="text-xs text-destructive">{error}</p>
       )}
     </div>
   );

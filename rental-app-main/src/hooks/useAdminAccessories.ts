@@ -32,14 +32,19 @@ export function useAccessories(page: number = 1, pageSize: number = 20) {
 }
 
 // Хук для получения полного ответа с метаданными пагинации
-export function useAccessoriesWithPagination(page: number = 1, pageSize: number = 20) {
+export function useAccessoriesWithPagination(
+    page: number = 1,
+    pageSize: number = 20,
+    options?: { search?: string; sortBy?: string; sortOrder?: "asc" | "desc" },
+) {
     const skip = (page - 1) * pageSize;
 
     return useQuery<AccessoryListResponse>({
-        queryKey: ["accessories", page, pageSize],
+        queryKey: ["accessories", page, pageSize, options?.search ?? "", options?.sortBy ?? "name", options?.sortOrder ?? "asc"],
         queryFn: async () => {
-            return await AccessoryService.getAllAccessories(skip, pageSize);
+            return await AccessoryService.getAllAccessories(skip, pageSize, options);
         },
+        placeholderData: (prev) => prev, // не мигает список при смене страницы/поиска
         staleTime: 5 * 60 * 1000, // 5 минут
     });
 }

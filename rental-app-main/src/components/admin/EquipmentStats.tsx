@@ -1,5 +1,6 @@
 // src/components/admin/EquipmentStats.tsx
 import { useMemo } from 'react';
+import { MoneyText } from "@/components/ui/money-text";
 import type { Equipment } from "@/types/equipment";
 
 interface Props {
@@ -35,7 +36,7 @@ export const EquipmentStats = ({ equipment }: Props) => {
                 <div className="text-sm text-muted-foreground">Брендов</div>
             </div>
             <div className="text-center">
-                <div className="text-2xl font-bold">{stats.avgRate.toLocaleString()} ₽</div>
+                <div className="text-2xl font-bold"><MoneyText value={stats.avgRate} /></div>
                 <div className="text-sm text-muted-foreground">Средний тариф</div>
             </div>
         </div>

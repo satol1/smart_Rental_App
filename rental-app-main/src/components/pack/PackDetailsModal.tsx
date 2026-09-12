@@ -176,23 +176,23 @@ export default function PackDetailsModal({
             <DialogContent className={`${modalWidthClass} max-h-[90vh] overflow-hidden flex flex-col`}>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Package className="w-5 h-5 text-blue-600" />
+                        <Package className="w-5 h-5 text-primary" />
                         {pack.name}
                     </DialogTitle>
-                    <div className="text-sm text-gray-600 mt-1 space-y-1">
+                    <div className="text-sm text-muted-foreground mt-1 space-y-1">
                         <p>{pack.equipment_ids.length} единиц оборудования в пачке</p>
                         {!isLoading && equipmentData.length > 0 && (
                             <div className="flex gap-4 text-xs">
-                                <span className="text-green-600">
+                                <span className="text-success">
                                     Доступно: {availabilityStats.available}
                                 </span>
                                 {availabilityStats.reserved > 0 && (
-                                    <span className="text-orange-600">
+                                    <span className="text-warning">
                                         Зарезервировано: {availabilityStats.reserved}
                                     </span>
                                 )}
                                 {availabilityStats.rented > 0 && (
-                                    <span className="text-red-600">
+                                    <span className="text-destructive">
                                         В аренде: {availabilityStats.rented}
                                     </span>
                                 )}
@@ -230,7 +230,7 @@ export default function PackDetailsModal({
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                         Выбрано позиций: {selectedCount}
                     </div>
                     <div className="flex gap-2">

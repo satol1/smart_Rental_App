@@ -124,7 +124,7 @@ export default function BalanceHistoryTable({ userId, isAdminView = false, useLo
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center gap-2 text-gray-500 py-8">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span>Загрузка истории транзакций...</span>
             </div>
@@ -133,7 +133,7 @@ export default function BalanceHistoryTable({ userId, isAdminView = false, useLo
 
     if (isError) {
         return (
-            <div className="flex items-center justify-center gap-2 text-red-600 bg-red-50 p-4 rounded-md">
+            <div className="flex items-center justify-center gap-2 text-destructive bg-danger-soft p-4 rounded-md">
                 <AlertTriangle className="h-5 w-5" />
                 <span>Ошибка загрузки: {error?.message || "Не удалось получить данные"}</span>
             </div>
@@ -142,8 +142,8 @@ export default function BalanceHistoryTable({ userId, isAdminView = false, useLo
 
     if (history.length === 0) {
         return (
-            <div className="text-center py-10 text-gray-500 border-2 border-dashed rounded-lg">
-                <Inbox className="mx-auto h-12 w-12 text-gray-300" />
+            <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+                <Inbox className="mx-auto h-12 w-12 text-muted-foreground" />
                 <p className="mt-2 font-medium">История транзакций пуста</p>
                 <p className="text-sm">Здесь будут отображаться все движения по вашему счету.</p>
             </div>
@@ -200,7 +200,7 @@ export default function BalanceHistoryTable({ userId, isAdminView = false, useLo
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleDeleteClick(entry.id, entry.description || '', entry.amount)}
-                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                className="h-8 w-8 p-0 text-destructive hover:bg-danger-soft"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>

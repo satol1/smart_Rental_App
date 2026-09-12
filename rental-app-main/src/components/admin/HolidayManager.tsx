@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 type ConflictInfo = {
     date: Date;
@@ -146,6 +147,9 @@ export default function HolidayManager() {
     const [month, setMonth] = useState(new Date());
     const [description, setDescription] = useState("");
     const [conflict, setConflict] = useState<ConflictInfo | null>(null);
+    // Удаления — только через явное подтверждение
+    const [holidayToDelete, setHolidayToDelete] = useState<Date | null>(null);
+    const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
     const [autoExtension, setAutoExtension] = useState<AutoExtensionInfo | null>(null);
 
     const startDate = startOfMonth(month);
@@ -209,15 +213,11 @@ export default function HolidayManager() {
     };
 
     const handleDeleteHoliday = (date: Date) => {
-        if (window.confirm(`Вы уверены, что хотите удалить выходной ${format(date, 'dd.MM.yyyy')}?`)) {
-            deleteMutation.mutate(date);
-        }
+        setHolidayToDelete(date);
     };
 
     const handleDeleteRule = (ruleId: number) => {
-        if (window.confirm(`Вы уверены, что хотите удалить это правило и все созданные им будущие выходные?`)) {
-            deleteRuleMutation.mutate(ruleId);
-        }
+        setRuleToDelete(ruleId);
     };
 
     const isLoading = isLoadingHolidays || isLoadingRules;
@@ -364,6 +364,34 @@ export default function HolidayManager() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ConfirmationDialog
+                open={!!holidayToDelete}
+                onOpenChange={(open) => { if (!open) setHolidayToDelete(null); }}
+                title="Удалить выходной?"
+                description={`Выходной ${holidayToDelete ? format(holidayToDelete, 'dd.MM.yyyy') : ''} будет удалён. Аренды и резервы, продлённые из-за него, останутся без изменений.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    const date = holidayToDelete;
+                    setHolidayToDelete(null);
+                    if (date) deleteMutation.mutate(date);
+                }}
+            />
+
+            <ConfirmationDialog
+                open={ruleToDelete != null}
+                onOpenChange={(open) => { if (!open) setRuleToDelete(null); }}
+                title="Удалить правило выходных?"
+                description="Правило и все созданные им будущие выходные будут удалены. Действие нельзя отменить."
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    const ruleId = ruleToDelete;
+                    setRuleToDelete(null);
+                    if (ruleId != null) deleteRuleMutation.mutate(ruleId);
+                }}
+            />
         </div>
     );
 }

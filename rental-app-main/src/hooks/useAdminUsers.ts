@@ -47,13 +47,16 @@ export function useAdminUpdateUser() {
     });
 }
 
-// Получение всех пользователей с пагинацией (для менеджеров и администраторов)
-export function useAdminUsers() {
+// Получение всех пользователей с пагинацией, поиском и сортировкой (для менеджеров и администраторов)
+export function useAdminUsers(search?: string, sortBy?: string) {
     return useInfiniteQuery<UserListResponse>({
-        queryKey: ["admin", "users"],
+        queryKey: ["admin", "users", search ?? "", sortBy ?? "created_desc"],
         queryFn: async ({ pageParam = 0 }) => {
             const skip = (pageParam as number) * 15; // 15 пользователей на страницу
-            return await UserService.getAllUsers(skip, 15);
+            return await UserService.getAllUsers(skip, 15, {
+                ...(search ? { search } : {}),
+                ...(sortBy ? { sortBy } : {}),
+            });
         },
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {

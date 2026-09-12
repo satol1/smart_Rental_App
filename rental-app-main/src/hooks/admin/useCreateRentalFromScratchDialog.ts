@@ -21,6 +21,7 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
     // 1. Состояние UI диалога
     const [step, setStep] = useState<'details' | 'finalization'>('details');
     const [equipmentSearch, setEquipmentSearch] = useState("");
+    const [userSearch, setUserSearch] = useState("");
     
     // Состояние для отслеживания новых позиций при переходе между шагами
     const [newlyAddedIds, setNewlyAddedIds] = useState<Set<number>>(new Set());
@@ -38,6 +39,9 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
     const {
         users,
         isLoadingUsers,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         allEquipment,
         isLoadingEquipment,
         filteredAndGroupedEquipment,
@@ -50,6 +54,7 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
         watchedStartDate,
         watchedEndDate,
         watchedEquipmentIds,
+        userSearch,
     });
 
     // 4. Расчет финансов (промокод — в скоупе создания аренды, отдельном от диалога резерва)
@@ -162,6 +167,7 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
                 notes_on_issue: ""
             });
             setEquipmentSearch("");
+            setUserSearch("");
             setStep('details');
             clearPromoCode(); // Сбрасываем промокод при закрытии диалога
             
@@ -178,6 +184,11 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
         isSubmitting: createRentalMutation.isPending,
         users,
         isLoadingUsers,
+        userSearch,
+        setUserSearch,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         equipmentSearch,
         setEquipmentSearch,
         isLoadingEquipment,

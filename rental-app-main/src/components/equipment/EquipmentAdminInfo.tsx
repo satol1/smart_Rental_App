@@ -13,7 +13,7 @@ export default function EquipmentAdminInfo() {
             <div>
                 <Label htmlFor="notes">Заметки (видно только менеджерам/админам)</Label>
                 <Textarea id="notes" {...control.register("notes")} rows={3} />
-                {errors.notes && <p className="text-xs text-red-600 mt-1">{errors.notes.message}</p>}
+                {errors.notes && <p className="text-xs text-destructive mt-1">{errors.notes.message}</p>}
             </div>
 
             <div>
@@ -23,7 +23,7 @@ export default function EquipmentAdminInfo() {
                     type="date"
                     {...control.register("last_maintenance")}
                 />
-                {errors.last_maintenance && <p className="text-xs text-red-600 mt-1">{errors.last_maintenance.message}</p>}
+                {errors.last_maintenance && <p className="text-xs text-destructive mt-1">{errors.last_maintenance.message}</p>}
             </div>
         </>
     );

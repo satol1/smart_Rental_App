@@ -101,7 +101,7 @@ export default function DatePickerField<TFieldValues extends FieldValues = Field
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  (error || holidayError) && "border-red-500",
+                  (error || holidayError) && "border-destructive",
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
                 disabled={disabled}
@@ -121,11 +121,11 @@ export default function DatePickerField<TFieldValues extends FieldValues = Field
                 modifiers={{ holiday: holidays }}
                 classNames={{
                   day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100',
-                  selected: 'bg-sky-600 text-white hover:bg-sky-600 hover:text-white focus:bg-sky-600 focus:text-white',
+                  selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
                   disabled: 'text-muted-foreground opacity-50 cursor-not-allowed',
                 }}
                 modifiersClassNames={{
-                  holiday: 'text-red-600 bg-red-50 border-red-200 font-bold',
+                  holiday: 'text-destructive bg-danger-soft border-destructive/30 font-bold',
                 }}
               />
             </PopoverContent>
@@ -135,13 +135,13 @@ export default function DatePickerField<TFieldValues extends FieldValues = Field
       
       {/* Отображение ошибок */}
       {error && (
-        <p className="text-xs text-red-600">{error}</p>
+        <p className="text-xs text-destructive">{error}</p>
       )}
-      
+
       {holidayError && (
         <div className="flex items-center gap-1">
-          <AlertTriangle className="h-3 w-3 text-red-500" />
-          <p className="text-xs text-red-600">{holidayError}</p>
+          <AlertTriangle className="h-3 w-3 text-destructive" />
+          <p className="text-xs text-destructive">{holidayError}</p>
         </div>
       )}
     </div>

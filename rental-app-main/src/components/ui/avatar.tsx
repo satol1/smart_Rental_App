@@ -7,7 +7,7 @@ type AvatarProps = React.HTMLAttributes<HTMLDivElement> & {
 export function Avatar({ className = "", ...props }: AvatarProps) {
     return (
         <div
-            className={`inline-flex items-center justify-center rounded-full bg-gray-200 text-gray-700 ${className}`}
+            className={`inline-flex items-center justify-center rounded-full bg-muted text-foreground ${className}`}
             {...props}
         />
     );

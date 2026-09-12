@@ -31,10 +31,13 @@ async def create_accessory(
 async def get_all_accessories(
         accessory_service: AccessoryService = Depends(Provide[Container.accessory_service]),
         skip: int = Query(0, ge=0, description="Сколько записей пропустить"),
-        limit: int = Query(10, ge=1, le=500, description="Максимальное количество записей на странице")
+        limit: int = Query(10, ge=1, le=500, description="Максимальное количество записей на странице"),
+        search: str | None = Query(None, min_length=1, max_length=100, description="Поиск по названию и типу"),
+        sort_by: str = Query("name", pattern="^(id|name|type|price)$", description="Колонка сортировки"),
+        sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Направление сортировки"),
 ):
-    """Получить список всех аксессуаров с пагинацией"""
-    return await accessory_service.get_all_accessories_paginated(skip, limit)
+    """Получить список всех аксессуаров с пагинацией, поиском и сортировкой"""
+    return await accessory_service.get_all_accessories_paginated(skip, limit, search=search, sort_by=sort_by, sort_order=sort_order)
 
 @router.get("/{accessory_id}", response_model=AccessoryOut)
 @inject

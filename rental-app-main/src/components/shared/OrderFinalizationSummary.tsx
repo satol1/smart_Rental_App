@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ReceiptText } from "lucide-react";
+import { MoneyText } from "@/components/ui/money-text";
 
 /** Поля финализации заказа, которые регистрирует сводка */
 export interface FinalizationFormFields {
@@ -51,12 +52,12 @@ export default function OrderFinalizationSummary<TFieldValues extends FieldValue
                         {discountAmount > 0 && (
                             <div className="flex justify-between text-success">
                                 <span>Скидка ({discountPercentage.toFixed(0)}%):</span>
-                                <span className="font-medium">- {discountAmount.toLocaleString('ru-RU')} ₽</span>
+                                <span className="font-medium">- <MoneyText value={discountAmount} /></span>
                             </div>
                         )}
                         <div className="flex flex-wrap justify-between items-baseline gap-3 text-base font-semibold pt-3 border-t border-border mt-3">
                             <span>{t('ordersDesign.balanceDebit')}</span>
-                            <span className="text-2xl font-semibold tabular-nums text-foreground">{finalCost.toLocaleString('ru-RU')} ₽</span>
+                            <span className="text-2xl font-semibold tabular-nums text-foreground"><MoneyText value={finalCost} /></span>
                         </div>
                     </div>
                 </div>

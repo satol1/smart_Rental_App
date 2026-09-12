@@ -156,12 +156,17 @@ export default function ProfilePage() {
     }
 
     if (!user) {
+        // Deep-link: Header на главной видит state.from и сразу открывает диалог входа
+        const loginRedirect = () => navigate("/", { state: { from: `${location.pathname}${location.search}` } })
         return (
             <div className="text-center mt-12">
                 <p className="text-lg">Вы не авторизованы.</p>
-                <Button className="mt-4" onClick={() => navigate("/")}>
-                    На главную
-                </Button>
+                <div className="mt-4 flex flex-wrap justify-center gap-3">
+                    <Button onClick={loginRedirect}>Войти</Button>
+                    <Button variant="outline" onClick={() => navigate("/")}>
+                        На главную
+                    </Button>
+                </div>
             </div>
         )
     }
@@ -169,7 +174,7 @@ export default function ProfilePage() {
     return (
         // ✅ 2. Увеличиваем максимальную ширину контейнера, чтобы таблица поместилась
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-            <div className="bg-white border rounded-lg shadow-sm p-6 space-y-4">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6 space-y-4">
                 <h1 className="text-xl font-bold text-center">Редактировать профиль</h1>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -180,7 +185,7 @@ export default function ProfilePage() {
                             type="text"
                             {...register("full_name")}
                         />
-                        {errors.full_name && <p className="text-xs text-red-600 mt-1">{errors.full_name.message}</p>}
+                        {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name.message}</p>}
                     </div>
 
                     <div>
@@ -190,7 +195,7 @@ export default function ProfilePage() {
                             type="email"
                             {...register("email")}
                         />
-                        {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
+                        {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
                     </div>
 
                     {/* +++ НАЧАЛО: Новое поле для телефона +++ */}
@@ -207,7 +212,7 @@ export default function ProfilePage() {
                                 />
                             )}
                         />
-                        {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone.message}</p>}
+                        {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
                     </div>
                     {/* +++ КОНЕЦ: Новое поле для телефона +++ */}
 
@@ -220,8 +225,8 @@ export default function ProfilePage() {
                             {...register("telegram_username")}
                             placeholder="@username или username"
                         />
-                        {errors.telegram_username && <p className="text-xs text-red-600 mt-1">{errors.telegram_username.message}</p>}
-                        <p className="text-xs text-gray-500 mt-1">
+                        {errors.telegram_username && <p className="text-xs text-destructive mt-1">{errors.telegram_username.message}</p>}
+                        <p className="text-xs text-muted-foreground mt-1">
                             Введите ваш Telegram username (без @ или с @)
                         </p>
                     </div>
@@ -250,7 +255,7 @@ export default function ProfilePage() {
                 <div className="pt-4 border-t text-center space-y-2">
                     <Button
                         variant="link"
-                        className="text-red-600"
+                        className="text-destructive"
                         onClick={() => {
                             logout()
                             navigate("/")
@@ -262,7 +267,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Смена пароля */}
-            <div className="bg-white border rounded-lg shadow-sm p-6 space-y-4">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6 space-y-4">
                 <h2 className="text-xl font-bold">Смена пароля</h2>
 
                 <form
@@ -278,7 +283,7 @@ export default function ProfilePage() {
                             {...registerPassword("currentPassword")}
                         />
                         {passwordErrors.currentPassword && (
-                            <p className="text-xs text-red-600 mt-1">{passwordErrors.currentPassword.message}</p>
+                            <p className="text-xs text-destructive mt-1">{passwordErrors.currentPassword.message}</p>
                         )}
                     </div>
 
@@ -291,9 +296,9 @@ export default function ProfilePage() {
                             {...registerPassword("newPassword")}
                         />
                         {passwordErrors.newPassword && (
-                            <p className="text-xs text-red-600 mt-1">{passwordErrors.newPassword.message}</p>
+                            <p className="text-xs text-destructive mt-1">{passwordErrors.newPassword.message}</p>
                         )}
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                             Минимум 8 символов, заглавные и строчные буквы, цифры.
                         </p>
                     </div>
@@ -307,7 +312,7 @@ export default function ProfilePage() {
                             {...registerPassword("confirmPassword")}
                         />
                         {passwordErrors.confirmPassword && (
-                            <p className="text-xs text-red-600 mt-1">{passwordErrors.confirmPassword.message}</p>
+                            <p className="text-xs text-destructive mt-1">{passwordErrors.confirmPassword.message}</p>
                         )}
                     </div>
 
@@ -323,7 +328,7 @@ export default function ProfilePage() {
             </div>
 
             {/* ✅ 3. Добавляем новый блок с историей баланса */}
-            <div className="bg-white border rounded-lg shadow-sm p-6 space-y-4">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6 space-y-4">
                 <h2 className="text-xl font-bold">История баланса</h2>
                 <BalanceHistoryTable userId={user.id} />
             </div>

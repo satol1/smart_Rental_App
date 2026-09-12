@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, X, ShoppingBag, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MoneyText } from '@/components/ui/money-text';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { transitionBase, staggerContainer, listItem, motionSafeVariants } from '@/lib/motion';
@@ -57,7 +58,7 @@ export default function ReservationFooter({ selectedCount, onClick, onReset, isE
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: reducedMotion ? 0 : 8, opacity: 0 }}
       transition={reducedMotion ? { duration: 0 } : transitionBase}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/25 bg-card px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-primary/25 bg-card px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8"
       aria-label={t('shell.selection')}
     >
       <AnimatePresence initial={false}>
@@ -103,7 +104,7 @@ export default function ReservationFooter({ selectedCount, onClick, onReset, isE
               {t('shell.totalForPeriod')} · {t('shell.rentalDays', { count: dayCount })}
             </span>
             <span className="font-semibold tabular-nums text-foreground">
-              {totalForPeriod.toLocaleString('ru-RU')} ₽
+              <MoneyText value={totalForPeriod} />
             </span>
           </div>
         </div>

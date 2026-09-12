@@ -20,9 +20,18 @@ class AccessoryService:
         await self.repo.save()
         return new_accessory
 
-    async def get_all_accessories_paginated(self, skip: int, limit: int) -> AccessoryListResponse:
-        """Получает список всех аксессуаров с пагинацией."""
-        accessories, total_count = await self.repo.get_all_paginated(skip, limit)
+    async def get_all_accessories_paginated(
+        self,
+        skip: int,
+        limit: int,
+        search: str | None = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ) -> AccessoryListResponse:
+        """Получает список всех аксессуаров с пагинацией, поиском и сортировкой."""
+        accessories, total_count = await self.repo.get_all_paginated(
+            skip, limit, search=search, sort_by=sort_by, sort_order=sort_order
+        )
         return AccessoryListResponse(
             items=accessories,
             total=total_count

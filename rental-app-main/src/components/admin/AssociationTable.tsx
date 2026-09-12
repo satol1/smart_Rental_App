@@ -20,6 +20,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { useTableSort } from "@/hooks/useTableSort";
 import { Plus, Edit, Trash2, Tags, Loader2 } from "lucide-react";
 
 const associationSchema = z.object({
@@ -136,10 +139,17 @@ export default function AssociationTable() {
 
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [editingAssoc, setEditingAssoc] = useState<Association | null>(null);
+    const [deletingAssoc, setDeletingAssoc] = useState<Association | null>(null);
+
+    const { sortedItems, sortColumn, sortDirection, onSort } = useTableSort(associations, {
+        order: (assoc) => assoc.sort_order,
+        name: (assoc) => assoc.name,
+        count: (assoc) => assoc.equipment_ids.length,
+    }, { column: "order", direction: "asc" });
 
     const handleEdit = (assoc: Association) => { setEditingAssoc(assoc); setDialogOpen(true); };
     const handleCreate = () => { setEditingAssoc(null); setDialogOpen(true); };
-    const handleDelete = (id: number) => { if (window.confirm("Удалить ассоциацию?")) deleteMutation.mutate(id); };
+    const handleDelete = (assoc: Association) => { setDeletingAssoc(assoc); };
 
     if (isLoading) return <div className="flex items-center gap-2"><Loader2 className="animate-spin" /> Загрузка...</div>;
 
@@ -148,25 +158,25 @@ export default function AssociationTable() {
             <div className="flex justify-end mb-4">
                 <Button onClick={handleCreate}><Plus className="mr-2 h-4 w-4" /> Создать</Button>
             </div>
-            {associations.length > 0 ? (
+            {sortedItems.length > 0 ? (
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Порядок</TableHead>
-                            <TableHead>Название</TableHead>
-                            <TableHead>Кол-во ед.</TableHead>
+                            <SortableTableHead column="order" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Порядок</SortableTableHead>
+                            <SortableTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Название</SortableTableHead>
+                            <SortableTableHead column="count" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Кол-во ед.</SortableTableHead>
                             <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {associations.map((assoc) => (
+                        {sortedItems.map((assoc) => (
                             <TableRow key={assoc.id}>
                                 <TableCell>{assoc.sort_order}</TableCell>
                                 <TableCell className="font-medium">{assoc.name}</TableCell>
                                 <TableCell>{assoc.equipment_ids.length}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(assoc)} aria-label="Редактировать ассоциацию"><Edit className="h-4 w-4" aria-hidden="true" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc.id)} aria-label="Удалить ассоциацию"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(assoc)} aria-label="Удалить ассоциацию"><Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" /></Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -181,6 +191,20 @@ export default function AssociationTable() {
             )}
             {/* ✅ Теперь в диалог гарантированно передается ПОЛНЫЙ список оборудования */}
             {isDialogOpen && <AssociationDialog open={isDialogOpen} onClose={() => setDialogOpen(false)} association={editingAssoc} allEquipment={equipmentOptions} />}
+
+            <ConfirmationDialog
+                open={!!deletingAssoc}
+                onOpenChange={(open) => { if (!open) setDeletingAssoc(null); }}
+                title="Удалить ассоциацию?"
+                description={`Ассоциация «${deletingAssoc?.name ?? ""}» будет удалена безвозвратно.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    const assoc = deletingAssoc;
+                    setDeletingAssoc(null);
+                    if (assoc) deleteMutation.mutate(assoc.id);
+                }}
+            />
         </>
     );
 }

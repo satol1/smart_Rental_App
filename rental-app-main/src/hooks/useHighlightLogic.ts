@@ -78,9 +78,9 @@ export function useHighlightLogic({
         if (!isHighlighted(id)) return '';
         
         if (isNewReservation(id)) {
-            return "ring-2 ring-sky-500 bg-sky-50 shadow-lg rounded-2xl";
+            return "ring-2 ring-primary bg-info-soft shadow-lg rounded-2xl";
         } else if (isTransitionHighlight(id)) {
-            return "ring-2 ring-orange-500 bg-orange-50 shadow-lg rounded-2xl";
+            return "ring-2 ring-warning bg-warning-soft shadow-lg rounded-2xl";
         }
         
         return '';

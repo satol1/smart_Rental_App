@@ -96,10 +96,15 @@ export default function MyReservationsPage() {
     }
 
     if (!user) {
+        // Deep-link: Header на главной видит state.from и сразу открывает диалог входа
+        const loginRedirect = () => navigate("/", { state: { from: `${location.pathname}${location.search}` } });
         return (
             <div className="text-center mt-12">
                 <p className="text-lg">Только авторизованные пользователи могут просматривать свои резервы.</p>
-                <Button className="mt-4" onClick={() => navigate("/")}>На главную</Button>
+                <div className="mt-4 flex flex-wrap justify-center gap-3">
+                    <Button onClick={loginRedirect}>Войти</Button>
+                    <Button variant="outline" onClick={() => navigate("/")}>На главную</Button>
+                </div>
             </div>
         );
     }

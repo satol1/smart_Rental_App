@@ -52,11 +52,10 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
     const isAdmin = currentUser?.role === 'admin';
     const canRevert = !!rental.reservation_id && rental.status !== 'completed' && isToday(rental.created_at);
 
+    const [isConfirmingDelete, setConfirmingDelete] = useState(false);
     const handleDelete = useCallback(() => {
-        if (window.confirm(`Вы уверены, что хотите безвозвратно удалить аренду #${rental.id}? Это действие нельзя отменить.`)) {
-            deleteMutation.mutate(rental.id);
-        }
-    }, [rental.id, deleteMutation]);
+        setConfirmingDelete(true);
+    }, []);
 
     const handleRevert = useCallback(() => {
         // Если аванса нет, или он равен нулю, или отмена уже в процессе - вызываем мутацию напрямую
@@ -199,6 +198,16 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
                 cancelText="Назад"
                 onConfirm={handleRevert}
                 variant="destructive"
+            />
+
+            <ConfirmationDialog
+                open={isConfirmingDelete}
+                onOpenChange={setConfirmingDelete}
+                title="Удалить аренду?"
+                description={`Аренда #${rental.id} будет удалена безвозвратно. Это действие нельзя отменить.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => deleteMutation.mutate(rental.id)}
             />
 
             {/* Новый диалог для подтверждения действия с авансом */}

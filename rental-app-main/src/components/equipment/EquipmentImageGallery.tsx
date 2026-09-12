@@ -179,7 +179,7 @@ export default function EquipmentImageGallery() {
                     </div>
                 </div>
             ) : (
-                <div className="flex items-center gap-2 p-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md">
+                <div className="flex items-center gap-2 p-3 text-xs text-warning bg-warning-soft border border-warning/30 rounded-md">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span>Добавлять фотографии к карточкам могут только администраторы и менеджеры проекта.</span>
                 </div>
@@ -188,7 +188,7 @@ export default function EquipmentImageGallery() {
             {validationErrors.length > 0 && (
                 <div className="space-y-1">
                     {validationErrors.map((message) => (
-                        <p key={message} className="text-xs text-red-600">{message}</p>
+                        <p key={message} className="text-xs text-destructive">{message}</p>
                     ))}
                 </div>
             )}
@@ -230,7 +230,7 @@ export default function EquipmentImageGallery() {
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            className="flex-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 h-7 px-1"
+                                            className="flex-1 text-xs text-destructive hover:bg-danger-soft h-7 px-1"
                                             disabled={isUploading}
                                             onClick={() => handleRemove(url)}
                                         >

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import SharedErrorState from "@/components/shared/ErrorState";
 import { useLocation } from "react-router-dom";
 import { useAdminReservations, useBulkDeleteAdminReservations } from "@/hooks/useAdminReservations";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useAutoLoaderForItem } from "@/hooks/useAutoLoaderForItem";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,9 @@ export default function AllReservationsManagementPage() {
     // Получаем состояние модального окна бланка аренды
     const { isOpen, rentalData, closeReceipt } = useRentalReceiptStore();
 
-    // Получаем параметры фильтрации из стора
-    const searchQuery = useOrderFilterStore(state => state.searchQuery);
+    // Получаем параметры фильтрации из стора (поиск — с debounce)
+    const rawSearchQuery = useOrderFilterStore(state => state.searchQuery);
+    const searchQuery = useDebounce(rawSearchQuery, 350);
     const statusFilter = useOrderFilterStore(state => state.statusFilter);
     const periodType = useOrderFilterStore(state => state.periodType);
     const periodOffset = useOrderFilterStore(state => state.periodOffset);

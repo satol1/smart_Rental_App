@@ -49,9 +49,9 @@ export default function EquipmentWithAccessoriesList({
         return (
             <div className={`space-y-2 pt-2 border-t ${className}`}>
                 {showTitle && (
-                    <h4 className="font-medium text-sm text-gray-800">{title}</h4>
+                    <h4 className="font-medium text-sm text-foreground">{title}</h4>
                 )}
-                <div className="text-sm text-gray-500 italic">Нет оборудования в резерве</div>
+                <div className="text-sm text-muted-foreground italic">Нет оборудования в резерве</div>
             </div>
         );
     }
@@ -59,7 +59,7 @@ export default function EquipmentWithAccessoriesList({
     return (
         <div className={`space-y-2 pt-2 border-t ${className}`}>
             {showTitle && (
-                <h4 className="font-medium text-sm text-gray-800">{title}</h4>
+                <h4 className="font-medium text-sm text-foreground">{title}</h4>
             )}
             <div className="space-y-2">
                 {equipment.map((item) => {
@@ -69,12 +69,12 @@ export default function EquipmentWithAccessoriesList({
                     );
                     
                     return (
-                        <div key={item.id} className="text-sm text-gray-700 bg-gray-50/70 p-2 rounded-md border">
+                        <div key={item.id} className="text-sm text-card-foreground bg-muted/70 p-2 rounded-md border">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
                                     <p>• {item.name}</p>
                                     {isEquipmentUnderRepair(item) && (
-                                        <div className="flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200">
+                                        <div className="flex items-center gap-1 text-xs font-semibold text-warning bg-warning-soft px-2 py-0.5 rounded-md border border-warning/30">
                                             <AlertTriangle className="w-3 h-3" />
                                             <span>временно недоступно</span>
                                         </div>
@@ -85,8 +85,8 @@ export default function EquipmentWithAccessoriesList({
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => onRemoveItem(item.id)}
-                                        className={`hover:text-rose-700 ${
-                                            isRemoveDisabled ? "text-gray-400 cursor-not-allowed" : "text-rose-500"
+                                        className={`hover:text-destructive ${
+                                            isRemoveDisabled ? "text-muted-foreground cursor-not-allowed" : "text-destructive"
                                         }`}
                                         title={removeButtonTitle}
                                         aria-label="Удалить оборудование"
@@ -100,14 +100,14 @@ export default function EquipmentWithAccessoriesList({
                                 <div className="mt-2 pl-4">
                                     <button 
                                         onClick={() => toggleAccessories(item.id)} 
-                                        className="flex items-center text-xs text-sky-700 hover:underline font-medium"
+                                        className="flex items-center text-xs text-primary hover:underline font-medium"
                                     >
                                         <Paperclip className="w-3 h-3 mr-1" />
                                         Аксессуары ({accessoriesForItem.length})
                                         <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedAccessories[item.id] ? 'rotate-180' : ''}`} />
                                     </button>
                                     {expandedAccessories[item.id] && (
-                                        <ul className="list-disc list-inside text-xs text-gray-600 mt-1 pl-2 animate-in fade-in duration-200">
+                                        <ul className="list-disc list-inside text-xs text-muted-foreground mt-1 pl-2 animate-in fade-in duration-200">
                                             {accessoriesForItem.map(link => {
                                                 // Дополнительная защита на случай, если accessory стал null после фильтрации
                                                 if (!link.accessory) {

@@ -98,7 +98,7 @@ export default function EquipmentDetailsDialog({ open, onClose, equipment, avail
                 </div>
 
                 {!isEditing && (
-                    <DialogFooter className="pt-4 mt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 flex-shrink-0">
+                    <DialogFooter className="pt-4 mt-4 border-t border-border flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 flex-shrink-0">
                         {canEdit && (
                             <Button
                                 variant="secondary"

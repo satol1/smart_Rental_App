@@ -180,7 +180,7 @@ export default function HomePage() {
                             variant="ghost"
                             size="sm"
                             onClick={cancelAndReturn}
-                            className="text-sky-700 hover:bg-sky-200 hover:text-sky-800 flex-shrink-0"
+                            className="text-primary hover:bg-primary/15 hover:text-primary flex-shrink-0"
                         >
                             <X className="w-4 h-4 mr-1.5" />
                             {t('catalogDesign.cancelEditing')}

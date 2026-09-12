@@ -5,6 +5,9 @@ import { useAdminPromoCodes, useDeletePromoCode } from "@/hooks/useAdminPromoCod
 import { PromoCodeDialog } from "./PromoCodeDialog";
 import type { PromoCodeOut } from "@/types/promo_code";
 import { formatDateEuropean } from "@/lib/utils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,11 +23,20 @@ export default function PromoCodeTable() {
     const [search, setSearch] = useState("");
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [editingPromoCode, setEditingPromoCode] = useState<PromoCodeOut | null>(null);
+    const [deletingPromoCode, setDeletingPromoCode] = useState<PromoCodeOut | null>(null);
 
     const filteredPromoCodes = promoCodes.filter(pc =>
         pc.code.toLowerCase().includes(search.toLowerCase()) ||
         pc.description?.toLowerCase().includes(search.toLowerCase())
     );
+
+    const { sortedItems, sortColumn, sortDirection, onSort } = useTableSort(filteredPromoCodes, {
+        code: (pc) => pc.code,
+        discount: (pc) => pc.discount_percentage,
+        status: (pc) => (pc.is_active ? 1 : 0),
+        usage: (pc) => pc.times_used,
+        expires: (pc) => pc.expires_at ?? null,
+    }, { column: "code", direction: "asc" });
 
     const handleCreate = () => {
         setEditingPromoCode(null);
@@ -34,12 +46,6 @@ export default function PromoCodeTable() {
     const handleEdit = (promoCode: PromoCodeOut) => {
         setEditingPromoCode(promoCode);
         setDialogOpen(true);
-    };
-
-    const handleDelete = (id: number) => {
-        if (window.confirm("Вы уверены, что хотите удалить этот промокод? Действие необратимо.")) {
-            deleteMutation.mutate(id);
-        }
     };
 
     if (isLoading) return <p className="text-center py-4">Загрузка промокодов...</p>;
@@ -52,6 +58,7 @@ export default function PromoCodeTable() {
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Поиск по коду или описанию..."
+                        aria-label="Поиск по коду или описанию промокода"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-10"
@@ -62,21 +69,21 @@ export default function PromoCodeTable() {
                 </Button>
             </div>
 
-            {filteredPromoCodes.length > 0 ? (
+            {sortedItems.length > 0 ? (
                 <div className="border rounded-md overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Код</TableHead>
-                                <TableHead>Скидка</TableHead>
-                                <TableHead>Статус</TableHead>
-                                <TableHead>Использования</TableHead>
-                                <TableHead>Срок действия</TableHead>
+                                <SortableTableHead column="code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Код</SortableTableHead>
+                                <SortableTableHead column="discount" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Скидка</SortableTableHead>
+                                <SortableTableHead column="status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Статус</SortableTableHead>
+                                <SortableTableHead column="usage" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Использования</SortableTableHead>
+                                <SortableTableHead column="expires" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort}>Срок действия</SortableTableHead>
                                 <TableHead className="text-right">Действия</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredPromoCodes.map((pc) => (
+                            {sortedItems.map((pc) => (
                                 <TableRow key={pc.id}>
                                     <TableCell className="font-medium">{pc.code}</TableCell>
                                     <TableCell>{pc.discount_percentage}%</TableCell>
@@ -95,7 +102,7 @@ export default function PromoCodeTable() {
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(pc)} aria-label="Редактировать промокод">
                                             <Edit className="h-4 w-4" aria-hidden="true" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(pc.id)} disabled={deleteMutation.isPending} aria-label="Удалить промокод">
+                                        <Button variant="ghost" size="icon" onClick={() => setDeletingPromoCode(pc)} disabled={deleteMutation.isPending} aria-label="Удалить промокод">
                                             <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                                         </Button>
                                     </TableCell>
@@ -118,6 +125,19 @@ export default function PromoCodeTable() {
                 open={isDialogOpen}
                 onClose={() => setDialogOpen(false)}
                 promoCode={editingPromoCode}
+            />
+
+            <ConfirmationDialog
+                open={!!deletingPromoCode}
+                onOpenChange={(open) => { if (!open) setDeletingPromoCode(null); }}
+                title="Удалить промокод?"
+                description={`Промокод «${deletingPromoCode?.code ?? ""}» будет удалён безвозвратно. Активные скидки по нему перестанут применяться.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => {
+                    if (deletingPromoCode) deleteMutation.mutate(deletingPromoCode.id);
+                    setDeletingPromoCode(null);
+                }}
             />
         </>
     );

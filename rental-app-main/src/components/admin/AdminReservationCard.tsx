@@ -16,6 +16,7 @@ import EquipmentWithAccessoriesList from "@/components/shared/EquipmentWithAcces
 import FinancialInfoBlock from "@/components/shared/FinancialInfoBlock";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useNavigate, useLocation } from "react-router-dom";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface Props {
     reservation: AdminReservationOut;
@@ -54,11 +55,10 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
     }, [location.state, reservation.id, navigate, location.pathname]);
 
 
+    const [isConfirmingDelete, setConfirmingDelete] = useState(false);
     const handleDelete = useCallback(() => {
-        if (window.confirm(`Вы уверены, что хотите удалить резерв #${reservation.id} для клиента "${reservation.user_info.full_name}"?`)) {
-            deleteReservationMutation.mutate(reservation.id);
-        }
-    }, [reservation.id, reservation.user_info.full_name, deleteReservationMutation]);
+        setConfirmingDelete(true);
+    }, []);
 
     const handleNavigateToRental = useCallback(() => {
         if (reservation.rental_id) {
@@ -233,6 +233,16 @@ const AdminReservationCard = forwardRef<HTMLDivElement, Props>(({
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmationDialog
+                open={isConfirmingDelete}
+                onOpenChange={setConfirmingDelete}
+                title="Удалить резерв?"
+                description={`Резерв #${reservation.id} для клиента «${reservation.user_info.full_name}» будет удалён безвозвратно.`}
+                confirmText="Удалить"
+                variant="destructive"
+                onConfirm={() => deleteReservationMutation.mutate(reservation.id)}
+            />
         </div>
     );
 });

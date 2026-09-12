@@ -95,7 +95,7 @@ class TestAccessoryService:
         assert result.items[0].id == 1
         assert result.items[0].name == "Test Lens"
         assert result.total == total_count
-        mock_repo.get_all_paginated.assert_called_once_with(skip, limit)
+        mock_repo.get_all_paginated.assert_called_once_with(skip, limit, search=None, sort_by='name', sort_order='asc')
 
     @pytest.mark.asyncio
     async def test_get_accessory_by_id_success(self, accessory_service, mock_repo, sample_accessory):

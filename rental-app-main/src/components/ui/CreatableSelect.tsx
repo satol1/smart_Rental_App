@@ -131,7 +131,7 @@ export function CreatableSelect({
                             {opt}
                         </SelectItem>
                     ))}
-                    <SelectItem value="add_new" className="text-sky-600 font-semibold">
+                    <SelectItem value="add_new" className="text-primary font-semibold">
                         + Добавить новый...
                     </SelectItem>
                 </SelectContent>

@@ -6,8 +6,9 @@ import type { InfiniteData } from "@tanstack/react-query";
 import type { AdminRentalOut, AdminRentalListResponse } from "@/types/rental";
 import { useMyRentals } from "@/hooks/useMyRentals";
 import MyRentalCard from "./MyRentalCard";
-import { RefreshCw, Truck } from "lucide-react";
+import { Truck } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
+import { SkeletonList } from '@/components/ui/skeleton-list';
 import { useOrderFilterStore } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
 import type { RefObject } from "react";
@@ -22,11 +23,8 @@ interface MyRentalsListProps {
 }
 
 const LoadingState = () => (
-    <div className="text-center py-8">
-        <div className="flex items-center justify-center mb-4">
-            <RefreshCw className="w-8 h-8 animate-spin text-orange-600" />
-        </div>
-        <p className="text-gray-600">Загрузка аренд...</p>
+    <div role="status" aria-label="Загрузка аренд">
+        <SkeletonList count={4} columns="single" />
     </div>
 );
 

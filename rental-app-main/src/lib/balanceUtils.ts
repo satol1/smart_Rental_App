@@ -23,7 +23,7 @@ export function formatBalance(balance: number | null | undefined): string {
  */
 export function getBalanceColor(balance: number | null | undefined): string {
     const balanceValue = Number(balance ?? 0);
-    return balanceValue < 0 ? 'text-red-600' : 'text-green-700';
+    return balanceValue < 0 ? 'text-destructive' : 'text-success';
 }
 
 /**

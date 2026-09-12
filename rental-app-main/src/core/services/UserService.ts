@@ -59,10 +59,19 @@ export class UserService {
     /**
      * Получает всех пользователей с пагинацией
      */
-    static async getAllUsers(skip: number = 0, limit: number = 15): Promise<UserListResponse> {
+    static async getAllUsers(
+        skip: number = 0,
+        limit: number = 15,
+        options?: { search?: string; sortBy?: string },
+    ): Promise<UserListResponse> {
         try {
             const response = await api.get<UserListResponse>("/admin/users/", {
-                params: { skip, limit }
+                params: {
+                    skip,
+                    limit,
+                    ...(options?.search ? { search: options.search } : {}),
+                    ...(options?.sortBy ? { sort_by: options.sortBy } : {}),
+                }
             });
             return response.data;
         } catch (error) {

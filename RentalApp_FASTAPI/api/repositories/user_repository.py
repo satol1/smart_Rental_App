@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, or_
 from fastapi import HTTPException, status
 from api.repositories.base_repository import BaseRepository
 from api.models.user import User
@@ -84,32 +84,59 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         )
         return result.scalar_one_or_none()
     
-    async def get_all_paginated(self, skip: int, limit: int) -> Tuple[List[User], int]:
+    async def get_all_paginated(
+        self,
+        skip: int,
+        limit: int,
+        search: str | None = None,
+        sort_by: str = "created_desc",
+    ) -> Tuple[List[User], int]:
         """
-        Получение списка всех пользователей с пагинацией для админ-панели.
-        
+        Получение списка всех пользователей с пагинацией, поиском и сортировкой
+        для админ-панели.
+
         Args:
             skip: Количество записей для пропуска (offset)
             limit: Максимальное количество записей для возврата
-            
+            search: Подстрока для поиска по ФИО/email/телефону (регистронезависимо)
+            sort_by: Ключ сортировки (created_desc/name/name_desc/email/email_desc)
+
         Returns:
             Кортеж из списка пользователей и их общего количества
         """
-        # Получаем общее количество пользователей
-        count_result = await self.db.execute(
-            select(func.count(User.id))
-        )
-        total_count = count_result.scalar()
-        
-        # Получаем пользователей с пагинацией
+        search_filter = None
+        if search:
+            pattern = f"%{search.strip()}%"
+            conditions = [User.full_name.ilike(pattern), User.email.ilike(pattern)]
+            if hasattr(User, "phone"):
+                conditions.append(User.phone.ilike(pattern))
+            search_filter = or_(*conditions)
+
+        count_query = select(func.count(User.id))
+        page_query = select(User)
+        if search_filter is not None:
+            count_query = count_query.where(search_filter)
+            page_query = page_query.where(search_filter)
+
+        sort_map = {
+            "created": (User.created_at.asc(), User.id.asc()),
+            "created_desc": (User.created_at.desc(), User.id.desc()),
+            "name": (User.full_name.asc(), User.id.asc()),
+            "name_desc": (User.full_name.desc(), User.id.desc()),
+            "email": (User.email.asc(), User.id.asc()),
+            "email_desc": (User.email.desc(), User.id.desc()),
+        }
+        page_query = page_query.order_by(*sort_map.get(sort_by, sort_map["created_desc"]))
+
+        total_count = (await self.db.execute(count_query)).scalar()
+
         users_result = await self.db.execute(
-            select(User)
+            page_query
             .offset(skip)
             .limit(limit)
-            .order_by(User.created_at.desc())
         )
         users = users_result.scalars().all()
-        
+
         return list(users), total_count
     
     async def update_admin(self, db_obj: User, update_data: AdminUserUpdate) -> User:

@@ -42,7 +42,7 @@ export function InfiniteScrollTrigger({
         // Просто передаем ref в наш div-триггер.
         <div ref={ref} className="h-20 col-span-full flex justify-center items-center">
             {isFetchingNextPage && (
-                <div className="flex items-center gap-2 text-gray-500">
+                <div className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Загрузка...</span>
                 </div>

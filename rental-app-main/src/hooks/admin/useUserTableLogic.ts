@@ -9,10 +9,13 @@ import {
 } from "@/hooks/useAdminUsers";
 import type { UserOut } from "@/types/user";
 
-export function useUserTableLogic(users: UserOut[]) {
+export function useUserTableLogic(users: UserOut[], externalSearchQuery?: string) {
     const { data: currentUser } = useCurrentUser();
 
-    const [searchQuery, setSearchQuery] = useState("");
+    // Поиск выполняется на сервере; локальный фильтр — страховка от уже загруженных страниц
+    const [internalSearchQuery, setInternalSearchQuery] = useState("");
+    const searchQuery = externalSearchQuery ?? internalSearchQuery;
+    const setSearchQuery = externalSearchQuery !== undefined ? () => {} : setInternalSearchQuery;
     const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
     const blockUserMutation = useBlockUser();
@@ -22,12 +25,15 @@ export function useUserTableLogic(users: UserOut[]) {
     const isAdmin = currentUser?.role === "admin";
 
     const filteredUsers = useMemo(() => {
+        // При серверном поиске повторная локальная фильтрация скрыла бы строки,
+        // найденные по полям, которых нет в локальном предикате (например, телефон)
+        if (externalSearchQuery !== undefined) return users;
         return users.filter(user =>
             user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.role.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [users, searchQuery]);
+    }, [users, searchQuery, externalSearchQuery]);
 
 
     const handleToggleBlock = (user: UserOut) => {

@@ -30,19 +30,19 @@ describe('formatBalance', () => {
 
 describe('getBalanceColor', () => {
     it('отрицательный баланс — красный', () => {
-        expect(getBalanceColor(-100)).toBe('text-red-600');
+        expect(getBalanceColor(-100)).toBe('text-destructive');
     });
 
     it('положительный баланс — зелёный', () => {
-        expect(getBalanceColor(100)).toBe('text-green-700');
+        expect(getBalanceColor(100)).toBe('text-success');
     });
 
     it('нулевой баланс — зелёный', () => {
-        expect(getBalanceColor(0)).toBe('text-green-700');
+        expect(getBalanceColor(0)).toBe('text-success');
     });
 
     it('null трактуется как 0', () => {
-        expect(getBalanceColor(null)).toBe('text-green-700');
+        expect(getBalanceColor(null)).toBe('text-success');
     });
 });
 

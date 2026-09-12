@@ -19,6 +19,11 @@ export interface CreateReservationContextValue {
     // Данные
     users: UserOut[];
     isLoadingUsers: boolean;
+    userSearch: string;
+    setUserSearch: (query: string) => void;
+    usersHasNextPage: boolean;
+    usersFetchNextPage: () => void;
+    usersIsFetchingNextPage: boolean;
     allEquipment: Equipment[];
     isLoadingEquipment: boolean;
     filteredAndGroupedEquipment: { tree: Record<string, Record<string, Equipment[]>>, visibleIds: number[] };

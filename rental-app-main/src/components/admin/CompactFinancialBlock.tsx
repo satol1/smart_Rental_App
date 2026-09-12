@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ReceiptText } from "lucide-react";
+import { MoneyText } from "@/components/ui/money-text";
 import PromoCodeInput from "@/components/PromoCodeInput";
 
 interface CompactFinancialBlockProps<TFieldValues extends FieldValues & FinalizationFormFields> {
@@ -59,12 +60,12 @@ export default function CompactFinancialBlock<TFieldValues extends FieldValues &
                     {discountAmount > 0 && (
                         <div className="flex justify-between gap-3 text-success">
                             <span>Скидка ({discountPercentage.toFixed(0)}%):</span>
-                            <span className="font-medium">- {discountAmount.toLocaleString('ru-RU')} ₽</span>
+                            <span className="font-medium">- <MoneyText value={discountAmount} /></span>
                         </div>
                     )}
                     <div className="flex justify-between gap-3 text-base font-bold pt-1 border-t mt-1">
                         <span>{t('ordersDesign.balanceDebit')}</span>
-                        <span className="text-2xl font-semibold tabular-nums text-foreground">{finalCost.toLocaleString('ru-RU')} ₽</span>
+                        <span className="text-2xl font-semibold tabular-nums text-foreground"><MoneyText value={finalCost} /></span>
                     </div>
                 </div>
             </div>

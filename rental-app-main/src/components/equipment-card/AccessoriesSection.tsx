@@ -22,7 +22,7 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
     return (
         <div className="mt-3 border-t pt-3">
             <button
-                className="w-full flex justify-between items-center text-sm font-medium text-gray-600 hover:text-sky-700 p-1 -m-1 rounded"
+                className="w-full flex justify-between items-center text-sm font-medium text-muted-foreground hover:text-primary p-1 -m-1 rounded"
                 onClick={onToggleExpand}
                 aria-expanded={isExpanded}
             >
@@ -35,7 +35,7 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
             {isExpanded && (
                 <div className="mt-2 space-y-2 pl-1 animate-in fade-in-0 slide-in-from-top-2 duration-300">
                     {equipment.accessories.map(acc => (
-                        <div key={acc.id} className="flex items-center justify-between p-1 rounded hover:bg-gray-50">
+                        <div key={acc.id} className="flex items-center justify-between p-1 rounded hover:bg-muted">
                             <Label htmlFor={`acc-${equipment.id}-${acc.id}`} className="flex items-center gap-2 text-xs font-normal cursor-pointer">
                                 <Checkbox
                                     id={`acc-${equipment.id}-${acc.id}`}
@@ -45,7 +45,7 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
                                 />
                                 {acc.name}
                             </Label>
-                            <span className="text-xs text-gray-500">{acc.price} ₽</span>
+                            <span className="text-xs text-muted-foreground">{acc.price} ₽</span>
                         </div>
                     ))}
                 </div>

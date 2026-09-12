@@ -2,6 +2,7 @@
 
 import { useMemo, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useReservations } from "@/hooks/useReservations";
 import { useAllEquipment } from "@/hooks/useAllEquipment";
 import { useReserveStore } from "@/store/reserveStore";
@@ -40,13 +41,14 @@ export interface ReservationListViewModelResult {
  * Инкапсулирует ВСЮ логику: получение данных, фильтрацию, обработку действий.
  */
 export const useReservationListViewModel = (): ReservationListViewModelResult => {
-    // 1. Получаем параметры фильтрации из zustand store
+    // 1. Получаем параметры фильтрации из zustand store (поиск — с debounce)
     const { searchQuery, statusFilter, sortOption } = useOrderFilterStore();
+    const debouncedSearch = useDebounce(searchQuery, 350);
     const apiParams = useMemo(() => ({
-        search: searchQuery || undefined,
+        search: debouncedSearch || undefined,
         status: (statusFilter === 'all' || statusFilter === 'hide-completed') ? undefined : (statusFilter || undefined),
         sort: sortOption
-    }), [searchQuery, statusFilter, sortOption]);
+    }), [debouncedSearch, statusFilter, sortOption]);
 
     // 2. Хук теперь сам вызывает useReservations для получения данных
     const { reservationsQuery } = useReservations(apiParams);

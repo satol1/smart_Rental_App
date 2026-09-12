@@ -24,7 +24,7 @@ export default function CookieConsent() {
   return (
     <>
       <div
-        className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-3xl motion-safe:animate-in motion-safe:fade-in duration-base"
+        className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-3xl motion-safe:animate-in motion-safe:fade-in duration-base"
         role="dialog"
         aria-label="Согласие на обработку cookie"
       >

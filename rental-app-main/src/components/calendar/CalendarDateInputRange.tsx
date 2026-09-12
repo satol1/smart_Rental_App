@@ -70,16 +70,26 @@ export default function CalendarDateInputRange({ onRangeChange, className, compa
               className={cn('min-w-0 max-w-full tabular-nums', compact ? 'h-11 px-2 text-xs sm:px-3 sm:text-sm' : 'px-2 sm:px-3', error && 'border-destructive focus-visible:ring-destructive')}
             />
             {error && (
-              <div id={`${inputId}-${key}-error`} className={cn('mt-2 text-xs text-destructive', compact && 'sr-only')} role="status">
-                <p>{error}</p>
-                {suggestion && <p className="mt-1">{t('shell.nextWorkingDay', { date: formatDate(suggestion) })}</p>}
+              <div
+                id={`${inputId}-${key}-error`}
+                className={cn('mt-1 text-xs text-destructive', compact && 'text-[11px] leading-tight')}
+                role="status"
+              >
+                <p className="line-clamp-2">{error}</p>
+                {suggestion && <p className="mt-0.5 line-clamp-1">{t('shell.nextWorkingDay', { date: formatDate(suggestion) })}</p>}
               </div>
             )}
           </div>
         ))}
       </div>
-      {!isRangeValid && !compact && (
-        <p className="flex items-start gap-2 rounded-lg bg-pastel-amber p-3 text-sm text-pastel-amber-fg" role="status">
+      {!isRangeValid && (
+        <p
+          className={cn(
+            'flex items-start gap-2 rounded-lg bg-pastel-amber p-3 text-sm text-pastel-amber-fg',
+            compact && 'p-2 text-xs',
+          )}
+          role="status"
+        >
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {t('shell.holidayWarning')}
         </p>

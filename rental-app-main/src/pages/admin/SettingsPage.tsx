@@ -86,11 +86,11 @@ export default function SettingsPage() {
                 </Card>
             </form>
 
-             <Card className="bg-info-soft border-blue-200">
+             <Card className="bg-info-soft border-primary/30">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm text-blue-800"><Info className="w-4 h-4"/>Справка по плейсхолдерам</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-sm text-foreground"><Info className="w-4 h-4"/>Справка по плейсхолдерам</CardTitle>
                 </CardHeader>
-                <CardContent className="text-xs text-blue-700 space-y-1">
+                <CardContent className="text-xs text-muted-foreground space-y-1">
                     <p>Используйте эти переменные в шаблонах. Они будут автоматически заменены на реальные данные:</p>
                     <p><code>{'{userName}'}</code> - Имя клиента (второе слово в ФИО, например, "Иван").</p>
                     <p><code>{'{userPhone}'}</code> - Телефон клиента.</p>

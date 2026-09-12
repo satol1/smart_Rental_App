@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { formatDateRangeEuropean } from "@/lib/utils";
 import { isEquipmentUnderRepair, getEquipmentCardStyles, getEquipmentStatusText } from "@/lib/equipmentUtils";
+import { MoneyText } from "@/components/ui/money-text";
 import { springs } from "@/lib/motion";
 
 // ViewModel хук
@@ -25,10 +26,10 @@ type CompactEquipmentCardLegacyProps = EquipmentCardBaseProps;
 
 // 1. Упрощаем стили, удаляя `ending_today`
 const COMPACT_STATUS_STYLES: Record<EquipmentStatus | "my_reservation" | "added", string> = {
-    available: "bg-white border-gray-200 hover:bg-gray-50",
+    available: "bg-card border-border hover:bg-muted/50",
     reserved: "bg-reserved-soft border-reserved/40",
     rented: "bg-reserved-soft border-reserved/60",
-    my_reservation: "bg-sky-50 border-sky-200 hover:bg-sky-100",
+    my_reservation: "bg-info-soft border-primary/40 hover:bg-info-soft",
     added: "bg-info-soft border-primary/40",
 };
 // --- КОНЕЦ ИЗМЕНЕНИЙ ---
@@ -156,37 +157,37 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
 
             <div className="space-y-2">
                 <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate" title={equipment.name}>
+                    <h3 className="text-sm font-semibold text-foreground truncate" title={equipment.name}>
                         {equipment.name}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                         {equipment.brand} • {equipment.equipment_type}
                     </p>
                     {dateRangeDisplay && (
-                        <p className="text-xs text-gray-400">{dateRangeDisplay}</p>
+                        <p className="text-xs text-muted-foreground/80">{dateRangeDisplay}</p>
                     )}
                 </div>
 
                 <div className="space-y-1">
                     {isUnderRepair ? (
                         <div className="text-center">
-                            <span className="text-xs font-medium text-gray-500">
+                            <span className="text-xs font-medium text-muted-foreground">
                                 {getEquipmentStatusText(equipment)}
                             </span>
                         </div>
                     ) : (
                         <>
                             <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs text-muted-foreground">
                                     {priceData.days} {priceData.days === 1 ? 'день' : priceData.days < 5 ? 'дня' : 'дней'}
                                 </span>
-                                <span className="text-sm font-semibold text-gray-900">
-                                    {priceData.totalPrice.toLocaleString('ru-RU')} ₽
+                                <span className="text-sm font-semibold text-foreground">
+                                    <MoneyText value={priceData.totalPrice} />
                                 </span>
                             </div>
 
                             {priceData.discountPercentage > 0 && (
-                                <div className="text-xs text-green-600">
+                                <div className="text-xs text-success">
                                     Скидка: {priceData.discountPercentage.toFixed(0)}%
                                 </div>
                             )}
@@ -197,11 +198,11 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
                 {/* --- НАЧАЛО ИЗМЕНЕНИЙ: Упрощенный блок статуса с поддержкой недоступности --- */}
                 <div className="text-xs">
                     {isUnderRepair ? (
-                        <span className="text-gray-500 font-medium">Недоступно</span>
+                        <span className="text-muted-foreground font-medium">Недоступно</span>
                     ) : (
                         <>
                             {status === 'available' && (
-                                <span className="text-green-600 font-medium">Свободно</span>
+                                <span className="text-success font-medium">Свободно</span>
                             )}
                             {status === 'reserved' && (
                                 <span className="text-reserved-foreground font-medium">В резерве</span>
@@ -210,10 +211,10 @@ const CompactEquipmentCardComponent: React.FC<CompactEquipmentCardProps> = (prop
                                 <span className="text-reserved-foreground font-medium">В аренде</span>
                             )}
                             {status === 'my_reservation' && (
-                                <span className="text-sky-600 font-medium">В этом резерве</span>
+                                <span className="text-primary font-medium">В этом резерве</span>
                             )}
                             {status === 'added' && (
-                                <span className="text-emerald-600 font-medium">Добавлено</span>
+                                <span className="text-success font-medium">Добавлено</span>
                             )}
                         </>
                     )}
@@ -264,20 +265,20 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
             <div className="flex-1 p-3 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                     <h3 className="text-sm font-semibold truncate">{equipment.name}</h3>
-                    <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{equipment.brand}</span>
+                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">{equipment.brand}</span>
                 </div>
-                
-                <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                     <span>{equipment.equipment_type}</span>
                     <span className="font-medium">{equipment.daily_rate} ₽/день</span>
                 </div>
 
                 {dateRangeDisplay && (
-                    <div className="text-xs text-gray-500 mb-1">{dateRangeDisplay}</div>
+                    <div className="text-xs text-muted-foreground mb-1">{dateRangeDisplay}</div>
                 )}
 
                 {isCalculatorVisible && discountData.percentage > 0 && (
-                    <div className="text-xs text-green-600 font-medium">
+                    <div className="text-xs text-success font-medium">
                         Скидка {discountData.percentage}%: {Math.round(discountData.priceAfter)} ₽
                     </div>
                 )}
@@ -288,15 +289,15 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
                             const isSelected = isAccessorySelected(equipment.id, accessory.id);
                             return (
                                 <div key={accessory.id} className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-600">{accessory.name}</span>
+                                    <span className="text-muted-foreground">{accessory.name}</span>
                                     <div className="flex items-center gap-1">
-                                        <span className="text-gray-500">{accessory.price} ₽</span>
+                                        <span className="text-muted-foreground">{accessory.price} ₽</span>
                                         <button
                                             onClick={(e) => handleToggleAccessory(e, accessory.id)}
                                             className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${
-                                                isSelected 
-                                                    ? 'bg-primary border-primary text-primary-foreground' 
-                                                    : 'border-gray-300 hover:border-primary/60'
+                                                isSelected
+                                                    ? 'bg-primary border-primary text-primary-foreground'
+                                                    : 'border-input hover:border-primary/60'
                                             }`}
                                         >
                                             {isSelected && '✓'}
@@ -306,18 +307,18 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
                             );
                         })}
                         {equipment.accessories.length > 2 && (
-                            <div className="text-xs text-gray-500">+{equipment.accessories.length - 2} еще</div>
+                            <div className="text-xs text-muted-foreground">+{equipment.accessories.length - 2} еще</div>
                         )}
                     </div>
                 )}
 
                 <div className="text-xs">
                     {isUnderRepair ? (
-                        <span className="text-gray-500 font-medium">Недоступно</span>
+                        <span className="text-muted-foreground font-medium">Недоступно</span>
                     ) : (
                         <>
                             {status === 'available' && (
-                                <span className="text-green-600 font-medium">Свободно</span>
+                                <span className="text-success font-medium">Свободно</span>
                             )}
                             {status === 'reserved' && (
                                 <span className="text-reserved-foreground font-medium">В резерве</span>
@@ -326,10 +327,10 @@ const CompactEquipmentCardLegacyComponent: React.FC<CompactEquipmentCardLegacyPr
                                 <span className="text-reserved-foreground font-medium">В аренде</span>
                             )}
                             {status === 'my_reservation' && (
-                                <span className="text-sky-600 font-medium">В этом резерве</span>
+                                <span className="text-primary font-medium">В этом резерве</span>
                             )}
                             {status === 'added' && (
-                                <span className="text-emerald-600 font-medium">Добавлено</span>
+                                <span className="text-success font-medium">Добавлено</span>
                             )}
                         </>
                     )}

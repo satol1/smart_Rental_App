@@ -1,4 +1,5 @@
 import { Separator } from "@/components/ui/separator";
+import { MoneyText } from "@/components/ui/money-text";
 import type { AdminRentalOut } from "@/types/rental";
 
 interface ReceiptFinancialsProps {
@@ -20,12 +21,12 @@ export default function ReceiptFinancials({ rentalData }: ReceiptFinancialsProps
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                     <span className="text-sm text-foreground">Общая стоимость:</span>
-                    <span className="text-sm font-medium text-foreground">{rentalData.total_cost.toLocaleString()} ₽</span>
+                    <span className="text-sm font-medium text-foreground"><MoneyText value={rentalData.total_cost} /></span>
                 </div>
                 {rentalData.discount_amount > 0 && (
                     <div className="flex items-center justify-between text-success">
                         <span className="text-sm">Размер скидки:</span>
-                        <span className="text-sm font-medium">-{rentalData.discount_amount.toLocaleString()} ₽</span>
+                        <span className="text-sm font-medium">-<MoneyText value={rentalData.discount_amount} /></span>
                     </div>
                 )}
                 {rentalData.promo_code && (
@@ -37,14 +38,14 @@ export default function ReceiptFinancials({ rentalData }: ReceiptFinancialsProps
                 {rentalData.prepayment_amount > 0 && (
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-foreground">Размер предоплаты:</span>
-                        <span className="text-sm font-medium text-foreground">{rentalData.prepayment_amount.toLocaleString()} ₽</span>
+                        <span className="text-sm font-medium text-foreground"><MoneyText value={rentalData.prepayment_amount} /></span>
                     </div>
                 )}
                 <Separator className="receipt-financials-separator my-1.5" />
                 <div className="receipt-financials-total flex items-center justify-between text-base font-bold">
                     <span className="text-foreground">Остаток к оплате:</span>
                     <span className="text-primary">
-                        {rentalData.remaining_amount.toLocaleString()} ₽
+                        <MoneyText value={rentalData.remaining_amount} />
                     </span>
                 </div>
             </div>

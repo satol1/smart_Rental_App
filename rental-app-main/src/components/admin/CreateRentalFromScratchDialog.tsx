@@ -20,6 +20,11 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
         isSubmitting,
         users,
         isLoadingUsers,
+        userSearch,
+        setUserSearch,
+        usersHasNextPage,
+        usersFetchNextPage,
+        usersIsFetchingNextPage,
         equipmentSearch,
         setEquipmentSearch,
         isLoadingEquipment,
@@ -51,6 +56,11 @@ export default function CreateRentalFromScratchDialog({ open, onClose }: Props) 
                         form={form}
                         users={users}
                         isLoadingUsers={isLoadingUsers}
+                        userSearch={userSearch}
+                        setUserSearch={setUserSearch}
+                        usersHasNextPage={usersHasNextPage}
+                        usersFetchNextPage={usersFetchNextPage}
+                        usersIsFetchingNextPage={usersIsFetchingNextPage}
                         equipmentSearch={equipmentSearch}
                         setEquipmentSearch={setEquipmentSearch}
                         isLoadingEquipment={isLoadingEquipment}

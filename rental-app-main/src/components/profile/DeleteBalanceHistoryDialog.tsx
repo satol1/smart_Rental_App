@@ -51,11 +51,11 @@ export default function DeleteBalanceHistoryDialog({
             description={
                 <div className="space-y-4">
                     <p>Вы уверены, что хотите удалить эту запись? Это действие необратимо.</p>
-                    <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="bg-muted p-3 rounded-md">
                         <p><strong>Описание:</strong> {description}</p>
                         <p><strong>Сумма:</strong> {formattedAmount}</p>
                     </div>
-                    <p className="text-red-600 font-medium">
+                    <p className="text-destructive font-medium">
                         ⚠️ После удаления баланс пользователя будет автоматически пересчитан.
                     </p>
                 </div>

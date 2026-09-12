@@ -20,16 +20,16 @@ export const EQUIPMENT_CONDITIONS: readonly string[] = [
 export function getConditionVariantClass(condition: string): string {
     switch (condition) {
         case "Великолепно":
-            return "bg-green-100 text-green-800";
+            return "bg-success-soft text-success";
         case "Отлично":
-            return "bg-sky-100 text-sky-800";
+            return "bg-info-soft text-primary";
         case "Хорошо":
-            return "bg-yellow-100 text-yellow-800";
+            return "bg-warning-soft text-warning";
         case "Удовлетворительно":
-            return "bg-orange-100 text-orange-800";
+            return "bg-pastel-amber text-pastel-amber-fg";
         case "Требует ремонта":
-            return "bg-gray-200 text-gray-600 border border-gray-300";
+            return "bg-muted text-muted-foreground border border-border";
         default:
-            return "bg-gray-100 text-gray-800";
+            return "bg-muted text-foreground";
     }
 };

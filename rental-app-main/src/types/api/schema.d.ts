@@ -457,7 +457,7 @@ export interface paths {
         };
         /**
          * Получить всех пользователей (Менеджер)
-         * @description Получает список всех пользователей в системе с пагинацией.
+         * @description Получает список всех пользователей в системе с пагинацией, поиском и сортировкой.
          *     Доступно для пользователей с ролью 'manager' и 'admin'.
          */
         get: operations["get_all_users_api_admin_users__get"];
@@ -714,7 +714,7 @@ export interface paths {
         };
         /**
          * Get All Accessories
-         * @description Получить список всех аксессуаров с пагинацией
+         * @description Получить список всех аксессуаров с пагинацией, поиском и сортировкой
          */
         get: operations["get_all_accessories_api_accessories__get"];
         put?: never;
@@ -1513,8 +1513,8 @@ export interface components {
              * Format: date-time
              */
             timestamp: string;
-            /** Activity Type */
-            activity_type: string;
+            /** Type */
+            type: string;
             /** Description */
             description: string;
             /** User Name */
@@ -2582,6 +2582,10 @@ export interface components {
             min_order_amount?: number | null;
             /** Specific To User Id */
             specific_to_user_id?: number | null;
+            /** Applicable To Equipment Ids */
+            applicable_to_equipment_ids?: number[] | null;
+            /** Applicable To Equipment Types */
+            applicable_to_equipment_types?: string[] | null;
         };
         /** PromoCodeValidateRequest */
         PromoCodeValidateRequest: {
@@ -3656,7 +3660,7 @@ export interface operations {
                 status?: string | null;
                 /** @description Поиск по названию, бренду или типу оборудования */
                 search?: string | null;
-                /** @description Сортировка: id_desc, id_asc, start_date_desc, start_date_asc, end_date_desc, end_date_asc, count_desc, count_asc */
+                /** @description Сортировка: id_desc, id_asc, start_desc, start_asc, end_desc, end_asc, count_desc, count_asc (синонимы start_date_*\/end_date_*\/created_at_* также принимаются) */
                 sort?: string | null;
                 /** @description Количество записей для пропуска */
                 skip?: number;
@@ -3729,7 +3733,7 @@ export interface operations {
                 status?: string | null;
                 /** @description Поиск по названию, бренду или типу оборудования */
                 search?: string | null;
-                /** @description Сортировка: id_desc, id_asc, start_date_desc, start_date_asc, end_date_desc, end_date_asc, count_desc, count_asc */
+                /** @description Сортировка: id_desc, id_asc, start_desc, start_asc, end_desc, end_asc, count_desc, count_asc (синонимы start_date_*\/end_date_*\/created_at_* также принимаются) */
                 sort?: string | null;
                 /** @description Количество записей для пропуска */
                 skip?: number;
@@ -3868,7 +3872,7 @@ export interface operations {
                 status?: string | null;
                 /** @description Поиск по названию, бренду или типу оборудования */
                 search?: string | null;
-                /** @description Сортировка: id_desc, id_asc, start_date_desc, start_date_asc, end_date_desc, end_date_asc, count_desc, count_asc */
+                /** @description Сортировка: id_desc, id_asc, start_desc, start_asc, end_desc, end_asc, count_desc, count_asc (синонимы start_date_*\/end_date_*\/created_at_* также принимаются) */
                 sort?: string | null;
                 /** @description Количество записей для пропуска */
                 skip?: number;
@@ -4039,6 +4043,10 @@ export interface operations {
                 skip?: number;
                 /** @description Максимальное количество записей на странице */
                 limit?: number;
+                /** @description Поиск по ФИО, email и телефону */
+                search?: string | null;
+                /** @description Ключ сортировки */
+                sort_by?: string;
             };
             header?: never;
             path?: never;
@@ -4535,6 +4543,12 @@ export interface operations {
                 skip?: number;
                 /** @description Максимальное количество записей на странице */
                 limit?: number;
+                /** @description Поиск по названию и типу */
+                search?: string | null;
+                /** @description Колонка сортировки */
+                sort_by?: string;
+                /** @description Направление сортировки */
+                sort_order?: string;
             };
             header?: never;
             path?: never;

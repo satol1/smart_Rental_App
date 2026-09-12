@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Package } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { MoneyText } from "@/components/ui/money-text";
 import { cn } from "@/lib/utils";
 import { buttonGesture, springs } from "@/lib/motion";
 import type { CatalogPackItem } from "@/types/catalog";
@@ -39,13 +40,13 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
         if (pack.available_count === pack.total_count) {
             return {
                 text: `Доступно: ${pack.available_count} из ${pack.total_count}`,
-                className: "text-green-600"
+                className: "text-success"
             };
         }
         if (pack.available_count > 0) {
             return {
                 text: `Доступно: ${pack.available_count} из ${pack.total_count}`,
-                className: "text-orange-600"
+                className: "text-warning"
             };
         }
         return {
@@ -57,10 +58,10 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
     // Определяем цвет фона карточки в зависимости от статуса доступности
     const cardBackgroundClass = useMemo(() => {
         if (pack.available_count === pack.total_count) {
-            return "bg-white border-gray-200 hover:bg-gray-50"; // Белый для полной доступности
+            return "bg-card border-border hover:bg-muted/50"; // Нейтральный для полной доступности
         }
         if (pack.available_count > 0) {
-            return "bg-orange-50 border-orange-200 hover:bg-orange-100"; // Оранжевый для частичной доступности
+            return "bg-warning-soft border-warning/40 hover:bg-warning-soft"; // Янтарный для частичной доступности
         }
         return "bg-reserved-soft border-reserved/40"; // Красноватый для недоступности
     }, [pack.available_count, pack.total_count]);
@@ -111,11 +112,11 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
                 {/* Заголовок и индикатор пачки */}
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span className="text-xs font-medium text-gray-600">{t("catalogDesign.group")}</span>
+                        <Package className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-xs font-medium text-muted-foreground">{t("catalogDesign.group")}</span>
                     </div>
                     <h3><button type="button" className="equipment-tile-title" onClick={() => onOpenDetails?.(pack)}>{pack.name}</button></h3>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                         {pack.brand} • {pack.equipment_type}
                     </p>
                 </div>
@@ -130,17 +131,17 @@ const CompactPackCardComponent: React.FC<CompactPackCardProps> = ({
                 {/* Цена */}
                 <div className="text-sm">
                     {isLoadingPrice ? (
-                        <span className="text-gray-500">Расчет цены...</span>
+                        <span className="text-muted-foreground">Расчет цены...</span>
                     ) : priceDetails && isAvailable ? (
                         <div className="flex items-baseline gap-1">
-                            <span className="text-gray-600">от</span>
-                            <span className="font-bold text-gray-900">
-                                {priceDetails.final_total.toLocaleString('ru-RU')} ₽
+                            <span className="text-muted-foreground">от</span>
+                            <span className="font-bold text-foreground">
+                                <MoneyText value={priceDetails.final_total} />
                             </span>
-                            <span className="text-gray-600 text-xs">{t("catalogDesign.periodPrice")}</span>
+                            <span className="text-muted-foreground text-xs">{t("catalogDesign.periodPrice")}</span>
                         </div>
                     ) : (
-                        <span className="text-gray-500 font-medium">Нет доступных</span>
+                        <span className="text-muted-foreground font-medium">Нет доступных</span>
                     )}
                 </div>
 

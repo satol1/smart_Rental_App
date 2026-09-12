@@ -2,6 +2,7 @@
 
 import { ReceiptText, Loader2 } from "lucide-react";
 import PromoCodeInput from "@/components/PromoCodeInput";
+import { MoneyText } from "@/components/ui/money-text";
 import type { PriceDetails } from "@/hooks/reservation/usePriceCalculator";
 import type { AdminRentalOut } from "@/types/rental";
 
@@ -91,7 +92,7 @@ export default function ActiveRentalFinancialBlock({
                                 Пересчет по новым условиям:
                             </div>
                             <div className="text-xs text-primary">
-                                {currentDayCount} дн. • {fullTotal.toLocaleString('ru-RU')} ₽
+                                {currentDayCount} дн. • <MoneyText value={fullTotal} />
                                 {totalDiscountPercentage > 0 && (
                                     <span> • скидка {totalDiscountPercentage}%</span>
                                 )}
@@ -103,13 +104,13 @@ export default function ActiveRentalFinancialBlock({
                     <div className="space-y-1.5">
                         <div className="flex justify-between gap-3">
                             <span>Стоимость аренды:</span>
-                            <span className="font-medium">{currentTotalCost.toLocaleString('ru-RU')} ₽</span>
+                            <span className="font-medium"><MoneyText value={currentTotalCost} /></span>
                         </div>
 
                         {currentDiscountAmount > 0 && (
                             <div className="flex justify-between gap-3 text-success">
                                 <span>Скидка:</span>
-                                <span className="font-medium">-{currentDiscountAmount.toLocaleString('ru-RU')} ₽</span>
+                                <span className="font-medium">-<MoneyText value={currentDiscountAmount} /></span>
                             </div>
                         )}
 
@@ -122,19 +123,19 @@ export default function ActiveRentalFinancialBlock({
 
                         <div className="flex justify-between gap-3 pt-1 border-t border-border">
                             <span>Предоплата:</span>
-                            <span className="font-medium text-primary">{rental.prepayment_amount.toLocaleString('ru-RU')} ₽</span>
+                            <span className="font-medium text-primary"><MoneyText value={rental.prepayment_amount} /></span>
                         </div>
 
                         <div className="flex justify-between gap-3 text-base font-bold pt-1 border-t">
                             <span>Остаток к оплате:</span>
                             <span className={`ml-2 ${remainingAmount > 0 ? 'text-destructive' : 'text-success'}`}>
-                                {remainingAmount.toLocaleString('ru-RU')} ₽
+                                <MoneyText value={remainingAmount} />
                             </span>
                         </div>
 
                         {remainingAmount < 0 && (
                             <div className="text-xs text-success bg-success-soft p-2 rounded">
-                                Переплата: {Math.abs(remainingAmount).toLocaleString('ru-RU')} ₽
+                                Переплата: <MoneyText value={Math.abs(remainingAmount)} />
                             </div>
                         )}
                     </div>

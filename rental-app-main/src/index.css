@@ -146,6 +146,7 @@
 
   .dark {
     color-scheme: dark;
+    --photo-surface: 210 8% 12%;
     --blue-50: 201 16% 14%;
     --blue-100: 201 22% 18%;
     --blue-200: 201 22% 26%;

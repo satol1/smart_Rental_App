@@ -1,4 +1,4 @@
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, LayoutGrid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import SearchInput from '@/components/SearchInput';
 import AvailableCheckbox from '@/components/AvailableCheckbox';
@@ -6,6 +6,7 @@ import GroupSimilarCheckbox from '@/components/GroupSimilarCheckbox';
 import { Button } from '@/components/ui/button';
 import { useFilterStore } from '@/store/filterStore';
 import { useSearchStore } from '@/store/searchStore';
+import { getEquipmentTypeIcon } from '@/lib/equipmentTypeIcons';
 import type { Association } from '@/types/association';
 
 interface FilterPanelProps {
@@ -38,8 +39,15 @@ export default function FilterPanel({ availableTypes, availableBrands, available
       <div className="catalog-filter-row">
         <span className="catalog-filter-label"><SlidersHorizontal className="size-4" aria-hidden="true" />{t('catalogDesign.category')}</span>
         <div className="catalog-filter-options" role="group" aria-label={t('catalogDesign.category')}>
-          <button type="button" className="catalog-chip" aria-pressed={!filters.type} onClick={() => filters.setType(null)}>{t('catalogDesign.allCategories')}</button>
-          {types.map(type => <button type="button" key={type} className="catalog-chip" aria-pressed={filters.type === type} onClick={() => filters.setType(filters.type === type ? null : type)}>{type}</button>)}
+          <button type="button" className="catalog-chip" aria-pressed={!filters.type} onClick={() => filters.setType(null)}><LayoutGrid className="size-3.5 shrink-0" aria-hidden="true" />{t('catalogDesign.allCategories')}</button>
+          {types.map(type => {
+            const TypeIcon = getEquipmentTypeIcon(type);
+            return (
+              <button type="button" key={type} className="catalog-chip" aria-pressed={filters.type === type} onClick={() => filters.setType(filters.type === type ? null : type)}>
+                <TypeIcon className="size-3.5 shrink-0" aria-hidden="true" />{type}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="catalog-filter-row">
