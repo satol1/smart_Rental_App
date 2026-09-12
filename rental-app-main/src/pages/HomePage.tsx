@@ -15,6 +15,7 @@ import ReservationFooter from "@/components/ReservationFooter";
 import EquipmentCatalog from "@/components/catalog/EquipmentCatalog";
 import PackDetailsModal from "@/components/pack/PackDetailsModal";
 import StickyDateBar from "@/components/layout/StickyDateBar";
+import { HEADER_HEIGHT_COMPACT, HEADER_HEIGHT_EXPANDED, useHeaderScrolled } from "@/components/layout/useHeaderScrolled";
 import { Button } from "@/components/ui/button";
 
 // Хуки
@@ -28,6 +29,9 @@ import { useReservationNavigation } from "@/hooks/useReservationNavigation"; // 
 import { useAllEquipment } from "@/hooks/useAllEquipment"; // <-- СПРАВОЧНИК ВСЕГО ОБОРУДОВАНИЯ
 import { useAvailabilityForEquipment } from "@/hooks/useAvailabilityForEquipment"; // <-- ХУК ДЛЯ ДОСТУПНОСТИ ОБОРУДОВАНИЯ ПАЧКИ
 import { createAvailabilityMap } from "@/lib/equipmentUtils"; // <-- УТИЛИТАРНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КАРТЫ ДОСТУПНОСТИ
+
+// Насколько модуль выбора дат должен вернуться из-под шапки, чтобы липкая панель скрылась
+const STICKY_RELEASE_PX = 12;
 
 export default function HomePage() {
     const { t } = useTranslation();
@@ -95,18 +99,27 @@ export default function HomePage() {
     const availabilityMapForModal = useMemo(() => createAvailabilityMap(availabilityForModal), [availabilityForModal]);
 
 
-    // Отслеживаем скролл: когда большой модуль выбора дат полностью скрывается за шапкой (80px),
-    // активируется компактный плавающий StickyDateBar, который остаётся прикреплённым к шапке
-    // до самого низа страницы и плавно скрывается при возврате наверх
+    // Отслеживаем скролл: когда большой модуль выбора дат скрывается под шапкой,
+    // активируется компактный плавающий StickyDateBar, который остаётся прикреплённым
+    // к нижнему краю шапки до самого низа страницы и плавно скрывается при возврате
+    // наверх. Порог берём от фактического низа шапки (она анимируется между 80 и
+    // 64px), а для скрытия добавлена мёртвая зона — панель не мерцает у границы.
+    const isHeaderCompact = useHeaderScrolled();
     useEffect(() => {
         let ticking = false;
+        const headerEl = document.getElementById("app-header");
 
         const updateStickyState = () => {
             if (!dateSelectorRef.current) return;
             const rect = dateSelectorRef.current.getBoundingClientRect();
-            // Порог: нижний край модуля ушёл под шапку (80px)
-            const shouldBeSticky = rect.bottom <= 80;
-            setIsSticky((prev) => (prev !== shouldBeSticky ? shouldBeSticky : prev));
+            const headerBottom = headerEl
+                ? headerEl.getBoundingClientRect().bottom
+                : isHeaderCompact ? HEADER_HEIGHT_COMPACT : HEADER_HEIGHT_EXPANDED;
+            setIsSticky((prev) =>
+                // Гистерезис: панель показана, пока низ модуля у шапки; скрываем
+                // только когда модуль вернулся из-под шапки с запасом RELEASE_PX
+                rect.bottom <= headerBottom + (prev ? STICKY_RELEASE_PX : 0),
+            );
         };
 
         const onScroll = () => {
@@ -120,13 +133,13 @@ export default function HomePage() {
         };
 
         window.addEventListener("scroll", onScroll, { passive: true });
-        // Проверяем начальное положение при загрузке
+        // Проверяем начальное положение при загрузке и при смене состояния шапки
         updateStickyState();
 
         return () => {
             window.removeEventListener("scroll", onScroll);
         };
-    }, []);
+    }, [isHeaderCompact]);
 
     // Получаем логику управления резервами для каталога
     const {

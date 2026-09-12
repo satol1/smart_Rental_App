@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ContactDialog } from '@/components/shared/ContactDialog';
 import AuthDialog from '@/components/shared/AuthDialog';
 import { cn } from '@/lib/utils';
-import { listItem, motionSafeVariants, springs, transitionFast } from '@/lib/motion';
+import { listItem, motionSafeVariants, springs, transitionFast, transitionSlow } from '@/lib/motion';
 import UserNav from './UserNav';
 import ThemeSwitcher from './ThemeSwitcher';
 import { useHeaderScrolled } from './useHeaderScrolled';
@@ -94,6 +94,7 @@ export default function Header() {
   return (
     <>
       <header
+        id="app-header"
         className={cn(
           'sticky top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-slow',
           isScrolled
@@ -116,7 +117,9 @@ export default function Header() {
             <motion.span
               className="inline-flex origin-left items-center"
               animate={{ scale: isScrolled ? 0.9 : 1 }}
-              transition={reducedMotion ? { duration: 0 } : springs.soft}
+              // Тот же токен 300ms/ease-out, что у height- и color-переходов
+              // шапки: сжатие выглядит одним движением, а не вразнобой
+              transition={reducedMotion ? { duration: 0 } : transitionSlow}
             >
               <BrandLogo size={44} />
             </motion.span>

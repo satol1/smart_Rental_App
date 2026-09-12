@@ -5,16 +5,23 @@ import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronUp } from 'lucide-react';
 import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange';
 import { Button } from '@/components/ui/button';
-import { transitionBase } from '@/lib/motion';
+import { transitionBase, transitionSlow } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { useHeaderScrolled } from './useHeaderScrolled';
+import { HEADER_HEIGHT_COMPACT, HEADER_HEIGHT_EXPANDED, useHeaderScrolled } from './useHeaderScrolled';
 
 interface StickyDateBarProps { isVisible: boolean; }
+
+// Панель висит на top компактной шапки, а под раскрытую шапку опускается
+// transform-ом — анимируем только transform, и тем же токеном 300ms/ease-out,
+// что и высота шапки: панель едет вместе с ней, без зазора и без рассинхрона.
+const EXPANDED_OFFSET = HEADER_HEIGHT_EXPANDED - HEADER_HEIGHT_COMPACT;
 
 const StickyDateBar = memo(function StickyDateBar({ isVisible }: StickyDateBarProps) {
   const { t } = useTranslation();
   const reducedMotion = useReducedMotion();
   const isHeaderCompact = useHeaderScrolled();
+  const baseY = isHeaderCompact ? 0 : EXPANDED_OFFSET;
+  const enterY = reducedMotion ? baseY : baseY - 8;
   const scrollToCalendar = () => {
     const calendarEl = document.getElementById('main-date-range-selector');
     const behavior = reducedMotion ? 'instant' : 'smooth';
@@ -27,15 +34,20 @@ const StickyDateBar = memo(function StickyDateBar({ isVisible }: StickyDateBarPr
       {isVisible && (
         <motion.div
           key="sticky-date-bar"
-          initial={{ y: reducedMotion ? 0 : -8, opacity: reducedMotion ? 1 : 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: reducedMotion ? 0 : -8, opacity: 0 }}
-          transition={reducedMotion ? { duration: 0 } : transitionBase}
+          initial={{ y: enterY, opacity: reducedMotion ? 1 : 0 }}
+          animate={{ y: baseY, opacity: 1 }}
+          exit={{ y: enterY, opacity: 0 }}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { y: transitionSlow, opacity: transitionBase, default: transitionBase }
+          }
           className={cn(
-            'fixed inset-x-0 z-40 border-b px-4 py-2.5 transition-[top,background-color,box-shadow,border-color] duration-slow sm:px-6 lg:px-8',
+            // top-16 == HEADER_HEIGHT_COMPACT: см. EXPANDED_OFFSET
+            'fixed inset-x-0 top-16 z-40 border-b px-4 py-2.5 transition-[background-color,box-shadow,border-color] duration-slow sm:px-6 lg:px-8',
             isHeaderCompact
-              ? 'top-16 border-border/70 bg-card/85 shadow-sm backdrop-blur-md'
-              : 'top-20 border-border bg-card',
+              ? 'border-border/70 bg-card/85 shadow-sm backdrop-blur-md'
+              : 'border-border bg-card',
           )}
           role="region" aria-label={t('shell.stickyDates')}
         >
