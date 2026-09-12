@@ -21,6 +21,7 @@ interface Props {
     isApplyingPayment: boolean;
     handleAutoFillPayment: () => void;
     overdueSurcharge?: number;
+    lostAccessoriesTotal?: number;
 }
 
 export default function ReturnFinancials({
@@ -36,6 +37,7 @@ export default function ReturnFinancials({
     isApplyingPayment,
     handleAutoFillPayment,
     overdueSurcharge,
+    lostAccessoriesTotal,
 }: Props) {
     return (
         <div className="space-y-4 pt-3 border-t">
@@ -83,6 +85,12 @@ export default function ReturnFinancials({
                         <span>+ <MoneyText value={overdueSurcharge} /></span>
                     </div>
                 )}
+                {lostAccessoriesTotal !== undefined && lostAccessoriesTotal > 0 && (
+                    <div className="flex justify-between text-destructive font-semibold pt-1 border-t border-dashed">
+                        <span>Компенсация за утерю аксессуаров:</span>
+                        <span>+ <MoneyText value={lostAccessoriesTotal} /></span>
+                    </div>
+                )}
             </div>
 
             {/* Поля для платежа */}
@@ -114,7 +122,7 @@ export default function ReturnFinancials({
                     {paymentApplied && (
                         <p className="text-xs text-success mt-1 flex items-center">
                             <span className="mr-1">✓</span>
-                            Платеж учтен
+                            Платеж будет внесен при подтверждении возврата
                         </p>
                     )}
                 </div>

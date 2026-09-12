@@ -5,16 +5,16 @@ import type { AdminRentalOut } from "@/types/rental";
 import { ClipboardX } from "lucide-react";
 import AdminRentalCard from "./AdminRentalCard";
 
-// +++ ИЗМЕНИТЕ ИНТЕРФЕЙС Props +++
 interface Props {
     rentals: AdminRentalOut[];
     onReturn: (rental: AdminRentalOut) => void;
+    onAddEquipment?: (rental: AdminRentalOut) => void;
     highlightId?: number | null;
     elementRef?: React.RefObject<HTMLDivElement>;
     getHighlightClasses?: (id: number) => string;
 }
 
-export default function AllRentalsList({ rentals, onReturn, highlightId, elementRef, getHighlightClasses }: Props) {
+export default function AllRentalsList({ rentals, onReturn, onAddEquipment, highlightId, elementRef, getHighlightClasses }: Props) {
     if (!rentals || rentals.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-12 space-y-4 bg-muted/50 rounded-lg border-2 border-dashed">
@@ -27,12 +27,13 @@ export default function AllRentalsList({ rentals, onReturn, highlightId, element
 
     return (
         <div className="space-y-4">
-            {/* +++ ПЕРЕДАЙТЕ ПРОПС onReturn В КАРТОЧКУ +++ */}
+            {/* +++ ПЕРЕДАЙТЕ ПРОПС onReturn И onAddEquipment В КАРТОЧКУ +++ */}
             {rentals.map((rental) => (
                 <AdminRentalCard 
                     key={rental.id} 
                     rental={rental} 
                     onReturn={onReturn} 
+                    onAddEquipment={onAddEquipment}
                     highlightId={highlightId ?? undefined}
                     elementRef={highlightId === rental.id ? elementRef : undefined}
                     getHighlightClasses={getHighlightClasses}

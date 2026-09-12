@@ -3,7 +3,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient, type QueryFunctionContext } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RentalService, type AdminRentalsParams, type ConvertReservationPayload, type ReturnRentalPayload } from "@/core/services";
-import type { AdminRentalListResponse, RentalCreateFromScratchData } from "@/types/rental";
+import type { AdminRentalListResponse, RentalCreateFromScratchData, RentalAddItemsRequest } from "@/types/rental";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
 import { getApiErrorMessage, invalidateAvailability } from "@/lib/queryHelpers";
 import type { AdminRentalUpdateData } from "@/core/services";
@@ -184,6 +184,23 @@ export function useUpdateAdminRental() {
         },
         onError: (error) => {
             toast.error(getApiErrorMessage(error, "Ошибка при обновлении аренды"));
+        },
+    });
+}
+
+export function useAddEquipmentToRental() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ rentalId, data }: { rentalId: number; data: RentalAddItemsRequest }) =>
+            RentalService.addEquipmentToRental(rentalId, data),
+        onSuccess: () => {
+            toast.success("Оборудование успешно добавлено в аренду!");
+            queryClient.invalidateQueries({ queryKey: ADMIN_RENTALS_QUERY_KEY, exact: false });
+            invalidateAvailability(queryClient);
+            queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
+        },
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, "Ошибка при добавлении оборудования"));
         },
     });
 }

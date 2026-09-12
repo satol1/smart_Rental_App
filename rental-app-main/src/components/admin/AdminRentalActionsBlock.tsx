@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Edit, RotateCcw, Trash2 } from "lucide-react";
+import { Edit, RotateCcw, Trash2, PackagePlus } from "lucide-react";
 import type { AdminRentalOut } from "@/types/rental";
 
 interface AdminRentalActionsBlockProps {
@@ -14,6 +14,7 @@ interface AdminRentalActionsBlockProps {
     onReturn: () => void;
     onDelete: () => void;
     onRevert: () => void;
+    onAddEquipment?: () => void;
 }
 
 const AdminRentalActionsBlock = React.memo(({
@@ -24,8 +25,11 @@ const AdminRentalActionsBlock = React.memo(({
     onEdit,
     onReturn,
     onDelete,
-    onRevert
+    onRevert,
+    onAddEquipment,
 }: AdminRentalActionsBlockProps) => {
+    const isActiveRental = rental.status === 'active' || rental.status === 'overdue';
+
     return (
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4 xl:flex-col xl:items-stretch xl:border-t-0 xl:border-l xl:pl-5 xl:pt-0">
             <div className="flex flex-wrap gap-2 xl:flex-col">
@@ -40,11 +44,17 @@ const AdminRentalActionsBlock = React.memo(({
                         Отменить выдачу
                     </Button>
                 )}
+                {isActiveRental && onAddEquipment && (
+                    <Button size="sm" variant="outline" onClick={onAddEquipment}>
+                        <PackagePlus className="mr-2 h-4 w-4 text-primary" />
+                        Добрать технику
+                    </Button>
+                )}
                 <Button size="sm" variant="outline" onClick={onEdit}>
                     <Edit className="mr-2 h-4 w-4" />
                     Редактировать
                 </Button>
-                {rental.status !== 'completed' && (
+                {isActiveRental && (
                     <Button size="sm" variant="default" onClick={onReturn}>
                         <RotateCcw className="mr-2 h-4 w-4" />
                         Оформить возврат

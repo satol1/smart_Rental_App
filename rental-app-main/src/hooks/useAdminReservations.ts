@@ -60,11 +60,11 @@ export function useDeleteAdminReservation() {
     return useMutation({
         mutationFn: (reservationId: number) => ReservationService.deleteAdminReservation(reservationId),
         onSuccess: () => {
-            toast.success("Резерв успешно удален");
+            toast.success("Резерв успешно отменен");
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
         onError: (error) => {
-            toast.error(getApiErrorMessage(error, "Ошибка при удалении резерва"));
+            toast.error(getApiErrorMessage(error, "Ошибка при отмене резерва"));
         },
     });
 }
@@ -74,11 +74,11 @@ export function useBulkDeleteAdminReservations() {
     return useMutation({
         mutationFn: (reservationIds: number[]) => ReservationService.bulkDeleteAdminReservations(reservationIds),
         onSuccess: () => {
-            toast.success("Выбранные резервы успешно удалены");
+            toast.success("Выбранные резервы успешно отменены");
             queryClient.invalidateQueries({ queryKey: ADMIN_RESERVATIONS_QUERY_KEY, exact: false });
         },
         onError: (error) => {
-            toast.error(getApiErrorMessage(error, "Ошибка при массовом удалении резервов"));
+            toast.error(getApiErrorMessage(error, "Ошибка при массовой отмене резервов"));
         },
     });
 }

@@ -35,11 +35,12 @@ interface Props {
     open: boolean;
     onClose: () => void;
     onUserUpdated?: (updatedUser: UserOut) => void;
+    rentalId?: number;
 }
 
 type DialogMode = 'payment' | 'adjustment';
 
-export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props) {
+export function UserPaymentDialog({ user, open, onClose, onUserUpdated, rentalId }: Props) {
     const paymentMutation = useAddUserPayment();
     const adjustmentMutation = useAdjustUserBalance();
     // ✅ ИЗМЕНЕНИЕ: Добавляем состояние для управления диалогом истории
@@ -55,6 +56,9 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
     const paymentForm = useForm<UserPaymentSchema>({
         resolver: zodResolver(userPaymentSchema),
         mode: "onChange",
+        defaultValues: {
+            rental_id: rentalId,
+        },
     });
 
     const adjustmentForm = useForm<AdminBalanceAdjustmentSchema>({
@@ -70,7 +74,12 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
     const onPaymentSubmit = (data: UserPaymentSchema) => {
         if (!user) return;
 
-        paymentMutation.mutate({ userId: user.id, data }, {
+        const payload = {
+            ...data,
+            ...(rentalId || data.rental_id ? { rental_id: rentalId || data.rental_id } : {}),
+        };
+
+        paymentMutation.mutate({ userId: user.id, data: payload }, {
             onSuccess: (updatedUser) => {
                 paymentForm.reset();
                 // Обновляем локальное состояние с новыми данными пользователя
@@ -182,12 +191,19 @@ export function UserPaymentDialog({ user, open, onClose, onUserUpdated }: Props)
 
                     {/* Отображение текущего баланса */}
                     <div className="space-y-2 pt-4 border-t">
-                        <p className="text-sm text-muted-foreground">
-                            Текущий баланс:
-                            <span className={`font-bold ml-2 ${balanceColor}`}>
-                                {formatBalance(displayUser.balance)}
-                            </span>
-                        </p>
+                        <div className="flex justify-between items-center">
+                            <p className="text-sm text-muted-foreground">
+                                Текущий баланс:
+                                <span className={`font-bold ml-2 ${balanceColor}`}>
+                                    {formatBalance(displayUser.balance)}
+                                </span>
+                            </p>
+                            {rentalId && (
+                                <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                                    К заказу #{rentalId}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     {/* Форма пополнения баланса */}

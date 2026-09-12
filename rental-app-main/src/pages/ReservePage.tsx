@@ -116,11 +116,9 @@ export default function ReservePage() {
         return base;
     }, [user?.status, startDate]);
 
-    // ✅ ДОБАВЛЕНО: Расчет минимальной даты для поля "Конец"
+    // Расчет минимальной даты для поля "Конец" (разрешена аренда на 1 день)
     const minEndDate = useMemo(() => {
-        const nextDay = new Date(startDate);
-        nextDay.setDate(startDate.getDate() + 1);
-        return formatDate(nextDay);
+        return formatDate(startDate);
     }, [startDate]);
 
     const returnToCatalog = () => navigate("/", {

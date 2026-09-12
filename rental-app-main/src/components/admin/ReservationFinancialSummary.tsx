@@ -18,6 +18,8 @@ interface ReservationFinancialSummaryProps {
     priceDetails?: PriceDetails;
     isCalculatingPrice?: boolean;
     priceError?: Error | null;
+    startDate?: Date;
+    endDate?: Date;
 }
 
 export default function ReservationFinancialSummary({
@@ -29,7 +31,9 @@ export default function ReservationFinancialSummary({
                                                         equipmentMap,
                                                         priceDetails: propPriceDetails,
                                                         isCalculatingPrice: propIsCalculatingPrice,
-                                                        priceError: propPriceError
+                                                        priceError: propPriceError,
+                                                        startDate: propStartDate,
+                                                        endDate: propEndDate,
                                                     }: ReservationFinancialSummaryProps) {
 
     const { newStartDate, newEndDate, newDateRangeIsValid } = useMemo(() => {
@@ -39,12 +43,15 @@ export default function ReservationFinancialSummary({
         const originalEndDate = new Date(reservation.end_date);
         originalEndDate.setHours(0, 0, 0, 0);
 
+        const sDate = propStartDate ?? today;
+        const eDate = propEndDate ?? originalEndDate;
+
         return {
-            newStartDate: today,
-            newEndDate: originalEndDate,
-            newDateRangeIsValid: originalEndDate >= today,
+            newStartDate: sDate,
+            newEndDate: eDate,
+            newDateRangeIsValid: eDate >= sDate,
         };
-    }, [reservation]);
+    }, [reservation, propStartDate, propEndDate]);
 
     const fallbackCalculator = usePriceCalculator({
         equipmentIds: reservation.equipment_ids || [],
@@ -117,7 +124,7 @@ export default function ReservationFinancialSummary({
                                 <span className="flex items-center gap-1.5">
                                     <span>Скидка ({totalDiscountPercentage.toFixed(0)}%):</span>
                                     {reservation.promo_code && (priceDetails.promo_discount_percentage > 0) && (
-                                        <span className="text-[11px] bg-success-soft text-success px-1.5 py-0.5 rounded font-mono font-medium">
+                                        <span className="text-2xs bg-success-soft text-success px-1.5 py-0.5 rounded font-mono font-medium">
                                             {reservation.promo_code}
                                         </span>
                                     )}

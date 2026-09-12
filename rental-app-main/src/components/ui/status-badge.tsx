@@ -58,6 +58,11 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     className:
       "border-border bg-muted text-muted-foreground",
   },
+  completed_with_debt: {
+    label: STATUS_CONFIG.completed_with_debt.text,
+    className:
+      "border-transparent bg-danger-soft text-destructive",
+  },
 };
 
 const USER_STATUS_STYLES: Record<UserStatus, StatusStyle> = {

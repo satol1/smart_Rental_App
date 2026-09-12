@@ -144,9 +144,9 @@ export function useReservations(params?: UseReservationsParams) {
         mutationFn: (id: number) => ReservationService.cancelReservation(id),
         onSuccess: () => {
             invalidateReservationQueries(queryClient);
-            toast.success("Резерв успешно удален!");
+            toast.success("Резерв успешно отменен!");
         },
-        onError: (error) => handleMutationError(error, "не удалось удалить резерв")
+        onError: (error) => handleMutationError(error, "не удалось отменить резерв")
     });
 
     return {

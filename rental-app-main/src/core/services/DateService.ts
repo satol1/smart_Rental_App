@@ -76,15 +76,12 @@ export class DateService {
   }
 
   /**
-   * Корректирует диапазон дат, если endDate раньше startDate
    */
   static adjustDateRange(startDate: Date, endDate: Date): DateRange {
-    if (startDate >= endDate) {
-      const adjustedEndDate = new Date(startDate);
-      adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+    if (startDate > endDate) {
       return {
         startDate,
-        endDate: adjustedEndDate
+        endDate: new Date(startDate)
       };
     }
 

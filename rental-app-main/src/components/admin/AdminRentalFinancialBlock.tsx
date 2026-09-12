@@ -56,7 +56,27 @@ const AdminRentalFinancialBlock = React.memo(({ rental }: AdminRentalFinancialBl
                 )}
                 <div className="flex justify-between gap-3 pt-2 border-t text-muted-foreground">
                     <span>Внесенный залог:</span>
-                    <span className="font-medium"><MoneyText value={rental.deposit_amount} /></span>
+                    <div className="text-right">
+                        <span className="font-medium text-foreground"><MoneyText value={rental.deposit_amount} /></span>
+                        {rental.deposit_status && (
+                            <div className="text-2xs">
+                                {rental.deposit_status === 'refunded' && (
+                                    <span className="text-success">Возвращен</span>
+                                )}
+                                {rental.deposit_status === 'held' && (
+                                    <span className="text-warning">Удерживается</span>
+                                )}
+                                {rental.deposit_status === 'retained_for_damage' && (
+                                    <span className="text-destructive">Удержан за ущерб</span>
+                                )}
+                                {rental.deposit_status === 'partially_retained' && (
+                                    <span className="text-warning">
+                                        Удержано: <MoneyText value={rental.deposit_retained_amount || 0} />
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

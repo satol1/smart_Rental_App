@@ -152,6 +152,10 @@ export function useAddUserPayment() {
                 queryKey: ["balanceHistory", "me"]
             });
 
+            // Инвалидируем кэш заказов (погашение долга меняет статус completed_with_debt -> completed)
+            void queryClient.invalidateQueries({ queryKey: ["admin", "rentals"] });
+            void queryClient.invalidateQueries({ queryKey: ["rentals"] });
+
             // Уведомление теперь показывается в компоненте с более детальной информацией
         },
         onError: (error) => {
@@ -182,6 +186,10 @@ export function useAdjustUserBalance() {
             void queryClient.invalidateQueries({
                 queryKey: ["balanceHistory", "me"]
             });
+
+            // Инвалидируем кэш заказов (погашение долга меняет статус completed_with_debt -> completed)
+            void queryClient.invalidateQueries({ queryKey: ["admin", "rentals"] });
+            void queryClient.invalidateQueries({ queryKey: ["rentals"] });
 
             // Уведомление теперь показывается в компоненте с более детальной информацией
         },

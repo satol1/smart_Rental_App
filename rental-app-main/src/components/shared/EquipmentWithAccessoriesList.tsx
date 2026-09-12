@@ -3,9 +3,16 @@
 import { useState } from "react";
 import { Paperclip, ChevronDown, MinusCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { AccessoryLink } from "@/types/reservation";
 import type { Equipment } from "@/types/equipment";
 import { isEquipmentUnderRepair } from "@/lib/equipmentUtils";
+
+export interface EquipmentStatusInfo {
+    status: string;
+    label?: string;
+    variant?: "default" | "secondary" | "destructive" | "outline" | "pastelSky" | "pastelMint" | "pastelAmber" | "pastelCoral" | "pastelLavender";
+}
 
 interface EquipmentWithAccessoriesListProps {
     equipment: Equipment[];
@@ -17,6 +24,7 @@ interface EquipmentWithAccessoriesListProps {
     onRemoveItem?: (equipmentId: number) => void;
     isRemoveDisabled?: boolean;
     removeButtonTitle?: string;
+    itemStatusMap?: Record<number, EquipmentStatusInfo>;
 }
 
 export default function EquipmentWithAccessoriesList({
@@ -28,7 +36,8 @@ export default function EquipmentWithAccessoriesList({
     showRemoveButton = false,
     onRemoveItem,
     isRemoveDisabled = false,
-    removeButtonTitle = "Удалить из резерва"
+    removeButtonTitle = "Удалить из резерва",
+    itemStatusMap,
 }: EquipmentWithAccessoriesListProps) {
     const [expandedAccessories, setExpandedAccessories] = useState<Record<number, boolean>>({});
 
@@ -67,12 +76,18 @@ export default function EquipmentWithAccessoriesList({
                     const accessoriesForItem = accessoryLinks.filter(link => 
                         link.equipment_id === item.id && link.accessory
                     );
+                    const statusInfo = itemStatusMap?.[item.id];
                     
                     return (
                         <div key={item.id} className="text-sm text-card-foreground bg-muted/70 p-2 rounded-md border">
                             <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                     <p>• {item.name}</p>
+                                    {statusInfo && (
+                                        <Badge variant={statusInfo.variant || "secondary"} className="text-3xs py-0 px-1.5 h-4">
+                                            {statusInfo.label}
+                                        </Badge>
+                                    )}
                                     {isEquipmentUnderRepair(item) && (
                                         <div className="flex items-center gap-1 text-xs font-semibold text-warning bg-warning-soft px-2 py-0.5 rounded-md border border-warning/30">
                                             <AlertTriangle className="w-3 h-3" />

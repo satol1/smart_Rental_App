@@ -14,10 +14,12 @@ export const BALANCE_OPERATION_TYPES = {
   
   // Операции с возвратом
   early_return_credit: "Возврат за досрочное завершение",
+  partial_return_credit: "Возврат за часть техники",
   overdue_surcharge_debit: "Штраф за просрочку",
   
   // Операции с балансом
   balance_top_up: "Пополнение баланса",
+  debt_repayment: "Погашение задолженности",
   
   // Ручные корректировки
   manual_credit: "Ручное начисление",
@@ -68,10 +70,14 @@ export function getOperationTypeIcon(operationType: string): string {
       return "💸"; // Деньги с стрелкой для возврата аванса
     case "early_return_credit":
       return "⏰"; // Часы для досрочного возврата
+    case "partial_return_credit":
+      return "📦"; // Коробка для частичного возврата
     case "overdue_surcharge_debit":
       return "⚠️"; // Предупреждение для штрафа
     case "balance_top_up":
       return "💳"; // Карта для пополнения
+    case "debt_repayment":
+      return "✅"; // Галочка для погашения долга
     case "manual_credit":
       return "➕"; // Плюс для ручного начисления
     case "manual_debit":

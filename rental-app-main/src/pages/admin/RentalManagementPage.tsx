@@ -7,6 +7,7 @@ import { Truck, Plus } from "lucide-react";
 import { useAdminRentals } from "@/hooks/useAdminRentals";
 import AllRentalsList from "@/components/admin/AllRentalsList";
 import ReturnRentalDialog from "@/components/admin/ReturnRentalDialog";
+import AddEquipmentToRentalDialog from "@/components/admin/AddEquipmentToRentalDialog";
 import CreateRentalFromScratchDialog from "@/components/admin/CreateRentalFromScratchDialog";
 import RentalReceiptDialog from "@/components/admin/RentalReceiptDialog";
 import type { AdminRentalOut } from "@/types/rental";
@@ -23,6 +24,7 @@ import { SkeletonTable } from "@/components/ui/skeleton-list";
 
 export default function RentalManagementPage() {
     const [returnTarget, setReturnTarget] = useState<AdminRentalOut | null>(null);
+    const [addEquipmentTarget, setAddEquipmentTarget] = useState<AdminRentalOut | null>(null);
     const [isCreateRentalOpen, setCreateRentalOpen] = useState(false);
 
     // Получаем параметры фильтрации из стора (поиск — с debounce)
@@ -95,6 +97,7 @@ export default function RentalManagementPage() {
                     <AllRentalsList 
                         rentals={allRentals} 
                         onReturn={setReturnTarget} 
+                        onAddEquipment={setAddEquipmentTarget}
                         highlightId={highlightState.id}
                         elementRef={elementRef as React.RefObject<HTMLDivElement>}
                         getHighlightClasses={getHighlightClasses}
@@ -112,6 +115,12 @@ export default function RentalManagementPage() {
                 rental={returnTarget}
                 open={!!returnTarget}
                 onClose={() => setReturnTarget(null)}
+            />
+
+            <AddEquipmentToRentalDialog
+                rental={addEquipmentTarget}
+                open={!!addEquipmentTarget}
+                onClose={() => setAddEquipmentTarget(null)}
             />
 
             <CreateRentalFromScratchDialog

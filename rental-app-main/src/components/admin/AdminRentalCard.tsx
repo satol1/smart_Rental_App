@@ -1,6 +1,6 @@
 // src/components/admin/AdminRentalCard.tsx
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 // ✅ ИСПРАВЛЕНИЕ 1: Убираем неиспользуемые иконки Wallet, Landmark, Paperclip
 import { Calendar, Package, User, Truck, List, ChevronDown, Link as LinkIcon } from "lucide-react";
@@ -23,6 +23,7 @@ import AdminRentalActionsBlock from "./AdminRentalActionsBlock";
 interface Props {
     rental: AdminRentalOut;
     onReturn: (rental: AdminRentalOut) => void;
+    onAddEquipment?: (rental: AdminRentalOut) => void;
     highlightId?: number;
     elementRef?: React.RefObject<HTMLDivElement>;
     getHighlightClasses?: (id: number) => string;
@@ -36,7 +37,16 @@ const isToday = (dateString: string): boolean => {
         date.getDate() === today.getDate();
 };
 
-const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, getHighlightClasses }: Props) => {
+const isDateInPast = (dateString?: string | null): boolean => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime() < today.getTime();
+};
+
+const AdminRentalCardComponent = ({ rental, onReturn, onAddEquipment, highlightId, elementRef, getHighlightClasses }: Props) => {
     const { data: currentUser } = useCurrentUser();
     const deleteMutation = useDeleteAdminRental();
     const revertMutation = useRevertRentalToReservation();
@@ -50,7 +60,9 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
     const isHighlighted = highlightId === rental.id;
 
     const isAdmin = currentUser?.role === 'admin';
-    const canRevert = !!rental.reservation_id && rental.status !== 'completed' && isToday(rental.created_at);
+    const hasReturnedItems = rental.rental_items?.some(ri => ri.status === 'returned') ?? false;
+    const isStartInPast = isDateInPast(rental.start_date);
+    const canRevert = !!rental.reservation_id && rental.status === 'active' && isToday(rental.created_at) && !hasReturnedItems && !isStartInPast;
 
     const [isConfirmingDelete, setConfirmingDelete] = useState(false);
     const handleDelete = useCallback(() => {
@@ -86,6 +98,29 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
 
     // Используем переданный ref или локальный
     const finalRef = elementRef || cardRef;
+
+    // Карта статусов позиций для визуализации частичного возврата.
+    // Хук обязан вызываться до раннего return при isEditing (rules-of-hooks).
+    const itemStatusMap = useMemo(() => {
+        if (!rental.rental_items || rental.rental_items.length === 0) return undefined;
+        const map: Record<number, { status: string; label: string; variant: "pastelMint" | "pastelSky" | "destructive" }> = {};
+        for (const item of rental.rental_items) {
+            if (item.status === 'returned') {
+                map[item.equipment_id] = {
+                    status: 'returned',
+                    label: item.actual_return_date ? `Возвращено ${formatDateEuropean(item.actual_return_date)}` : 'Возвращено',
+                    variant: 'pastelMint',
+                };
+            } else if (item.status === 'rented') {
+                map[item.equipment_id] = {
+                    status: 'rented',
+                    label: 'В аренде',
+                    variant: 'pastelSky',
+                };
+            }
+        }
+        return map;
+    }, [rental.rental_items]);
 
     if (isEditing) {
         return <EditableRentalCard rental={rental} onCancel={() => setIsEditing(false)} />;
@@ -164,6 +199,7 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
                                 isDeleting={!!deleteMutation.isPending}
                                 onEdit={() => setIsEditing(true)}
                                 onReturn={() => onReturn(rental)}
+                                onAddEquipment={onAddEquipment ? () => onAddEquipment(rental) : undefined}
                                 onDelete={handleDelete}
                                 onRevert={() => setConfirmingRevert(true)}
                             />
@@ -179,6 +215,7 @@ const AdminRentalCardComponent = ({ rental, onReturn, highlightId, elementRef, g
                                 <EquipmentWithAccessoriesList
                                     equipment={rental.equipment}
                                     accessoryLinks={rental.accessory_links || []}
+                                    itemStatusMap={itemStatusMap}
                                     title=""
                                     showTitle={false}
                                     className="border-t-0 pt-0"

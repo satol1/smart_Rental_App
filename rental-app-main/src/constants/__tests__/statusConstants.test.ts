@@ -11,6 +11,7 @@ const ALL_ORDER_STATUSES: OrderStatus[] = [
     'overdue',
     'fulfilled',
     'cancelled',
+    'completed_with_debt',
 ];
 
 describe('STATUS_CONFIG', () => {

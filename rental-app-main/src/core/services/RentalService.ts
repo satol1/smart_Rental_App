@@ -1,7 +1,7 @@
 // src/core/services/RentalService.ts
 
 import { api } from "@/lib/api";
-import type { AdminRentalOut, AdminRentalListResponse, RentalReturnRequest, RentalCreateFromScratchData } from "@/types/rental";
+import type { AdminRentalOut, AdminRentalListResponse, RentalReturnRequest, RentalCreateFromScratchData, RentalAddItemsRequest } from "@/types/rental";
 import type { PeriodType } from "@/types/period";
 
 export interface AdminRentalsParams {
@@ -20,6 +20,8 @@ export interface ConvertReservationPayload {
         deposit_amount: number;
         prepayment_amount?: number;
         force_issue_on_holiday?: boolean;
+        start_date?: string;
+        end_date?: string;
     };
 }
 
@@ -116,4 +118,16 @@ export class RentalService {
         );
         return response.data;
     }
+
+    /**
+     * Добавляет оборудование в активную аренду
+     */
+    static async addEquipmentToRental(rentalId: number, data: RentalAddItemsRequest): Promise<AdminRentalOut> {
+        const response = await api.post<AdminRentalOut>(
+            `/admin/rentals/${rentalId}/add-items`,
+            data
+        );
+        return response.data;
+    }
 }
+

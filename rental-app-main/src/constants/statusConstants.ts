@@ -3,7 +3,7 @@
 import { CheckCircle, AlertTriangle, XCircle, Calendar, Truck } from "lucide-react";
 import React from "react";
 
-export type OrderStatus = 'active' | 'completed' | 'overdue' | 'fulfilled' | 'cancelled';
+export type OrderStatus = 'active' | 'completed' | 'overdue' | 'fulfilled' | 'cancelled' | 'completed_with_debt';
 
 interface StatusConfig {
     text: string;
@@ -42,5 +42,11 @@ export const STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
         Icon: XCircle,
         colorClass: "text-muted-foreground",
         badgeClass: "bg-muted border-border text-muted-foreground"
+    },
+    completed_with_debt: {
+        text: "Закрыт с долгом",
+        Icon: AlertTriangle,
+        colorClass: "text-destructive",
+        badgeClass: "bg-danger-soft border-destructive/30 text-destructive"
     }
 };

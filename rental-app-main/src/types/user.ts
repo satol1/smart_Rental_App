@@ -42,6 +42,7 @@ export interface UserPaymentRequest {
     amount: number;
     payment_method: string;
     description?: string;
+    rental_id?: number;
 }
 // +++ КОНЕЦ: Тип для запроса +++
 

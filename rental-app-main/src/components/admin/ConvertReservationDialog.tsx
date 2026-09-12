@@ -14,6 +14,9 @@ import { usePriceCalculator } from "@/hooks/reservation/usePriceCalculator";
 // +++ 1. ИМПОРТИРУЕМ ДИАЛОГ ПОДТВЕРЖДЕНИЯ И ТИП ОШИБКИ +++
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import type { AxiosError } from "axios";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { formatDate, formatDateEuropean } from "@/lib/utils";
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface Props {
@@ -38,19 +41,53 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
     const [holidayConflict, setHolidayConflict] = useState<string | null>(null);
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    const { newStartDate, newEndDate, isExpired } = useMemo(() => {
+    const [dateMode, setDateMode] = useState<"today" | "contract">("today");
+    const [customStartDate, setCustomStartDate] = useState<string>("");
+    const [customEndDate, setCustomEndDate] = useState<string>("");
+
+    useEffect(() => {
+        if (reservation) {
+            const todayStr = formatDate(new Date());
+            // Если дата брони сегодня, режим 'today', иначе по умолчанию 'today' с возможностью переключить на 'contract'
+            setDateMode("today");
+            setCustomStartDate(todayStr);
+            setCustomEndDate(reservation.end_date);
+        }
+    }, [reservation, open]);
+
+    const handleModeChange = (mode: "today" | "contract") => {
+        if (!reservation) return;
+        setDateMode(mode);
+        if (mode === "today") {
+            setCustomStartDate(formatDate(new Date()));
+            setCustomEndDate(reservation.end_date);
+        } else {
+            setCustomStartDate(reservation.start_date);
+            setCustomEndDate(reservation.end_date);
+        }
+    };
+
+    const { newStartDate, newEndDate, isExpired, isValidRange } = useMemo(() => {
+        if (!reservation || !customStartDate || !customEndDate) {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            return { newStartDate: now, newEndDate: now, isExpired: false, isValidRange: false };
+        }
+        const sDate = new Date(customStartDate);
+        sDate.setHours(0, 0, 0, 0);
+        const eDate = new Date(customEndDate);
+        eDate.setHours(0, 0, 0, 0);
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        if (!reservation) return { newStartDate: today, newEndDate: today, isExpired: false };
-        const originalEndDate = new Date(reservation.end_date);
-        originalEndDate.setHours(0, 0, 0, 0);
-        
+
         return {
-            newStartDate: today,
-            newEndDate: originalEndDate,
-            isExpired: originalEndDate < today
+            newStartDate: sDate,
+            newEndDate: eDate,
+            isExpired: eDate < today,
+            isValidRange: eDate >= sDate,
         };
-    }, [reservation]);
+    }, [reservation, customStartDate, customEndDate]);
 
     const {
         data: priceDetails,
@@ -62,7 +99,7 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
         endDate: newEndDate,
         selectedAccessories: reservation?.selected_accessories || {},
         promoCode: reservation?.promo_code || undefined,
-        enabled: open && !isExpired && !!reservation,
+        enabled: open && isValidRange && !isExpired && !!reservation,
     });
 
     const finalCost = priceDetails?.final_total ?? reservation?.total_cost ?? 0;
@@ -99,6 +136,8 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
             await convertMutation.mutateAsync({
                 reservationId: reservation.id,
                 data: {
+                    start_date: customStartDate,
+                    end_date: customEndDate,
                     notes_on_issue: formData.notes_on_issue,
                     deposit_amount: formData.deposit_amount || 0,
                     prepayment_amount: formData.prepayment_amount || 0,
@@ -131,6 +170,8 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
 
     if (!reservation) return null;
 
+    const isDifferentStart = reservation.start_date !== formatDate(new Date());
+
     return (
         <>
             <Dialog open={open} onOpenChange={onClose}>
@@ -143,6 +184,64 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
+                        {/* Блок выбора дат выдачи */}
+                        <div className="p-3 bg-muted/50 border rounded-lg space-y-2">
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Сроки аренды при выдаче
+                            </Label>
+
+                            {isDifferentStart && (
+                                <div className="flex gap-2 pt-1">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={dateMode === "today" ? "default" : "outline"}
+                                        className="text-xs flex-1 h-8"
+                                        onClick={() => handleModeChange("today")}
+                                    >
+                                        Выдать сегодня
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={dateMode === "contract" ? "default" : "outline"}
+                                        className="text-xs flex-1 h-8"
+                                        onClick={() => handleModeChange("contract")}
+                                    >
+                                        Даты брони ({formatDateEuropean(reservation.start_date)})
+                                    </Button>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <div className="space-y-1">
+                                    <Label htmlFor="issue-start-date" className="text-xs">Начало</Label>
+                                    <Input
+                                        id="issue-start-date"
+                                        type="date"
+                                        className="h-8 text-xs"
+                                        value={customStartDate}
+                                        onChange={(e) => setCustomStartDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="issue-end-date" className="text-xs">Окончание</Label>
+                                    <Input
+                                        id="issue-end-date"
+                                        type="date"
+                                        className="h-8 text-xs"
+                                        value={customEndDate}
+                                        onChange={(e) => setCustomEndDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            {!isValidRange && (
+                                <p className="text-xs text-destructive">
+                                    Дата окончания должна быть не раньше даты начала.
+                                </p>
+                            )}
+                        </div>
+
                         <ReservationFinancialSummary
                             reservation={reservation}
                             open={open}
@@ -153,6 +252,8 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
                             priceDetails={priceDetails}
                             isCalculatingPrice={isCalculatingPrice}
                             priceError={priceError}
+                            startDate={newStartDate}
+                            endDate={newEndDate}
                         />
 
                         <OrderFinalizationSummary
@@ -168,7 +269,7 @@ export default function ConvertReservationDialog({ reservation, open, onClose, e
                         <Button variant="ghost" onClick={onClose}>Отмена</Button>
                         <Button
                             onClick={() => handleSubmit(false)}
-                            disabled={convertMutation.isPending || isCheckingAvailability || hasConflicts || isCalculatingPrice || isExpired}
+                            disabled={convertMutation.isPending || isCheckingAvailability || hasConflicts || isCalculatingPrice || isExpired || !isValidRange}
                         >
                             {convertMutation.isPending ? "Обработка..." : "Подтвердить и выдать"}
                         </Button>

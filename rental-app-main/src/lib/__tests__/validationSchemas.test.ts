@@ -129,13 +129,13 @@ describe('reservationCreateSchema — валидация дат', () => {
         expect(res.success).toBe(false);
     });
 
-    it('отклоняет одинаковые даты (окончание должно быть позже)', () => {
+    it('принимает одинаковые даты для аренды на 1 день', () => {
         const res = reservationCreateSchema.safeParse({
             ...valid,
             start_date: '2026-09-10',
             end_date: '2026-09-10',
         });
-        expect(res.success).toBe(false);
+        expect(res.success).toBe(true);
     });
 
     it('отклоняет невалидный формат даты начала', () => {

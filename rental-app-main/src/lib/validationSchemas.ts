@@ -112,8 +112,8 @@ export const reservationCreateSchema = z.object({
     }),
     selected_accessories: z.record(z.array(z.number())).default({}),
     promo_code: z.string().optional(),
-}).refine(data => new Date(data.end_date) > new Date(data.start_date), {
-    message: "Дата окончания должна быть позже даты начала.",
+}).refine(data => new Date(data.end_date) >= new Date(data.start_date), {
+    message: "Дата окончания должна быть позже или равна дате начала.",
     path: ["end_date"],
 });
 
@@ -284,6 +284,7 @@ export const userPaymentSchema = z.object({
         .positive("Сумма должна быть больше нуля"),
     payment_method: z.string().min(1, "Необходимо выбрать метод оплаты"),
     description: z.string().optional(),
+    rental_id: z.coerce.number().optional(),
 });
 export type UserPaymentSchema = z.infer<typeof userPaymentSchema>;
 // +++ КОНЕЦ: Новая схема +++
