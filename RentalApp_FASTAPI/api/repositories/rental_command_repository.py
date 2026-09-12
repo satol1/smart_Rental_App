@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, Dict, List
 import logging
 
+from decimal import Decimal
 from .rental_base_repository import RentalBaseRepository
 from api.models.rental import Rental, RentalAccessory
 from shared.constants.order_status import OrderStatus
+from shared.constants.deposit_status import DepositStatus
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,7 @@ class RentalCommandRepository(RentalBaseRepository):
         recalculated_cost: float, 
         recalculated_discount: float, 
         new_start_date, 
+        new_end_date=None,
         prepayment_amount: float = 0.0,
         promo_code: Optional[str] = None
     ) -> Rental:
@@ -40,6 +43,7 @@ class RentalCommandRepository(RentalBaseRepository):
             recalculated_cost: Пересчитанная стоимость
             recalculated_discount: Пересчитанная скидка
             new_start_date: Новая дата начала
+            new_end_date: Новая дата окончания (если None, берется из reservation.end_date)
             prepayment_amount: Сумма предоплаты
             promo_code: Промокод (если None, берется из reservation.promo_code)
             
@@ -56,6 +60,8 @@ class RentalCommandRepository(RentalBaseRepository):
             logger.warning(f"ТОЧКА 1 (КОПИРОВАНИЕ): В исходном резерве #{reservation.id} аксессуары не найдены.")
         
         effective_promo_code = promo_code if promo_code is not None else reservation.promo_code
+        deposit_dec = Decimal(str(deposit or 0))
+        deposit_status = DepositStatus.HELD.value if deposit_dec > 0 else None
         
         # Создаем аренду без передачи аксессуаров в конструктор
         rental = Rental(
@@ -64,11 +70,12 @@ class RentalCommandRepository(RentalBaseRepository):
             reservation_id=reservation.id,
             equipment=reservation.equipment,
             start_date=new_start_date,
-            end_date=reservation.end_date,
+            end_date=new_end_date if new_end_date is not None else reservation.end_date,
             total_cost=recalculated_cost,
             discount_amount=recalculated_discount,
             promo_code=effective_promo_code,
             deposit_amount=deposit,
+            deposit_status=deposit_status,
             prepayment_amount=prepayment_amount,
             notes_on_issue=notes
         )
@@ -119,6 +126,9 @@ class RentalCommandRepository(RentalBaseRepository):
         Returns:
             Созданный объект аренды
         """
+        deposit_dec = Decimal(str(deposit_amount or 0))
+        deposit_status = DepositStatus.HELD.value if deposit_dec > 0 else None
+
         return Rental(
             user_id=user.id,
             created_by_id=manager.id,
@@ -129,11 +139,24 @@ class RentalCommandRepository(RentalBaseRepository):
             discount_amount=discount_amount,
             promo_code=promo_code,
             deposit_amount=deposit_amount,
+            deposit_status=deposit_status,
             prepayment_amount=prepayment_amount,
             notes_on_issue=notes_on_issue
         )
 
-    def finalize_rental_return(self, rental: Rental, return_date, notes: Optional[str], credit: float, surcharge: float = 0.0):
+    def finalize_rental_return(
+        self, 
+        rental: Rental, 
+        return_date, 
+        notes: Optional[str], 
+        credit: float, 
+        surcharge: float = 0.0, 
+        has_debt: bool = False,
+        deposit_status: Optional[str] = None,
+        deposit_refunded_amount: Optional[Decimal] = None,
+        deposit_retained_amount: Optional[Decimal] = None,
+        deposit_notes: Optional[str] = None
+    ):
         """
         Завершает возврат аренды.
         
@@ -143,12 +166,25 @@ class RentalCommandRepository(RentalBaseRepository):
             notes: Заметки при возврате
             credit: Сумма кредита
             surcharge: Сумма штрафа
+            has_debt: Наличие задолженности у клиента
+            deposit_status: Итоговый статус залога
+            deposit_refunded_amount: Возвращенная часть залога
+            deposit_retained_amount: Удержанная часть залога
+            deposit_notes: Комментарий к действиям с залогом
         """
-        rental.status = OrderStatus.COMPLETED
+        rental.status = OrderStatus.COMPLETED_WITH_DEBT.value if has_debt else OrderStatus.COMPLETED.value
         rental.actual_return_date = return_date
         rental.notes_on_return = notes
         from api.services.financial_service import to_decimal
         rental.final_cost = to_decimal(rental.total_cost) - to_decimal(credit) + to_decimal(surcharge)
+        if deposit_status is not None:
+            rental.deposit_status = deposit_status
+        if deposit_refunded_amount is not None:
+            rental.deposit_refunded_amount = deposit_refunded_amount
+        if deposit_retained_amount is not None:
+            rental.deposit_retained_amount = deposit_retained_amount
+        if deposit_notes is not None:
+            rental.deposit_notes = deposit_notes
 
     def update_rental_instance(self, rental: Rental, update_data: dict):
         """
@@ -172,7 +208,11 @@ class RentalCommandRepository(RentalBaseRepository):
             Объект резерва
         """
         reservation = rental.reservation
-        reservation.status = OrderStatus.ACTIVE
+        if reservation:
+            reservation.status = OrderStatus.ACTIVE
+            reservation.rental = None
+        rental.reservation = None
+        rental.reservation_id = None
         return reservation
 
     def add_accessory_to_rental(self, rental: Rental, equipment_id: int, accessory_id: int):

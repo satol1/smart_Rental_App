@@ -9,6 +9,7 @@ import logging
 from api.models.user import User
 from api.models.rental import Rental
 from api.models.reservation import Reservation
+from api.models.payment import Payment
 from api.repositories.rental_repository import RentalRepository
 from api.repositories.reservation_repository import ReservationRepository
 from api.repositories.user_repository import UserRepository
@@ -28,6 +29,7 @@ from shared.schemas.rental_schema import (
     RentalCreateFromReservationRequest,
     RentalCreateFromScratchRequest,
 )
+from shared.utils.date_utils import get_business_today
 
 logger = logging.getLogger(__name__)
 
@@ -75,17 +77,19 @@ class RentalCreationService:
 
                 # Подготавливаем данные для создания аренды
                 equipment_ids, selected_accessories = self._extract_reservation_data(reservation)
-                new_start_date = date.today()
+                today = get_business_today()
+                new_start_date = request.start_date if request.start_date is not None else today
+                new_end_date = request.end_date if request.end_date is not None else reservation.end_date
 
-                # Пересчитываем стоимость с учетом новой даты
+                # Пересчитываем стоимость с учетом новых дат
                 price_details, effective_promo_code = await self._recalculate_price_for_conversion(
-                    reservation, equipment_ids, selected_accessories, new_start_date
+                    reservation, equipment_ids, selected_accessories, new_start_date, new_end_date
                 )
 
                 # Создаем аренду
                 try:
                     rental = await self._create_rental_from_reservation(
-                        reservation, manager, request, price_details, new_start_date, effective_promo_code
+                        reservation, manager, request, price_details, new_start_date, new_end_date, effective_promo_code
                     )
                 except IntegrityError:
                     # Гонка двух конвертаций: unique(reservation_id) уже занят
@@ -196,27 +200,35 @@ class RentalCreationService:
             )
         self.validator.validate_reservation_for_conversion(reservation)
 
+        today = get_business_today()
+        new_start_date = request.start_date if request.start_date is not None else today
+        new_end_date = request.end_date if request.end_date is not None else reservation.end_date
+
+        if new_end_date < new_start_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Дата окончания аренды не может быть раньше даты начала.",
+            )
+
         # Конвертация просроченного резерва дала бы аренду с end < start
-        # и нулевой стоимостью (дни считаются от today)
-        if reservation.end_date < date.today():
+        # и нулевой стоимостью
+        if new_end_date < today:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    f"Дата окончания резерва ({reservation.end_date.strftime('%d.%m.%Y')}) "
+                    f"Дата окончания ({new_end_date.strftime('%d.%m.%Y')}) "
                     "уже прошла — конвертация невозможна. Создайте аренду с нуля."
                 ),
             )
 
-        new_start_date = date.today()
         await self.validator.validate_issue_on_holiday(
             new_start_date, request.force_issue_on_holiday
         )
 
-        # Аренда начинается сегодня и может начинаться раньше start_date резерва —
-        # проверяем, что расширенный период не занят другими заказами
+        # Проверяем, что запрашиваемый период не занят другими заказами
         equipment_ids = [eq.id for eq in reservation.equipment]
         await self.validator.validate_equipment_availability(
-            equipment_ids, new_start_date, reservation.end_date,
+            equipment_ids, new_start_date, new_end_date,
             exclude_reservation_id=reservation.id
         )
 
@@ -236,12 +248,12 @@ class RentalCreationService:
     
     async def _recalculate_price_for_conversion(
         self, reservation: Reservation, equipment_ids: List[int], 
-        selected_accessories: Dict[int, List[int]], new_start_date: date
+        selected_accessories: Dict[int, List[int]], new_start_date: date, new_end_date: date
     ) -> tuple[Any, Optional[str]]:
         """Пересчитывает стоимость для конвертации резерва в аренду и возвращает (price_details, applied_promo_code)."""
         # Предварительный расчет
         preliminary_price = await self.financial_service.calculate_final_price(
-            equipment_ids, selected_accessories, new_start_date, reservation.end_date, None
+            equipment_ids, selected_accessories, new_start_date, new_end_date, None
         )
         
         # Перепроверка промокода
@@ -279,14 +291,14 @@ class RentalCreationService:
         
         # Финальный расчет
         final_price = await self.financial_service.calculate_final_price(
-            equipment_ids, selected_accessories, new_start_date, reservation.end_date, re_validated_promo_obj
+            equipment_ids, selected_accessories, new_start_date, new_end_date, re_validated_promo_obj
         )
         applied_promo_code_str = re_validated_promo_obj.code if re_validated_promo_obj else None
         return final_price, applied_promo_code_str
     
     async def _create_rental_from_reservation(
         self, reservation: Reservation, manager: User, request: RentalCreateFromReservationRequest,
-        price_details: Any, new_start_date: date, promo_code: Optional[str] = None
+        price_details: Any, new_start_date: date, new_end_date: date, promo_code: Optional[str] = None
     ) -> Rental:
         """Создает аренду из резерва."""
         rental = self.rental_repo.create_rental_from_reservation(
@@ -297,6 +309,7 @@ class RentalCreationService:
             recalculated_cost=price_details.final_total,
             recalculated_discount=price_details.discount_amount,
             new_start_date=new_start_date,
+            new_end_date=new_end_date,
             prepayment_amount=request.prepayment_amount,
             promo_code=promo_code,
         )
@@ -319,6 +332,15 @@ class RentalCreationService:
                 description=f"Предоплата за аренду #{rental.id}",
                 rental_id=rental.id,
             )
+            prepayment = Payment(
+                user_id=rental.user_id,
+                rental_id=rental.id,
+                amount=request.prepayment_amount,
+                payment_method="cash",
+                transaction_type="prepayment",
+                description=f"Предоплата за аренду #{rental.id}",
+            )
+            self.db.add(prepayment)
         
         await self.balance_service.add_transaction(
             user_id=rental.user_id,
@@ -348,7 +370,7 @@ class RentalCreationService:
         # Валидация дат: без проверки диапазона аренда с end < start создаётся
         # с нулевой стоимостью (get_rental_days возвращает 0)
         self.validator.validate_date_range(request.start_date, request.end_date)
-        if request.start_date < date.today():
+        if request.start_date < get_business_today():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Дата начала аренды не может быть в прошлом.",
@@ -405,6 +427,15 @@ class RentalCreationService:
                 description=f"Предоплата за аренду #{rental.id}",
                 rental_id=rental.id,
             )
+            prepayment = Payment(
+                user_id=user.id,
+                rental_id=rental.id,
+                amount=request.prepayment_amount,
+                payment_method="cash",
+                transaction_type="prepayment",
+                description=f"Предоплата за аренду #{rental.id}",
+            )
+            self.db.add(prepayment)
         
         await self.balance_service.add_transaction(
             user_id=user.id,

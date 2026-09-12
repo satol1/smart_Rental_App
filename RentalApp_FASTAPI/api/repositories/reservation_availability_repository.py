@@ -40,12 +40,13 @@ class ReservationAvailabilityRepository(ReservationBaseRepository):
         """
         from api.models.reservation import reservation_equipment_association
         
+        from api.services.availability.queries import get_interval_overlap_filter
+        
         # ОПТИМИЗАЦИЯ: Используем EXISTS вместо ANY для лучшей производительности
         query = select(Reservation).options(
             selectinload(Reservation.equipment)
         ).filter(
-            Reservation.end_date > start_date,
-            Reservation.start_date < end_date,
+            get_interval_overlap_filter(Reservation, start_date, end_date),
             Reservation.status == OrderStatus.ACTIVE
         ).where(
             exists().where(

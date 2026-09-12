@@ -15,6 +15,7 @@ from api.services.financial_service import FinancialService
 from api.repositories import RentalRepository
 from api.repositories.holiday_repository import HolidayRepository
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class RentalQueryService:
                 вместо запроса на каждую просроченную аренду); см. get_rental_days
         """
         rental_out = RentalOut.model_validate(rental)
-        today = date.today()
+        today = get_business_today()
 
         if rental.status == OrderStatus.ACTIVE and rental.end_date < today:
             rental_out.status = OrderStatus.OVERDUE
@@ -78,7 +79,7 @@ class RentalQueryService:
         if not rentals_orm:
             return None
 
-        today = date.today()
+        today = get_business_today()
         # Условие зеркалит enrich: OVERDUE из БД либо ACTIVE с прошедшей end_date
         surcharge_rentals = [
             r for r in rentals_orm

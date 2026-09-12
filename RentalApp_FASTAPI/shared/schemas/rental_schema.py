@@ -13,12 +13,24 @@ class RentalBase(BaseModel):
     start_date: date
     end_date: date
     deposit_amount: float = 0.0
+    deposit_status: Optional[str] = None
+    deposit_refunded_amount: Optional[float] = None
+    deposit_retained_amount: Optional[float] = None
+    deposit_notes: Optional[str] = None
     notes_on_issue: Optional[str] = None
     status: str
 
 class RentalAccessoryDetail(BaseModel):
     equipment_id: int
     accessory: AccessoryOut
+    model_config = ConfigDict(from_attributes=True)
+
+class RentalItemOut(BaseModel):
+    equipment_id: int
+    status: str = "rented"
+    actual_return_date: Optional[date] = None
+    daily_rate: Optional[float] = None
+    equipment: Optional[EquipmentOut] = None
     model_config = ConfigDict(from_attributes=True)
 
 class RentalOut(RentalBase, FinancialsBase):
@@ -34,6 +46,7 @@ class RentalOut(RentalBase, FinancialsBase):
     user: UserOut
     created_by: UserOut
     equipment: List[EquipmentOut]
+    rental_items: List[RentalItemOut] = []
 
     # Используем имя поля 'accessory_links' как в модели SQLAlchemy
     # чтобы избежать несоответствий при передаче данных.
@@ -66,6 +79,8 @@ class RentalCreateFromReservationRequest(BaseModel):
     deposit_amount: float = Field(0.0, ge=0)
     prepayment_amount: float = Field(0.0, ge=0)
     force_issue_on_holiday: bool = Field(False, description="Подтверждение выдачи в выходной день")
+    start_date: Optional[date] = Field(None, description="Дата фактической выдачи аренды (по умолчанию бизнес-сегодня)")
+    end_date: Optional[date] = Field(None, description="Дата окончания аренды (по умолчанию дата окончания резерва)")
 
 class RentalCreateFromScratchRequest(BaseModel):
     """Схема для создания аренды "с нуля"."""
@@ -95,6 +110,10 @@ class AdminRentalUpdate(BaseModel):
     
     # Общие поля
     deposit_amount: Optional[float] = Field(None, ge=0)
+    deposit_status: Optional[str] = None
+    deposit_refunded_amount: Optional[float] = Field(None, ge=0)
+    deposit_retained_amount: Optional[float] = Field(None, ge=0)
+    deposit_notes: Optional[str] = None
     notes_on_issue: Optional[str] = None
 
 class RentalReturnRequest(BaseModel):
@@ -102,11 +121,25 @@ class RentalReturnRequest(BaseModel):
     actual_return_date: date
     notes_on_return: Optional[str] = None
     accessories_returned_confirmation: bool = Field(..., description="Подтверждение, что все аксессуары возвращены")
-    # Удаляем поля payment_amount и payment_description, так как платеж обрабатывается отдельно
+    equipment_ids: Optional[List[int]] = Field(None, description="Список ID оборудования для возврата (при частичном возврате). Если не указан — возврат всех позиций.")
+    deposit_action: Optional[str] = Field(None, description="Действие с залогом: refunded, retained_for_damage, partially_retained, held")
+    deposit_retained_amount: Optional[float] = Field(None, ge=0, description="Сумма удержания залога при частичном или полном удержании")
+    deposit_notes: Optional[str] = Field(None, description="Причина удержания или примечание к залогу")
+    lost_accessory_ids: Optional[List[int]] = Field(None, description="Список ID утерянных аксессуаров")
+    lost_accessories_cost: Optional[float] = Field(None, ge=0, description="Сумма компенсации за утерянные аксессуары")
+    payment_amount: Optional[float] = Field(None, ge=0, description="Сумма платежа, принимаемая при возврате")
+    payment_method: Optional[str] = Field("cash", description="Способ оплаты (наличные, карта)")
+    payment_description: Optional[str] = Field(None, description="Примечание к платежу")
 
     @classmethod
     def today(cls):
         return cls(actual_return_date=date.today())
+
+class RentalAddItemsRequest(BaseModel):
+    """Схема для добавления оборудования в активную аренду."""
+    equipment_ids: List[int] = Field(..., min_length=1, description="Список ID оборудования для добавления")
+    selected_accessories: Optional[Dict[int, List[int]]] = Field(None, description="Выбранные аксессуары {equipment_id: [accessory_id]}")
+    start_date: Optional[date] = Field(None, description="Дата добавления позиций (по умолчанию сегодня)")
 
 class RentalRevertRequest(BaseModel):
     """Схема для запроса на отмену выдачи аренды."""

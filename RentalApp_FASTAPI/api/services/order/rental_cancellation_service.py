@@ -7,6 +7,7 @@ import logging
 
 from api.models.user import User
 from api.models.rental import Rental
+from api.models.payment import Payment
 from api.repositories.rental_repository import RentalRepository
 from api.services.order.order_validator import OrderValidator
 from api.services.order.rental_notification_helper import RentalNotificationHelper
@@ -15,6 +16,8 @@ from api.services.order.system_repository import SystemService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
 from api.services.post_commit import schedule_after_commit
+from decimal import Decimal
+from api.services.financial_service import to_decimal
 from fastapi import HTTPException, status
 from shared.constants.balance_operations import BalanceOperationType
 from shared.constants.order_status import OrderStatus
@@ -147,28 +150,58 @@ class RentalCancellationService:
                 description=f"Возврат аванса при отмене выдачи аренды #{rental.id}",
                 rental_id=None,  # Аренда будет удалена
             )
+            refund_payment = Payment(
+                user_id=rental.user_id,
+                rental_id=rental.id,
+                amount=-rental.prepayment_amount,
+                payment_method="cash",
+                transaction_type="refund",
+                description=f"Возврат аванса при отмене выдачи аренды #{rental.id}",
+            )
+            self.db.add(refund_payment)
     
     async def _handle_scratch_rental_deletion(self, rental: Rental) -> None:
         """Обрабатывает удаление аренды, созданной с нуля."""
         from datetime import datetime, timezone
 
-        # Завершённая аренда уже имеет пересчёт (final_cost, кредит/штраф):
+        # Завершённая или неактивная аренда уже имеет пересчёт (final_cost, кредит/штраф):
         # удаление «вернуло» бы total_cost поверх этих транзакций — деньги задвоились
-        if rental.status == OrderStatus.COMPLETED:
+        active_status = OrderStatus.ACTIVE.value if hasattr(OrderStatus.ACTIVE, "value") else OrderStatus.ACTIVE
+        if rental.status != active_status and rental.status != "active":
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    f"Аренда #{rental.id} уже завершена — удаление невозможно "
+                    f"Аренда #{rental.id} уже завершена или неактивна — удаление невозможно "
                     "(пересчёт финальной стоимости уже проведён)."
                 ),
             )
 
-        # Окно удаления — тот же календарный день создания (UTC), что и у отмены
-        # выдачи (revert): раньше правила расходились (24 часа против дня)
-        if rental.created_at.date() != datetime.now(timezone.utc).date():
+        # Проверяем, что по аренде не было возвратов оборудования
+        if getattr(rental, 'rental_items', None):
+            has_returns = any(
+                item.status == "returned" or item.actual_return_date is not None
+                for item in rental.rental_items
+            )
+            if has_returns:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Нельзя удалить аренду, по которой уже были возвраты оборудования."
+                )
+
+        # Окно удаления — тот же календарный день создания в часовом поясе сервиса
+        # (Europe/Astrakhan), что и у отмены выдачи (revert)
+        from shared.utils.date_utils import to_business_date, get_business_today
+        today = get_business_today()
+        if to_business_date(rental.created_at) != today:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Отмена возможна только в день создания аренды"
+            )
+
+        if getattr(rental, 'start_date', None) and rental.start_date < today:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Нельзя отменить аренду: дата начала аренды уже в прошлом."
             )
 
         # Возврат основной суммы
@@ -189,6 +222,15 @@ class RentalCancellationService:
                 description=f"Возврат аванса при отмене аренды с нуля #{rental.id}",
                 rental_id=None,  # Аренда будет удалена
             )
+            refund_payment = Payment(
+                user_id=rental.user_id,
+                rental_id=None,
+                amount=-to_decimal(rental.prepayment_amount),
+                payment_method="cash",
+                transaction_type="refund",
+                description=f"Возврат аванса при отмене аренды с нуля #{rental.id}",
+            )
+            self.db.add(refund_payment)
 
         # Освобождаем лимит использованного промокода
         if rental.promo_code:

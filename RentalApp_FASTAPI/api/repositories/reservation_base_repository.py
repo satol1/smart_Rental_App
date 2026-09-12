@@ -8,6 +8,7 @@ from datetime import date
 from api.models.reservation import Reservation
 from shared.schemas.reservation_schema import ReservationCreateRequest, ReservationUpdateRequest
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 from .base_repository import BaseRepository
 
 
@@ -52,7 +53,7 @@ class ReservationBaseRepository(BaseRepository[Reservation, ReservationCreateReq
         Returns:
             Количество активных резервов
         """
-        today = date.today()
+        today = get_business_today()
         result = await self.db.execute(
             select(func.count(Reservation.id)).filter(
                 and_(

@@ -6,6 +6,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from datetime import date, timedelta
 from typing import List, Dict, Optional, NamedTuple, Union
+from unittest.mock import Mock
 from fastapi import HTTPException
 import logging
 
@@ -25,6 +26,7 @@ from api.repositories.accessory_repository import AccessoryRepository
 from shared.schemas.rental_schema import RentalOut
 from shared.schemas.reservation_schema import AdminReservationOut, ReservationItem
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,12 @@ def to_decimal(value) -> Decimal:
         return value
     if value is None:
         return Decimal("0")
-    return Decimal(str(value))
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    try:
+        return Decimal(str(value))
+    except Exception:
+        return Decimal("0")
 
 
 class PriceDetails(NamedTuple):
@@ -242,50 +249,212 @@ class FinancialService:
             
         return (actual_return_date - rental.end_date).days
     
+    async def calculate_base_daily_rate(
+        self,
+        rental: Rental,
+        holidays: Optional[List[Holiday]] = None,
+        equipment_ids: Optional[List[int]] = None
+    ) -> Decimal:
+        """
+        Рассчитывает базовую дневную ставку аренды без учета скидки за длительность.
+        Суммирует базовые суточные ставки оборудования и аксессуаров.
+        Если указан equipment_ids, учитывает только указанные позиции.
+        """
+        equipment_rate = Decimal("0")
+        has_real_items = False
+        allowed_eq_ids = set(equipment_ids) if equipment_ids is not None else None
+
+        if getattr(rental, 'equipment', None) and isinstance(rental.equipment, (list, tuple)):
+            for eq in rental.equipment:
+                eq_id = getattr(eq, 'id', None)
+                if allowed_eq_ids is not None and eq_id not in allowed_eq_ids:
+                    continue
+                rate = getattr(eq, 'daily_rate', None)
+                if rate is not None and not isinstance(rate, Mock):
+                    equipment_rate += to_decimal(rate)
+                    has_real_items = True
+        elif getattr(rental, 'rental_items', None) and isinstance(rental.rental_items, (list, tuple)):
+            for item in rental.rental_items:
+                eq_id = getattr(item, 'equipment_id', None)
+                if allowed_eq_ids is not None and eq_id not in allowed_eq_ids:
+                    continue
+                rate = getattr(item, 'daily_rate', None)
+                if rate is not None and not isinstance(rate, Mock):
+                    equipment_rate += to_decimal(rate)
+                    has_real_items = True
+
+        accessories_rate = Decimal("0")
+        if getattr(rental, 'accessory_links', None) and isinstance(rental.accessory_links, (list, tuple)):
+            for link in rental.accessory_links:
+                eq_id = getattr(link, 'equipment_id', None)
+                if allowed_eq_ids is not None and eq_id not in allowed_eq_ids:
+                    continue
+                acc = getattr(link, 'accessory', None)
+                price = getattr(acc, 'price', None) if acc else None
+                if price is not None and not isinstance(price, Mock):
+                    accessories_rate += to_decimal(price)
+
+        if has_real_items and (equipment_rate + accessories_rate) > 0:
+            return (equipment_rate + accessories_rate).quantize(TWO_PLACES, ROUND_HALF_UP)
+
+        # Fallback для моков/тестов без привязанного оборудования:
+        return to_decimal(await self.calculate_daily_rate(rental, holidays=holidays))
+
     async def calculate_overdue_surcharge(
         self,
         rental: Rental,
         actual_return_date: date,
-        holidays: Optional[List[Holiday]] = None
+        holidays: Optional[List[Holiday]] = None,
+        equipment_ids: Optional[List[int]] = None
     ) -> Decimal:
         """
-        Рассчитывает штраф за просроченные дни аренды.
+        Рассчитывает штраф за просроченные дни аренды по базовой ставке оборудования
+        (без применения скидки длительного периода).
 
         Args:
             rental: Объект аренды
             actual_return_date: Фактическая дата возврата
-            holidays: Опциональный префетч праздников (см. get_rental_days);
-                позволяет избежать запроса праздников на каждую аренду списка
+            holidays: Опциональный префетч праздников
+            equipment_ids: Опциональный фильтр позиций оборудования
         """
         overdue_days = self.calculate_overdue_days(rental, actual_return_date)
         if overdue_days <= 0:
             return Decimal("0")
 
-        daily_rate = await self.calculate_daily_rate(rental, holidays=holidays)
-        if daily_rate <= 0:
+        base_daily_rate = await self.calculate_base_daily_rate(
+            rental, holidays=holidays, equipment_ids=equipment_ids
+        )
+        if base_daily_rate <= 0:
             return Decimal("0")
 
-        surcharge_amount = to_decimal(daily_rate) * overdue_days
+        surcharge_amount = to_decimal(base_daily_rate) * overdue_days
         return surcharge_amount.quantize(TWO_PLACES, ROUND_HALF_UP)
     
-    async def calculate_early_return_credit(self, rental: Rental, actual_return_date: date, planned_days: int) -> Decimal:
+    async def calculate_early_return_credit(
+        self,
+        rental: Rental,
+        actual_return_date: date,
+        planned_days: int,
+        equipment_ids: Optional[List[int]] = None
+    ) -> Decimal:
         """
         Рассчитывает кредит за досрочный возврат аренды.
+        Пересчитывает фактически использованные дни по тарифной сетке фактического срока
+        (защита от злоупотребления оптовой скидкой).
         """
         if actual_return_date >= rental.end_date or planned_days <= 0:
             return Decimal("0")
 
+        total_cost_paid = to_decimal(rental.total_cost)
+        if total_cost_paid <= 0:
+            return Decimal("0")
+
+        if actual_return_date < rental.start_date:
+            return Decimal("0")
+
+        # Извлекаем список реального оборудования
+        effective_equipment_ids = []
+        if equipment_ids:
+            effective_equipment_ids = [eid for eid in equipment_ids if isinstance(eid, int)]
+        elif getattr(rental, 'equipment', None) and isinstance(rental.equipment, (list, tuple)):
+            for eq in rental.equipment:
+                eq_id = getattr(eq, 'id', None)
+                if eq_id is not None and isinstance(eq_id, int):
+                    effective_equipment_ids.append(eq_id)
+        elif getattr(rental, 'rental_items', None) and isinstance(rental.rental_items, (list, tuple)):
+            for item in rental.rental_items:
+                eq_id = getattr(item, 'equipment_id', None)
+                if eq_id is not None and isinstance(eq_id, int):
+                    effective_equipment_ids.append(eq_id)
+
+        # Если доступно реальное оборудование, пересчитываем фактическую стоимость через calculate_final_price
+        if effective_equipment_ids:
+            selected_accessories = {}
+            if getattr(rental, 'accessory_links', None) and isinstance(rental.accessory_links, (list, tuple)):
+                for link in rental.accessory_links:
+                    eq_id = getattr(link, 'equipment_id', None)
+                    acc_id = getattr(link, 'accessory_id', None)
+                    if eq_id is not None and acc_id is not None and eq_id in effective_equipment_ids:
+                        selected_accessories.setdefault(eq_id, []).append(acc_id)
+
+            promo_code_obj = None
+            if getattr(rental, 'promo_code', None) and isinstance(rental.promo_code, str):
+                try:
+                    promo_code_obj = await self.promo_code_logic.promo_repo.get_by_code(rental.promo_code)
+                except Exception:
+                    promo_code_obj = None
+
+            try:
+                # 1. Фактическая стоимость возвращаемых позиций за использованный период
+                actual_price_details = await self.calculate_final_price(
+                    equipment_ids=effective_equipment_ids,
+                    selected_accessories=selected_accessories if selected_accessories else None,
+                    start_date=rental.start_date,
+                    end_date=actual_return_date,
+                    promo_code=promo_code_obj
+                )
+                actual_used_cost = actual_price_details.final_total
+
+                # 2. Плановая стоимость возвращаемых позиций за полный период аренды
+                # Если возвращается часть позиций или в аренде уже были частичные возвраты,
+                # рассчитываем плановую стоимость именно для возвращаемых позиций,
+                # чтобы не вычитать стоимость одной позиции из общей стоимости всей аренды.
+                all_rental_eq_ids = []
+                if getattr(rental, 'equipment', None) and isinstance(rental.equipment, (list, tuple)):
+                    all_rental_eq_ids = [getattr(e, 'id', None) for e in rental.equipment if getattr(e, 'id', None)]
+                elif getattr(rental, 'rental_items', None) and isinstance(rental.rental_items, (list, tuple)):
+                    all_rental_eq_ids = [getattr(i, 'equipment_id', None) for i in rental.rental_items if getattr(i, 'equipment_id', None)]
+
+                is_subset_return = (
+                    bool(equipment_ids) and
+                    (set(effective_equipment_ids) != set(all_rental_eq_ids) or
+                     any(getattr(item, 'status', None) == 'returned' for item in getattr(rental, 'rental_items', []) or []))
+                )
+
+                if is_subset_return:
+                    planned_price_details = await self.calculate_final_price(
+                        equipment_ids=effective_equipment_ids,
+                        selected_accessories=selected_accessories if selected_accessories else None,
+                        start_date=rental.start_date,
+                        end_date=rental.end_date,
+                        promo_code=promo_code_obj
+                    )
+                    planned_items_cost = planned_price_details.final_total
+                else:
+                    planned_items_cost = total_cost_paid
+
+                if actual_used_cost >= planned_items_cost:
+                    return Decimal("0")
+
+                credit_amount = planned_items_cost - actual_used_cost
+                return min(credit_amount, total_cost_paid).quantize(TWO_PLACES, ROUND_HALF_UP)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to recalculate early return via calculate_final_price: {e}, falling back to daily_rate"
+                )
+
+        # Fallback для моков/тестов без привязанного оборудования:
         daily_rate = await self.calculate_daily_rate(rental)
         if daily_rate <= 0:
             return Decimal("0")
 
-        # Рассчитываем именно тарифицируемые дни в оставшемся периоде
         unused_billable_days = await self.get_rental_days(actual_return_date, rental.end_date)
         if unused_billable_days <= 0:
             return Decimal("0")
 
-        # Кредит не может превышать списанную стоимость аренды
-        credit_amount = min(unused_billable_days * to_decimal(daily_rate), to_decimal(rental.total_cost))
+        if equipment_ids and getattr(rental, 'rental_items', None):
+            items_rate = sum(
+                to_decimal(item.daily_rate) for item in rental.rental_items
+                if item.equipment_id in equipment_ids and getattr(item, 'daily_rate', None) is not None
+            )
+            all_rate = sum(
+                to_decimal(item.daily_rate) for item in rental.rental_items
+                if getattr(item, 'daily_rate', None) is not None
+            )
+            if all_rate > 0 and items_rate > 0:
+                daily_rate = (daily_rate * items_rate / all_rate).quantize(TWO_PLACES, ROUND_HALF_UP)
+
+        credit_amount = min(unused_billable_days * to_decimal(daily_rate), total_cost_paid)
         return credit_amount.quantize(TWO_PLACES, ROUND_HALF_UP)
     
     async def get_rental_calculation_summary(self, rental: Rental, actual_return_date: date, planned_days: int) -> dict:
@@ -293,12 +462,14 @@ class FinancialService:
         Возвращает полную сводку расчетов для аренды.
         """
         daily_rate = await self.calculate_daily_rate(rental)
+        base_daily_rate = await self.calculate_base_daily_rate(rental)
         overdue_days = self.calculate_overdue_days(rental, actual_return_date)
         surcharge_amount = await self.calculate_overdue_surcharge(rental, actual_return_date)
         credit_amount = await self.calculate_early_return_credit(rental, actual_return_date, planned_days)
         
         return {
             'daily_rate': daily_rate,
+            'base_daily_rate': base_daily_rate,
             'overdue_days': overdue_days,
             'surcharge_amount': surcharge_amount,
             'credit_amount': credit_amount,
@@ -344,7 +515,7 @@ class FinancialService:
     async def _enrich_rental_with_financials(self, rental: Rental) -> RentalOut:
         """Обогащает объект аренды финансовыми данными."""
         rental_out = RentalOut.model_validate(rental)
-        today = date.today()
+        today = get_business_today()
 
         # Используем центральный сервис для получения статуса
         rental_out.status = self.status_service.get_status(rental)

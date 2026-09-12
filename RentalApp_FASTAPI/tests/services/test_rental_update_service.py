@@ -317,6 +317,13 @@ class TestRentalUpdateService:
             description=f"Увеличение предоплаты по аренде #{active_rental.id} на 200.0 ₽",
             rental_id=active_rental.id,
         )
+        from api.models.payment import Payment
+        payment_adds = [
+            call.args[0] for call in rental_update_service.db.add.call_args_list if isinstance(call.args[0], Payment)
+        ]
+        assert len(payment_adds) == 1
+        assert payment_adds[0].amount == 200.0
+        assert payment_adds[0].transaction_type == "prepayment"
 
     @pytest.mark.asyncio
     async def test_process_active_rental_updates_prepayment_decrease(self, rental_update_service, active_rental):
@@ -340,6 +347,13 @@ class TestRentalUpdateService:
             description=f"Списание уменьшенной предоплаты по аренде #{active_rental.id} на 100.0 ₽",
             rental_id=active_rental.id,
         )
+        from api.models.payment import Payment
+        payment_adds = [
+            call.args[0] for call in rental_update_service.db.add.call_args_list if isinstance(call.args[0], Payment)
+        ]
+        assert len(payment_adds) == 1
+        assert payment_adds[0].amount == -100.0
+        assert payment_adds[0].transaction_type == "refund"
 
     @pytest.mark.asyncio
     async def test_process_active_rental_updates_prepayment_no_change(self, rental_update_service, active_rental):

@@ -522,7 +522,7 @@ class TestRentalCreationService:
 
         # Act
         result = await rental_creation_service._recalculate_price_for_conversion(
-            sample_reservation, equipment_ids, selected_accessories, new_start_date
+            sample_reservation, equipment_ids, selected_accessories, new_start_date, sample_reservation.end_date
         )
 
         # Assert

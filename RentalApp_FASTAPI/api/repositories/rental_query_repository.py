@@ -12,6 +12,7 @@ from api.models.rental import Rental, RentalAccessory, rental_equipment_associat
 from api.models.equipment import Equipment
 from shared.constants.order_status import OrderStatus
 from shared.services.period_service import PeriodService
+from shared.utils.date_utils import get_business_today
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class RentalQueryRepository(RentalBaseRepository):
 
         # Применяем фильтрацию по статусу
         if status:
-            today = date.today()
+            today = get_business_today()
             if status == OrderStatus.ACTIVE:
                 # Активные аренды (включая просроченные)
                 base_query = base_query.filter(Rental.status == OrderStatus.ACTIVE)
@@ -115,7 +116,7 @@ class RentalQueryRepository(RentalBaseRepository):
         # Применяем пагинацию и сортировку
         # Сначала просроченные, затем по ID в убывающем порядке
         overdue_case = case(
-            (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
+            (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < get_business_today()), 0),
             else_=1
         ).asc()
 
@@ -157,7 +158,7 @@ class RentalQueryRepository(RentalBaseRepository):
 
         # Применяем фильтрацию по статусу
         if status:
-            today = date.today()
+            today = get_business_today()
             if status == OrderStatus.ACTIVE:
                 base_query = base_query.filter(Rental.status == OrderStatus.ACTIVE)
             elif status == OrderStatus.OVERDUE:
@@ -227,7 +228,7 @@ class RentalQueryRepository(RentalBaseRepository):
         """Применяет сортировку аренд; по умолчанию — просроченные сначала, затем новые."""
         def _default(q):
             overdue_case = case(
-                (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < date.today()), 0),
+                (and_(Rental.status == OrderStatus.ACTIVE, Rental.end_date < get_business_today()), 0),
                 else_=1
             ).asc()
             return q.order_by(overdue_case, Rental.id.desc())

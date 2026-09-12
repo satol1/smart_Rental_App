@@ -231,14 +231,18 @@ class ReservationLifecycleService:
         await self.reservation_repo.save_object(reservation)
         # Убираем ручной коммит - middleware автоматически коммитит транзакцию
 
-    async def _delete_reservation_record(self, reservation: Reservation) -> None:
-        """Удаляет резерв, освобождая лимит использованного промокода."""
+    async def _cancel_reservation_record(self, reservation: Reservation) -> None:
+        """Переводит резерв в статус CANCELLED, освобождая лимит использованного промокода."""
         # Отмена освобождает лимит использованного промокода
         if reservation.promo_code_id:
             await self.promo_code_logic.release_promo_code_usage(
                 reservation.promo_code_id, reservation.user_id
             )
-        await self.reservation_repo.delete(reservation.id)
+        reservation.status = OrderStatus.CANCELLED.value
+        await self.reservation_repo.save_object(reservation)
+
+    # Сохраняем алиас для обратной совместимости вызовов
+    _delete_reservation_record = _cancel_reservation_record
 
     @staticmethod
     def _build_accessory_links(selected_accessories: dict) -> list:
@@ -371,7 +375,7 @@ class ReservationLifecycleService:
                 cancelled_total_cost = reservation.total_cost
                 cancelled_equipment_names = self._equipment_display_names(reservation)
 
-                await self._delete_reservation_record(reservation)
+                await self._cancel_reservation_record(reservation)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.info(f"User {user.id} cancelled reservation #{reservation_id}")
             schedule_after_commit(self.db, invalidate_dashboard_summary)
@@ -463,7 +467,7 @@ class ReservationLifecycleService:
 
                 # Менеджеры могут отменять всегда (пропускаем валидацию прав на отмену)
                 self.validator.validate_reservation_is_cancellable(reservation)
-                await self._delete_reservation_record(reservation)
+                await self._cancel_reservation_record(reservation)
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.warning(f"Admin cancelled reservation #{reservation_id}")
             schedule_after_commit(self.db, invalidate_dashboard_summary)
@@ -494,7 +498,7 @@ class ReservationLifecycleService:
                     return
 
                 for reservation in cancellable:
-                    await self._delete_reservation_record(reservation)
+                    await self._cancel_reservation_record(reservation)
 
                 # Убираем ручной коммит - middleware автоматически коммитит транзакцию
             logger.warning(

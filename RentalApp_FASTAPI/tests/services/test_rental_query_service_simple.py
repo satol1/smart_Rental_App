@@ -61,6 +61,11 @@ class TestRentalQueryServiceSimple:
         rental.notes_on_issue = "Test notes"
         rental.actual_return_date = None
         rental.notes_on_return = None
+        rental.deposit_status = None
+        rental.deposit_notes = None
+        rental.deposit_amount = 0.0
+        rental.deposit_refunded_amount = 0.0
+        rental.deposit_retained_amount = 0.0
         rental.user = MagicMock()
         rental.user.full_name = "Test User"
         rental.user.email = "test@example.com"

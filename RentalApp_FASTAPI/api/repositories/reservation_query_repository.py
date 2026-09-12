@@ -9,6 +9,7 @@ from datetime import date
 from api.models.reservation import Reservation, ReservationAccessory
 from api.models.equipment import Equipment
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 from .reservation_base_repository import ReservationBaseRepository
 
 
@@ -109,7 +110,7 @@ class ReservationQueryRepository(ReservationBaseRepository):
             if status_filter == OrderStatus.ACTIVE:
                 query = query.filter(
                     Reservation.status == OrderStatus.ACTIVE,
-                    Reservation.end_date >= date.today()
+                    Reservation.end_date >= get_business_today()
                 )
             elif status_filter == OrderStatus.COMPLETED:
                 query = query.filter(
@@ -122,7 +123,7 @@ class ReservationQueryRepository(ReservationBaseRepository):
             elif status_filter == OrderStatus.OVERDUE:
                 query = query.filter(
                     Reservation.status == OrderStatus.ACTIVE,
-                    Reservation.end_date < date.today()
+                    Reservation.end_date < get_business_today()
                 )
             else:
                 query = query.filter(Reservation.status == status_filter)

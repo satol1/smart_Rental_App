@@ -21,7 +21,8 @@ class StatusService:
             return OrderStatus(order.status)
 
         # Если заказ активен, проверяем, не просрочен ли он.
-        if order.end_date < date.today():
+        from shared.utils.date_utils import get_business_today
+        if order.end_date < get_business_today():
             return OrderStatus.OVERDUE
 
         # В противном случае, статус - активен.

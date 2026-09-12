@@ -26,6 +26,7 @@ from shared.schemas.reservation_schema import (
     ReservationUpdateRequest,
     AdminReservationCreateRequest,
 )
+from shared.constants.order_status import OrderStatus
 
 
 class TestReservationLifecycleService:
@@ -385,7 +386,7 @@ class TestReservationLifecycleService:
         reservation_service.reservation_repo.get_by_id_with_details = AsyncMock(return_value=mock_reservation)
         reservation_service.validator.validate_user_can_cancel_reservation = AsyncMock()
         reservation_service.validator.validate_reservation_is_cancellable = MagicMock()
-        reservation_service.reservation_repo.delete = AsyncMock()
+        reservation_service.reservation_repo.save_object = AsyncMock()
         
         # Мокаем транзакции БД
         mock_context = AsyncMock()
@@ -397,8 +398,9 @@ class TestReservationLifecycleService:
         await reservation_service.cancel_user_reservation(reservation_id, mock_user)
 
         # Assert
-        # Проверяем, что резерв был удален
-        reservation_service.reservation_repo.delete.assert_called_once_with(mock_reservation.id)
+        # Проверяем, что резерв был переведен в статус CANCELLED и сохранен (soft delete)
+        assert mock_reservation.status == OrderStatus.CANCELLED.value
+        reservation_service.reservation_repo.save_object.assert_called_once_with(mock_reservation)
 
     @pytest.mark.asyncio
     async def test_cancel_user_reservation_not_cancellable(self, reservation_service, mock_db_session, 
@@ -546,7 +548,7 @@ class TestReservationLifecycleService:
         # Мокаем все зависимости
         reservation_service.reservation_repo.get_by_id_with_details = AsyncMock(return_value=mock_reservation)
         reservation_service.validator.validate_reservation_is_cancellable = MagicMock()
-        reservation_service.reservation_repo.delete = AsyncMock()
+        reservation_service.reservation_repo.save_object = AsyncMock()
         
         # Мокаем транзакции БД
         mock_context = AsyncMock()
@@ -558,8 +560,9 @@ class TestReservationLifecycleService:
         await reservation_service.cancel_admin_reservation(reservation_id)
 
         # Assert
-        # Проверяем, что резерв был удален
-        reservation_service.reservation_repo.delete.assert_called_once_with(mock_reservation.id)
+        # Проверяем, что резерв был переведен в статус CANCELLED и сохранен
+        assert mock_reservation.status == OrderStatus.CANCELLED.value
+        reservation_service.reservation_repo.save_object.assert_called_once_with(mock_reservation)
 
     # === ТЕСТЫ ДЛЯ bulk_cancel_admin_reservations ===
 
@@ -579,19 +582,18 @@ class TestReservationLifecycleService:
             # Настраиваем обычный мок для filter_cancellable_reservations (не асинхронный)
             reservation_service.validator.filter_cancellable_reservations = MagicMock(return_value=(cancellable_reservations, not_cancellable_reservations))
             
-            with patch.object(reservation_service.reservation_repo, 'delete') as mock_delete:
-                with patch.object(reservation_service.reservation_repo, 'save'):
-                    # Мокаем транзакции БД
-                    mock_db_session.begin_nested.return_value.__aenter__.return_value = None
-                    mock_db_session.begin_nested.return_value.__aexit__.return_value = None
+            with patch.object(reservation_service.reservation_repo, 'save_object', new_callable=AsyncMock) as mock_save:
+                # Мокаем транзакции БД
+                mock_db_session.begin_nested.return_value.__aenter__.return_value = None
+                mock_db_session.begin_nested.return_value.__aexit__.return_value = None
 
-                    # Act
-                    await reservation_service.bulk_cancel_admin_reservations(reservation_ids)
+                # Act
+                await reservation_service.bulk_cancel_admin_reservations(reservation_ids)
 
-                    # Assert
-                    # Проверяем, что резерв был удален
-                    mock_delete.assert_called_once_with(mock_reservation.id)
-                    # В новой архитектуре используется db.add(), а не repo.save()
+                # Assert
+                # Проверяем, что резерв был переведен в CANCELLED и сохранен
+                assert mock_reservation.status == OrderStatus.CANCELLED.value
+                mock_save.assert_called_once_with(mock_reservation)
 
     @pytest.mark.asyncio
     async def test_bulk_cancel_admin_reservations_mixed_cancellable(self, reservation_service, mock_db_session, 
@@ -609,19 +611,18 @@ class TestReservationLifecycleService:
             # Настраиваем обычный мок для filter_cancellable_reservations (не асинхронный)
             reservation_service.validator.filter_cancellable_reservations = MagicMock(return_value=(cancellable_reservations, not_cancellable_reservations))
             
-            with patch.object(reservation_service.reservation_repo, 'delete') as mock_delete:
-                with patch.object(reservation_service.reservation_repo, 'save'):
-                    # Мокаем транзакции БД
-                    mock_db_session.begin_nested.return_value.__aenter__.return_value = None
-                    mock_db_session.begin_nested.return_value.__aexit__.return_value = None
+            with patch.object(reservation_service.reservation_repo, 'save_object', new_callable=AsyncMock) as mock_save:
+                # Мокаем транзакции БД
+                mock_db_session.begin_nested.return_value.__aenter__.return_value = None
+                mock_db_session.begin_nested.return_value.__aexit__.return_value = None
 
-                    # Act
-                    await reservation_service.bulk_cancel_admin_reservations(reservation_ids)
+                # Act
+                await reservation_service.bulk_cancel_admin_reservations(reservation_ids)
 
-                    # Assert
-                    # Проверяем, что был удален только отменяемый резерв
-                    mock_delete.assert_called_once_with(mock_reservation.id)
-                    # В новой архитектуре используется db.add(), а не repo.save()
+                # Assert
+                # Проверяем, что был отменен и сохранен только отменяемый резерв
+                assert mock_reservation.status == OrderStatus.CANCELLED.value
+                mock_save.assert_called_once_with(mock_reservation)
 
     @pytest.mark.asyncio
     async def test_bulk_cancel_admin_reservations_none_cancellable(self, reservation_service, mock_db_session):

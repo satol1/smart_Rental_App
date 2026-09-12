@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 from typing import Tuple, Type
+from shared.utils.date_utils import get_business_today
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,7 +76,7 @@ class EquipmentCRUDService:
 
     async def count_active_links(self, equipment_id: int) -> Tuple[int, int]:
         """Считает незавершённые резервы и аренды, ссылающиеся на оборудование."""
-        today_start_of_day = datetime.combine(date.today(), datetime.min.time())
+        today_start_of_day = datetime.combine(get_business_today(), datetime.min.time())
 
         reservations_result = await self.db.execute(
             select(func.count(Reservation.id)).filter(

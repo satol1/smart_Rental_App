@@ -11,6 +11,7 @@ from api.services.financial_service import to_decimal
 
 from api.models.user import User
 from api.models.rental import Rental
+from api.models.payment import Payment
 from api.repositories.rental_repository import RentalRepository
 from api.services.order.system_repository import SystemService
 from api.services.order.order_validator import OrderValidator
@@ -20,9 +21,10 @@ from api.services.financial_service import FinancialService
 from api.services.promo_code import PromoCodeBusinessLogic
 from api.services.cache_service import invalidate_dashboard_summary
 from api.services.post_commit import schedule_after_commit
+from decimal import Decimal
 from shared.constants.balance_operations import BalanceOperationType
 from shared.constants.order_status import OrderStatus
-from shared.schemas.rental_schema import AdminRentalUpdate
+from shared.schemas.rental_schema import AdminRentalUpdate, RentalAddItemsRequest
 
 logger = logging.getLogger(__name__)
 
@@ -231,25 +233,45 @@ class RentalUpdateService:
 
             if difference > 0:
                 # Увеличение предоплаты
+                desc = f"Увеличение предоплаты по аренде #{rental.id} на {difference} ₽"
                 await self.balance_service.add_transaction(
                     user_id=rental.user_id,
                     amount=difference,
                     operation_type=BalanceOperationType.PREPAYMENT,
-                    description=f"Увеличение предоплаты по аренде #{rental.id} на {difference} ₽",
+                    description=desc,
                     rental_id=rental.id,
                 )
+                payment_rec = Payment(
+                    user_id=rental.user_id,
+                    rental_id=rental.id,
+                    amount=difference,
+                    payment_method="cash",
+                    transaction_type="prepayment",
+                    description=desc,
+                )
+                self.db.add(payment_rec)
             else:
                 # Уменьшение предоплаты — списание, а не начисление:
                 # предоплата зачислялась положительной транзакцией, её
                 # уменьшение должно зеркально списываться (иначе баланс
                 # растёт при уменьшении предоплаты — деньги из воздуха)
+                desc = f"Списание уменьшенной предоплаты по аренде #{rental.id} на {abs(difference)} ₽"
                 await self.balance_service.add_transaction(
                     user_id=rental.user_id,
                     amount=difference,
                     operation_type=BalanceOperationType.PREPAYMENT_REFUND_ON_REVERT,
-                    description=f"Списание уменьшенной предоплаты по аренде #{rental.id} на {abs(difference)} ₽",
+                    description=desc,
                     rental_id=rental.id,
                 )
+                refund_rec = Payment(
+                    user_id=rental.user_id,
+                    rental_id=rental.id,
+                    amount=difference,
+                    payment_method="cash",
+                    transaction_type="refund",
+                    description=desc,
+                )
+                self.db.add(refund_rec)
 
             # Обновляем сумму предоплаты
             rental.prepayment_amount = new_prepayment_amount
@@ -305,3 +327,155 @@ class RentalUpdateService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Не удалось подтвердить промокод '{code}'. Повторите позже или уберите промокод."
             )
+
+    async def add_equipment_to_rental(
+        self, rental_id: int, request: RentalAddItemsRequest, manager: User
+    ) -> Rental:
+        """Добавляет оборудование в активную аренду с пересчетом стоимости и списанием с баланса."""
+        from api.models.equipment import Equipment
+        from api.models.rental import RentalEquipment
+        from shared.utils.date_utils import get_business_today
+        from sqlalchemy import select
+
+        try:
+            async with self.db.begin_nested():
+                rental = await self.rental_repo.get_rental_by_id_or_fail(rental_id)
+
+                # Проверка статуса: только активные или просроченные аренды
+                if rental.status not in [OrderStatus.ACTIVE.value, OrderStatus.OVERDUE.value]:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Нельзя добавить оборудование в аренду со статусом '{rental.status}'."
+                    )
+
+                add_start_date = request.start_date or get_business_today()
+                if add_start_date > rental.end_date:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Дата добавления оборудования не может быть позже даты окончания аренды."
+                    )
+
+                # Получаем оборудование
+                eq_res = await self.db.execute(
+                    select(Equipment).filter(Equipment.id.in_(request.equipment_ids))
+                )
+                new_equipment_list = list(eq_res.scalars().all())
+                if len(new_equipment_list) != len(request.equipment_ids):
+                    found_ids = {eq.id for eq in new_equipment_list}
+                    missing = set(request.equipment_ids) - found_ids
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Оборудование с ID {list(missing)} не найдено."
+                    )
+
+                # Обеспечиваем инициализацию rental_items
+                if not rental.rental_items and rental.equipment:
+                    rental.rental_items = [
+                        RentalEquipment(
+                            rental_id=rental.id,
+                            equipment_id=eq.id,
+                            status="rented",
+                            daily_rate=getattr(eq, 'daily_rate', None)
+                        )
+                        for eq in rental.equipment
+                    ]
+                    self.db.add_all(rental.rental_items)
+                    await self.db.flush()
+
+                # Проверяем, что эти позиции еще не арендованы в текущей аренде
+                current_active_ids = {
+                    item.equipment_id for item in rental.rental_items if item.status != "returned"
+                }
+                already_in_rental = set(request.equipment_ids) & current_active_ids
+                if already_in_rental:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Оборудование {list(already_in_rental)} уже присутствует в этой аренде."
+                    )
+
+                # Проверка доступности оборудования на интервал [add_start_date, rental.end_date]
+                await self.validator.validate_equipment_availability(
+                    request.equipment_ids, add_start_date, rental.end_date, exclude_rental_id=rental.id
+                )
+
+                # Рассчитываем стоимость для добавляемого оборудования
+                days = await self.financial_service.get_rental_days(add_start_date, rental.end_date)
+                
+                # Применяем скидку аренды (если была)
+                effective_discount_ratio = Decimal("0")
+                total_cost_dec = to_decimal(rental.total_cost)
+                discount_dec = to_decimal(rental.discount_amount)
+                if (total_cost_dec + discount_dec) > 0:
+                    effective_discount_ratio = discount_dec / (total_cost_dec + discount_dec)
+
+                additional_cost = Decimal("0")
+                for eq in new_equipment_list:
+                    rate = to_decimal(getattr(eq, 'daily_rate', 0))
+                    effective_rate = rate * (Decimal("1") - effective_discount_ratio)
+                    item_cost = effective_rate * Decimal(days)
+                    additional_cost += item_cost
+
+                    # Добавляем или реактивируем в rental_items
+                    existing_item = next(
+                        (ri for ri in rental.rental_items if ri.equipment_id == eq.id), None
+                    )
+                    if existing_item:
+                        existing_item.status = "rented"
+                        existing_item.actual_return_date = None
+                        existing_item.daily_rate = getattr(eq, 'daily_rate', None)
+                    else:
+                        new_item = RentalEquipment(
+                            rental_id=rental.id,
+                            equipment_id=eq.id,
+                            status="rented",
+                            daily_rate=getattr(eq, 'daily_rate', None)
+                        )
+                        rental.rental_items.append(new_item)
+                    if eq not in rental.equipment:
+                        rental.equipment.append(eq)
+
+                # Добавляем аксессуары при наличии и тарифицируем их
+                if request.selected_accessories:
+                    all_acc_ids = [
+                        acc_id for acc_list in request.selected_accessories.values()
+                        for acc_id in acc_list if acc_id
+                    ]
+                    if all_acc_ids:
+                        from api.models.accessory import Accessory
+                        acc_res = await self.db.execute(
+                            select(Accessory).filter(Accessory.id.in_(all_acc_ids))
+                        )
+                        found_accs = list(acc_res.scalars().all())
+                        for acc in found_accs:
+                            acc_rate = to_decimal(getattr(acc, 'price', 0))
+                            effective_acc_rate = acc_rate * (Decimal("1") - effective_discount_ratio)
+                            additional_cost += effective_acc_rate * Decimal(days)
+
+                    await self.rental_repo.add_accessories_to_rental_async(
+                        rental, request.selected_accessories
+                    )
+
+                # Списание с баланса клиента
+                if additional_cost > 0:
+                    await self.balance_service.add_transaction(
+                        user_id=rental.user_id,
+                        amount=-additional_cost,
+                        operation_type=BalanceOperationType.RENTAL_DEBIT,
+                        description=f"Списание за добор оборудования (ID: {request.equipment_ids}) в аренду #{rental.id}",
+                        rental_id=rental.id
+                    )
+                    rental.total_cost = total_cost_dec + additional_cost
+
+                note_entry = f"[{add_start_date}] Добор оборудования: {request.equipment_ids}"
+                rental.notes_on_issue = f"{rental.notes_on_issue}\n{note_entry}".strip() if rental.notes_on_issue else note_entry
+
+                await self.rental_repo.save_rental(rental)
+
+            rental_with_details = await self.rental_repo.get_rental_by_id_or_fail(rental.id)
+            self.notification_helper.log_rental_updated(rental, manager, ["equipment_added"])
+            schedule_after_commit(self.db, invalidate_dashboard_summary)
+
+            return rental_with_details
+        except Exception as e:
+            self.notification_helper.log_rental_error("доборе оборудования в аренду", rental_id, e, manager)
+            raise

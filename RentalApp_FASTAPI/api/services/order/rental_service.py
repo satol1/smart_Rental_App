@@ -26,6 +26,7 @@ from shared.schemas.rental_schema import (
     RentalCreateFromScratchRequest,
     AdminRentalUpdate,
     RentalRevertRequest,
+    RentalAddItemsRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,12 @@ class RentalLifecycleService:
     ) -> Rental:
         """Обновляет детали аренды администратором."""
         return await self.update_service.update_rental_details_by_admin(rental_id, request, manager)
+
+    async def add_equipment_to_rental(
+        self, rental_id: int, request: RentalAddItemsRequest, manager: User
+    ) -> Rental:
+        """Добавляет оборудование в активную аренду."""
+        return await self.update_service.add_equipment_to_rental(rental_id, request, manager)
 
     # Делегирование методов отмены и удаления аренд
     

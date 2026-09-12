@@ -21,10 +21,12 @@ class BalanceOperationType(str, Enum):
     
     # Операции с возвратом
     EARLY_RETURN_CREDIT = "early_return_credit"
+    PARTIAL_RETURN_CREDIT = "partial_return_credit"
     OVERDUE_SURCHARGE_DEBIT = "overdue_surcharge_debit"
     
     # Операции с балансом
     BALANCE_TOP_UP = "balance_top_up"
+    DEBT_REPAYMENT = "debt_repayment"
     
     # Ручные корректировки
     MANUAL_CREDIT = "manual_credit"
@@ -42,8 +44,10 @@ BALANCE_OPERATION_TYPES = {
     "PREPAYMENT": BalanceOperationType.PREPAYMENT,
     "PREPAYMENT_REFUND_ON_REVERT": BalanceOperationType.PREPAYMENT_REFUND_ON_REVERT,
     "EARLY_RETURN_CREDIT": BalanceOperationType.EARLY_RETURN_CREDIT,
+    "PARTIAL_RETURN_CREDIT": BalanceOperationType.PARTIAL_RETURN_CREDIT,
     "OVERDUE_SURCHARGE_DEBIT": BalanceOperationType.OVERDUE_SURCHARGE_DEBIT,
     "BALANCE_TOP_UP": BalanceOperationType.BALANCE_TOP_UP,
+    "DEBT_REPAYMENT": BalanceOperationType.DEBT_REPAYMENT,
     "MANUAL_CREDIT": BalanceOperationType.MANUAL_CREDIT,
     "MANUAL_DEBIT": BalanceOperationType.MANUAL_DEBIT,
     "RESERVATION_PAYMENT": BalanceOperationType.RESERVATION_PAYMENT,

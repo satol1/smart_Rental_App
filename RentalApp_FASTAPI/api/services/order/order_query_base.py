@@ -10,6 +10,7 @@ import logging
 from api.models.user import User
 from api.models.equipment import Equipment
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class OrderQueryBase(Generic[T]):
         if not status_filter:
             return query
             
-        today = date.today()
+        today = get_business_today()
         
         if status_filter == OrderStatus.ACTIVE:
             # Ищем активные, но не просроченные

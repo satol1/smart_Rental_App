@@ -18,6 +18,7 @@ from api.repositories.reservation_repository import ReservationRepository
 from shared.constants.order_status import OrderStatus
 from shared.constants.user_status import EDIT_RESTRICTION_DAYS, RESERVATION_GRACE_PERIOD_HOURS
 from shared.utils.user_status_utils import parse_user_status
+from shared.utils.date_utils import get_business_today, to_business_date
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,13 +48,11 @@ class OrderValidator:
         Проверяет корректность диапазона дат и то, что он не попадает на выходные.
         Используется при создании/редактировании резервов пользователями.
         """
-        if not self.financial_service:
-            raise ValueError("FinancialService не инициализирован. Проверьте настройки DI-контейнера.")
-        self.financial_service.validate_date_range(start_date, end_date)
+        self.validate_date_range(start_date, end_date)
 
         # Дата начала не может быть в прошлом: такой резерв сразу считался бы
         # «просроченным» и блокировал бы пользователя правилами отмены
-        if start_date < date.today():
+        if start_date < get_business_today():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Дата начала не может быть в прошлом.",
@@ -148,12 +147,14 @@ class OrderValidator:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Аксессуары не могут быть выбраны для оборудования, отсутствующего в резерве. Неверные ID оборудования: {list(missing_eq_ids)}")
 
     def validate_reservation_is_cancellable(self, reservation: Reservation):
+        if reservation.status == OrderStatus.CANCELLED:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Резерв уже отменен.")
         if reservation.rental:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Нельзя отменить резерв, так как он был преобразован в аренду #{reservation.rental.id}.")
 
     def filter_cancellable_reservations(self, reservations: List[Reservation]) -> Tuple[List[Reservation], List[Reservation]]:
-        cancellable = [r for r in reservations if not r.rental]
-        not_cancellable = [r for r in reservations if r.rental]
+        cancellable = [r for r in reservations if not r.rental and r.status != OrderStatus.CANCELLED]
+        not_cancellable = [r for r in reservations if r.rental or r.status == OrderStatus.CANCELLED]
         return cancellable, not_cancellable
 
     def validate_reservation_for_conversion(self, reservation: Reservation):
@@ -189,7 +190,7 @@ class OrderValidator:
         позже end_date — завышенный штраф за просрочку. Регистрация возврата
         ровно в плановую end_date (в т.ч. будущую) разрешена: «возврат по плану».
         """
-        today = date.today()
+        today = get_business_today()
         if actual_return_date < rental.start_date:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -209,8 +210,13 @@ class OrderValidator:
             )
 
     def validate_reservation_is_editable(self, reservation: Reservation):
-        """Редактирование выданного (fulfilled) резерва запрещено: он уже
-        сконвертирован в аренду, сдвиг дат создал бы расхождение с арендой."""
+        """Редактирование выданного (fulfilled) или отмененного (cancelled) резерва запрещено:
+        он уже сконвертирован в аренду либо отменен."""
+        if reservation.status == OrderStatus.CANCELLED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Нельзя редактировать отмененный резерв."
+            )
         if reservation.rental:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -221,14 +227,73 @@ class OrderValidator:
         if not rental.reservation_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Нельзя отменить аренду, созданную без резерва.")
         
-        # Проверяем, что аренда не завершена
-        if rental.status == OrderStatus.COMPLETED:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Нельзя отменить выдачу для уже завершенной аренды.")
+        # Проверяем, что аренда в активном статусе
+        active_status = OrderStatus.ACTIVE.value if hasattr(OrderStatus.ACTIVE, "value") else OrderStatus.ACTIVE
+        if rental.status != active_status and rental.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Нельзя отменить выдачу для завершенной или неактивной аренды."
+            )
         
-        # Сравниваем дату создания аренды (в UTC) с текущей датой (в UTC),
-        # чтобы избежать проблем с часовыми поясами на границе суток.
-        if rental.created_at.date() != datetime.now(timezone.utc).date():
+        # Сравниваем дату создания аренды в часовом поясе сервиса (Europe/Astrakhan)
+        # с текущей датой сервиса, чтобы корректно учитывать границы календарных суток.
+        from shared.utils.date_utils import to_business_date, get_business_today
+        today = get_business_today()
+        if to_business_date(rental.created_at) != today:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Отмена выдачи возможна только в день создания аренды.")
+        
+        if getattr(rental, 'start_date', None) and rental.start_date < today:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Нельзя отменить выдачу аренды: дата начала аренды уже в прошлом."
+            )
+
+        # Блокировать откат, если уже были возвраты оборудования
+        rental_items = getattr(rental, 'rental_items', None)
+        if rental_items and isinstance(rental_items, (list, tuple, set)):
+            has_returns = any(
+                getattr(item, 'status', None) == "returned" or getattr(item, 'actual_return_date', None) is not None 
+                for item in rental_items
+            )
+            if has_returns:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Нельзя отменить выдачу аренды, по которой уже были возвраты оборудования."
+                )
+
+        # Блокировать откат, если состав оборудования отличается от первоначального резерва (были доборы)
+        reservation = getattr(rental, 'reservation', None)
+        if reservation and hasattr(reservation, 'equipment'):
+            res_eq = getattr(reservation, 'equipment', None)
+            if res_eq and isinstance(res_eq, (list, tuple, set)):
+                rental_eq_ids = {
+                    item.equipment_id for item in rental_items
+                } if rental_items and isinstance(rental_items, (list, tuple, set)) else {
+                    eq.id for eq in (getattr(rental, 'equipment', None) or [])
+                    if hasattr(eq, 'id')
+                }
+                res_eq_ids = {eq.id for eq in res_eq if hasattr(eq, 'id')}
+                if res_eq_ids and rental_eq_ids != res_eq_ids:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Нельзя отменить выдачу аренды: состав оборудования отличается от первоначального резерва (было добавлено или изменено оборудование)."
+                    )
+
+            # Проверка аксессуаров
+            rental_acc = getattr(rental, 'accessory_links', None)
+            res_acc = getattr(reservation, 'accessory_links', None)
+            if rental_acc is not None and res_acc is not None and isinstance(rental_acc, (list, tuple, set)) and isinstance(res_acc, (list, tuple, set)):
+                rental_acc_pairs = {
+                    (a.equipment_id, a.accessory_id) for a in rental_acc if hasattr(a, 'equipment_id')
+                }
+                res_acc_pairs = {
+                    (a.equipment_id, a.accessory_id) for a in res_acc if hasattr(a, 'equipment_id')
+                }
+                if rental_acc_pairs != res_acc_pairs:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Нельзя отменить выдачу аренды: набор аксессуаров отличается от первоначального резерва."
+                    )
 
     # --- Методы валидации дат и диапазонов ---
     

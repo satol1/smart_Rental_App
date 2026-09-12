@@ -10,6 +10,7 @@ class OrderStatus(str, Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+    COMPLETED_WITH_DEBT = "completed_with_debt"
 
     # Динамические статусы (не хранятся в БД, но используются в логике)
     OVERDUE = "overdue"
@@ -20,6 +21,7 @@ class OrderStatus(str, Enum):
 # Список статусов, которые считаются "завершенными"
 COMPLETED_STATUSES = [
     OrderStatus.COMPLETED,
+    OrderStatus.COMPLETED_WITH_DEBT,
     OrderStatus.CANCELLED,
     OrderStatus.FULFILLED
 ]

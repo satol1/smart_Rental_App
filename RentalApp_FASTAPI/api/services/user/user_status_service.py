@@ -236,8 +236,11 @@ class UserStatusService:
         if user_status == UserStatus.PERSONA_NON_GRATA:
             return False
 
+        from shared.utils.date_utils import get_business_today
+        today = get_business_today()
+
         # Прошедшие даты нельзя редактировать
-        if reservation_start_date < date.today():
+        if reservation_start_date < today:
             return False
 
         # Grace-период: свежесозданный резерв можно редактировать без ограничений
@@ -248,7 +251,7 @@ class UserStatusService:
         if restriction_days == 0:
             return True  # VIP - нет ограничений (кроме прошедших дат)
 
-        days_until_start = (reservation_start_date - date.today()).days
+        days_until_start = (reservation_start_date - today).days
         return days_until_start > restriction_days
 
     async def can_user_cancel_reservation(
@@ -389,7 +392,8 @@ class UserStatusService:
         - start_date < сегодня
         - rental is None
         """
-        today = date.today()
+        from shared.utils.date_utils import get_business_today
+        today = get_business_today()
         return await self.reservation_repo.count_overdue_reservations_by_user(user_id, today)
     
     async def _update_user_status(self, user: User, new_status: UserStatus, manually: bool = False) -> None:

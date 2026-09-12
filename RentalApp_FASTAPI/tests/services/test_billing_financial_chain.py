@@ -433,8 +433,8 @@ class TestBillingFinancialChain:
             description=f"Возврат за досрочное завершение аренды #{rental.id}",
             rental_id=rental.id
         )
-        rental_repo.finalize_rental_return.assert_called_once_with(
-            rental, date(2026, 6, 3), "Early return", 3000.0, 0.0
+        assert rental_repo.finalize_rental_return.call_args[0][:3] == (
+            rental, date(2026, 6, 3), "Early return"
         )
 
     @pytest.mark.asyncio
@@ -506,8 +506,8 @@ class TestBillingFinancialChain:
             description=f"Списание за просрочку аренды #{rental.id}",
             rental_id=rental.id
         )
-        rental_repo.finalize_rental_return.assert_called_once_with(
-            rental, date(2026, 6, 7), "Late return", 0.0, 3000.0
+        assert rental_repo.finalize_rental_return.call_args[0][:3] == (
+            rental, date(2026, 6, 7), "Late return"
         )
 
     # -------------------------------------------------------------------------

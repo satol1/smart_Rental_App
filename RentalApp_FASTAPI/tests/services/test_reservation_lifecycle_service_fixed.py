@@ -437,17 +437,17 @@ class TestReservationLifecycleServiceFixed:
         )
         cancelled_reservation.created_at = datetime.now()
         cancelled_reservation.user = sample_reservation.user  # Добавляем user
-        # Настраиваем мок для удаления резервации
-        reservation_service.reservation_repo.delete = AsyncMock()
+        # Настраиваем мок для сохранения резервации в статусе CANCELLED
+        reservation_service.reservation_repo.save_object = AsyncMock()
         
         # Выполняем тест (реальный метод с владельцем)
         owner = sample_reservation.user or User(id=1, email="user@example.com", full_name="User", role="user")
         await reservation_service.cancel_user_reservation(1, owner)
         
-        # Проверяем, что методы были вызваны
-        # cancel_reservation вызывает get_by_id_with_details один раз, затем cancel_user_reservation может вызвать еще раз
+        # Проверяем, что методы были вызваны и статус изменился на CANCELLED
         assert mock_reservation_repo.get_by_id_with_details.called
-        reservation_service.reservation_repo.delete.assert_called_once_with(1)
+        assert sample_reservation.status == OrderStatus.CANCELLED.value
+        reservation_service.reservation_repo.save_object.assert_called_once_with(sample_reservation)
 
     @pytest.mark.asyncio
     async def test_cancel_reservation_not_found(self, reservation_service, mock_reservation_repo):
@@ -462,7 +462,7 @@ class TestReservationLifecycleServiceFixed:
 
     @pytest.mark.asyncio
     async def test_cancel_reservation_already_cancelled(self, reservation_service, mock_reservation_repo, sample_user):
-        """Тест отмены уже отмененной резервации"""
+        """Тест отмены уже отмененной резервации (должен вызывать 400 Bad Request)"""
         # Создаем уже отмененную резервацию
         cancelled_reservation = Reservation(
             id=1,
@@ -477,18 +477,15 @@ class TestReservationLifecycleServiceFixed:
         
         # Настраиваем мок
         mock_reservation_repo.get_by_id_with_details.return_value = cancelled_reservation
+        reservation_service.reservation_repo.save_object = AsyncMock()
+        from api.services.order.order_validator import OrderValidator
+        reservation_service.validator.validate_reservation_is_cancellable = MagicMock(
+            side_effect=lambda r: OrderValidator.validate_reservation_is_cancellable(None, r)
+        )
         
-        # Настраиваем мок для удаления резервации
-        reservation_service.reservation_repo.delete = AsyncMock()
-        
-        # Проверяем, что выбрасывается исключение (или метод успешно выполняется)
-        # Метод может не выбрасывать исключение, если резервация уже отменена
-        try:
+        with pytest.raises(HTTPException) as exc_info:
             await reservation_service.cancel_user_reservation(1, sample_user)
-            # Если метод выполнился успешно, проверяем что delete был вызван
-            reservation_service.reservation_repo.delete.assert_called_once_with(1)
-        except (ValueError, HTTPException) as e:
-            assert "отменена" in str(e.detail) if isinstance(e, HTTPException) else "отменена" in str(e)
+        assert "отменен" in str(exc_info.value.detail)
 
     def test_service_has_required_methods(self, reservation_service):
         """Тест наличия необходимых методов в сервисе"""

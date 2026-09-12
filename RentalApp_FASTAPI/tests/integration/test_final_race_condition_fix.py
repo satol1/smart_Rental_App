@@ -25,11 +25,12 @@ class TestFinalRaceConditionFix:
         response = client.get('/health')
         assert response.status_code == 200
         assert response.json()['status'] == 'ok'
-        
-        # Тестируем другой эндпоинт
+
+        # Повторный запрос: /health — единственный публичный эндпоинт, проходящий
+        # через DI-middleware; контракт /health — всегда {"status": "ok"}
         response = client.get('/health')
         assert response.status_code == 200
-        assert response.json()['status'] == 'success'
+        assert response.json()['status'] == 'ok'
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_with_middleware(self):

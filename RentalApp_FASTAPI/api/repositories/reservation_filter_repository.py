@@ -11,6 +11,7 @@ from api.models.equipment import Equipment
 from api.models.user import User
 from shared.constants.order_status import OrderStatus
 from shared.services.period_service import PeriodService
+from shared.utils.date_utils import get_business_today
 from .reservation_base_repository import ReservationBaseRepository
 
 
@@ -217,7 +218,7 @@ class ReservationFilterRepository(ReservationBaseRepository):
         if status == OrderStatus.ACTIVE:
             return query.filter(
                 Reservation.status == OrderStatus.ACTIVE,
-                Reservation.end_date >= date.today()
+                Reservation.end_date >= get_business_today()
             )
         elif status == OrderStatus.COMPLETED:
             return query.filter(
@@ -230,7 +231,7 @@ class ReservationFilterRepository(ReservationBaseRepository):
         elif status == OrderStatus.OVERDUE:
             return query.filter(
                 Reservation.status == OrderStatus.ACTIVE,
-                Reservation.end_date < date.today()
+                Reservation.end_date < get_business_today()
             )
         else:
             return query.filter(Reservation.status == status)

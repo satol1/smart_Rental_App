@@ -266,6 +266,7 @@ class UserPaymentRequest(BaseModel):
     amount: float = Field(..., gt=0, description="Сумма платежа")
     payment_method: str = Field(..., description="Метод оплаты (наличные, карта и т.д.)")
     description: Optional[str] = None
+    rental_id: Optional[int] = Field(None, description="ID аренды для погашения задолженности")
 # +++ КОНЕЦ: НОВАЯ СХЕМА ДЛЯ ПРИЕМА ПЛАТЕЖА +++
 
 # +++ НАЧАЛО: НОВАЯ СХЕМА ДЛЯ РУЧНОЙ КОРРЕКТИРОВКИ БАЛАНСА +++

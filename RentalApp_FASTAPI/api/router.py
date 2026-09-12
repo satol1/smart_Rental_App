@@ -20,6 +20,7 @@ from api.pack_api import router as pack_router
 from api.settings_api import router as settings_router
 from api.brand_system_api import router as brand_system_router
 from api.uploads_api import router as uploads_router
+from api.admin_tasks_api import router as admin_tasks_router
 
 router = APIRouter()
 
@@ -42,6 +43,7 @@ router.include_router(pack_router)
 router.include_router(settings_router)
 router.include_router(brand_system_router, prefix="/admin")
 router.include_router(uploads_router)
+router.include_router(admin_tasks_router)
 
 # Старые сервисы были удалены, поэтому никаких изменений в роутере не требуется,
 # так как он подключает только API-слой (например, admin_rental_api),

@@ -16,10 +16,29 @@ class RentalAccessory(Base):
     accessory = relationship("Accessory", back_populates="rental_links")
     rental = relationship("Rental", back_populates="accessory_links")
 
-rental_equipment_association = Table('rental_equipment', Base.metadata,
-                                     Column('rental_id', Integer, ForeignKey('rentals.id', ondelete="CASCADE"), primary_key=True),
-                                     Column('equipment_id', Integer, ForeignKey('equipment.id'), primary_key=True)
-                                     )
+rental_equipment_association = Table(
+    'rental_equipment',
+    Base.metadata,
+    Column('rental_id', Integer, ForeignKey('rentals.id', ondelete="CASCADE"), primary_key=True),
+    Column('equipment_id', Integer, ForeignKey('equipment.id'), primary_key=True),
+    Column('status', String(20), default="rented", server_default="rented", nullable=False),
+    Column('actual_return_date', Date, nullable=True),
+    Column('daily_rate', Numeric(12, 2), nullable=True),
+)
+
+class RentalEquipment(Base):
+    __tablename__ = 'rental_equipment'
+    __table_args__ = {'extend_existing': True}
+
+    rental_id = Column(Integer, ForeignKey('rentals.id', ondelete="CASCADE"), primary_key=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id'), primary_key=True)
+    status = Column(String(20), default="rented", server_default="rented", nullable=False)
+    actual_return_date = Column(Date, nullable=True)
+    daily_rate = Column(Numeric(12, 2), nullable=True)
+
+    rental = relationship("Rental", back_populates="rental_items", overlaps="equipment,rental")
+    equipment = relationship("Equipment", lazy="joined", overlaps="equipment,rental")
+
 
 class Rental(Base):
     __tablename__ = "rentals"
@@ -37,6 +56,10 @@ class Rental(Base):
     promo_code = Column(String, nullable=True)
     final_cost = Column(Numeric(12, 2), nullable=True)
     deposit_amount = Column(Numeric(12, 2), default=Decimal("0.00"))
+    deposit_status = Column(String(30), nullable=True)
+    deposit_refunded_amount = Column(Numeric(12, 2), default=Decimal("0.00"), nullable=True)
+    deposit_retained_amount = Column(Numeric(12, 2), default=Decimal("0.00"), nullable=True)
+    deposit_notes = Column(Text, nullable=True)
     prepayment_amount = Column(Numeric(12, 2), nullable=False, default=Decimal("0.00"))  # Сумма предоплаты, внесенная при создании аренды
     notes_on_issue = Column(Text, nullable=True)
     notes_on_return = Column(Text, nullable=True)
@@ -58,7 +81,8 @@ class Rental(Base):
 
     # Коллекции грузим selectin-ом (отдельный IN-запрос): joined давал
     # декартово произведение строк на выборках списка аренд
-    equipment = relationship("Equipment", secondary=rental_equipment_association, lazy="selectin")
+    equipment = relationship("Equipment", secondary=rental_equipment_association, lazy="selectin", overlaps="rental_items,rental,equipment")
+    rental_items = relationship("RentalEquipment", back_populates="rental", cascade="all, delete-orphan", lazy="selectin", overlaps="equipment,rental")
     balance_history = relationship("BalanceHistory", back_populates="rental")
     payments = relationship("Payment", back_populates="rental", cascade="all, delete-orphan")
     accessory_links = relationship(

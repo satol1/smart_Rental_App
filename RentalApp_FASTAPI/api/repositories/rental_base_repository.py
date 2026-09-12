@@ -9,6 +9,7 @@ import logging
 from .base_repository import BaseRepository
 from api.models.rental import Rental, RentalAccessory
 from api.models.equipment import Equipment
+from api.models.reservation import Reservation
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,10 @@ class RentalBaseRepository(BaseRepository[Rental, None, None]):
                 selectinload(Equipment.accessories),
                 selectinload(Equipment.associations)
             ),
+            selectinload(Rental.rental_items),
             joinedload(Rental.accessory_links).joinedload(RentalAccessory.accessory),
-            joinedload(Rental.reservation),
+            joinedload(Rental.reservation).selectinload(Reservation.equipment),
+            joinedload(Rental.reservation).selectinload(Reservation.accessory_links),
             joinedload(Rental.payments),
             joinedload(Rental.balance_history)
         ).filter(Rental.id == rental_id)

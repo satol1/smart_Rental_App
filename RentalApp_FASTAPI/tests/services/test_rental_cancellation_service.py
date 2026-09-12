@@ -72,7 +72,7 @@ class TestRentalCancellationService:
         rental.total_cost = 1000.0
         rental.prepayment_amount = 200.0
         rental.status = "active"
-        rental.created_at = datetime.now(timezone.utc) - timedelta(hours=1)  # Создана час назад
+        rental.created_at = datetime.now(timezone.utc)
         return rental
 
     @pytest.fixture
@@ -235,7 +235,7 @@ class TestRentalCancellationService:
         """Тест удаления недавно созданной аренды с нуля."""
         # Arrange
         # Устанавливаем время создания менее 24 часов назад
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc)
         
         mock_context = AsyncMock()
         mock_context.__aenter__ = AsyncMock(return_value=None)
@@ -282,7 +282,7 @@ class TestRentalCancellationService:
                                                          sample_rental_from_scratch):
         """Тест удаления аренды с авансом."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc)
         sample_rental_from_scratch.prepayment_amount = 200.0
         
         mock_context = AsyncMock()
@@ -371,7 +371,7 @@ class TestRentalCancellationService:
     async def test_handle_scratch_rental_deletion_recent(self, rental_cancellation_service, sample_rental_from_scratch):
         """Тест обработки удаления недавно созданной аренды с нуля."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc)
         rental_cancellation_service.balance_service.add_transaction = AsyncMock()
 
         # Act
@@ -398,7 +398,7 @@ class TestRentalCancellationService:
     async def test_handle_scratch_rental_deletion_with_prepayment(self, rental_cancellation_service, sample_rental_from_scratch):
         """Тест обработки удаления аренды с авансом."""
         # Arrange
-        sample_rental_from_scratch.created_at = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
+        sample_rental_from_scratch.created_at = datetime.now(timezone.utc)
         sample_rental_from_scratch.prepayment_amount = 200.0
         rental_cancellation_service.balance_service.add_transaction = AsyncMock()
 

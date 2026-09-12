@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc, literal_column, union_all
 from datetime import date, datetime, timedelta
 from typing import List
+from shared.utils.date_utils import get_business_today
 
 from .base_repository import BaseRepository
 from api.models.rental import Rental
@@ -34,7 +35,7 @@ class DashboardRepository(BaseRepository):
             Список популярного оборудования с количеством аренд и выручкой
         """
         try:
-            cutoff_date = date.today() - timedelta(days=days)
+            cutoff_date = get_business_today() - timedelta(days=days)
             # Число единиц оборудования в каждой аренде: при join M2M total_cost
             # аренды иначе попадает в выручку каждой её единицы (завышение кратно
             # числу позиций). Делим стоимость аренды поровну между единицами.

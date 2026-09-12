@@ -308,13 +308,13 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         """
         from api.models.reservation import Reservation
         from shared.constants.order_status import OrderStatus
-        from datetime import date
+        from shared.utils.date_utils import get_business_today
         
         result = await self.db.execute(
             select(func.count(Reservation.id)).filter(
                 Reservation.user_id == user_id,
                 Reservation.status == OrderStatus.ACTIVE,
-                Reservation.end_date >= date.today()
+                Reservation.end_date >= get_business_today()
             )
         )
         return result.scalar() or 0
@@ -342,10 +342,10 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         from api.models.reservation import Reservation
         from api.models.rental import Rental
         from shared.constants.order_status import OrderStatus
-        from datetime import date
+        from shared.utils.date_utils import get_business_today
         from sqlalchemy import not_
         
-        today = date.today()
+        today = get_business_today()
         
         # Используем NOT EXISTS для проверки отсутствия rental
         subquery = select(1).where(

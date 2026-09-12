@@ -329,13 +329,21 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
                 # Выполняем запрос
                 response = await call_next(request)
                 
-                # Коммитим транзакцию
-                await session.commit()
+                # Если ответ содержит код ошибки (4xx или 5xx), откатываем сессию
+                if response.status_code >= 400:
+                    if session.in_transaction():
+                        await session.rollback()
+                    response.headers["X-Transaction-Status"] = "ROLLEDBACK"
+                else:
+                    # Коммитим транзакцию
+                    if session.in_transaction():
+                        await session.commit()
 
-                # Побочные эффекты сервисов (уведомления, инвалидация кэша)
-                # запускаются только после успешного commit
-                from api.services.post_commit import run_post_commit_callbacks
-                run_post_commit_callbacks(session)
+                    # Побочные эффекты сервисов (уведомления, инвалидация кэша)
+                    # запускаются только после успешного commit
+                    from api.services.post_commit import run_post_commit_callbacks
+                    run_post_commit_callbacks(session)
+                    response.headers["X-Transaction-Status"] = "COMMITTED"
                 
                 # Добавляем метрики в заголовки ответа
                 duration = time.time() - start_time
@@ -343,7 +351,6 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
                 response.headers["X-Processing-Time"] = f"{duration:.3f}s"
                 response.headers["X-Session-ID"] = str(id(session))
                 response.headers["X-Middleware-Version"] = "6.0-CONTEXTVAR-ISOLATED"
-                response.headers["X-Transaction-Status"] = "COMMITTED"
                 
                 return response
             
@@ -441,6 +448,17 @@ async def startup_event():
         if middleware.cls == DIContainerMiddleware:
             app.state.di_middleware = middleware.kwargs.get('app')
             break
+
+    # Запускаем фоновый планировщик задач (OverdueChecker и др.)
+    from api.services.background_runner import background_scheduler
+    await background_scheduler.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Корректное завершение при остановке приложения"""
+    from api.services.background_runner import background_scheduler
+    await background_scheduler.stop()
 
 # КРИТИЧЕСКИ ВАЖНО: wire() уже вызван выше при инициализации контейнера
 # Дублирующий вызов не нужен

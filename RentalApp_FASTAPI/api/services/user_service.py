@@ -14,7 +14,7 @@ from api.utils.password_utils import hash_password, verify_password
 from fastapi import HTTPException, status
 import logging
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Any, Optional
 
 
 class UserService:
@@ -171,28 +171,45 @@ class UserService:
             if self.order_validator:
                 self.order_validator.validate_payment_amount(payment_data.amount)
 
+            rental_id = getattr(payment_data, 'rental_id', None)
+            is_debt_repayment = bool(rental_id or user_to_update.balance < 0)
+            operation_type = BalanceOperationType.DEBT_REPAYMENT if is_debt_repayment else BalanceOperationType.BALANCE_TOP_UP
+            transaction_desc = f"{'Погашение задолженности' if is_debt_repayment else 'Пополнение баланса'}. Метод: {payment_data.payment_method}."
+            if rental_id:
+                transaction_desc += f" (по заказу #{rental_id})"
+
             payment_data_dict = {
                 "user_id": user_id,
                 "amount": payment_data.amount,
                 "payment_method": getattr(payment_data, 'payment_method', 'manual'),
                 "description": payment_data.description or f"Платеж принят {manager.full_name}",
-                "transaction_type": "balance_top_up"
+                "transaction_type": "debt_repayment" if is_debt_repayment else "balance_top_up",
+                "rental_id": rental_id
             }
             new_payment = await self.payment_repo.create_payment(payment_data_dict)
 
             await self.balance_service.add_transaction(
                 user_id=user_id,
                 amount=payment_data.amount,
-                operation_type=BalanceOperationType.BALANCE_TOP_UP,
-                description=f"Пополнение баланса. Метод: {payment_data.payment_method}."
+                operation_type=operation_type,
+                description=transaction_desc,
+                rental_id=rental_id
             )
             
             # Flush обязателен до возврата: add_transaction меняет user.balance
-            # в памяти, не отправляя UPDATE в БД. Прежний db.refresh() перечитывал
-            # объект из БД и сбрасывал это изменение — пополнение оставалось
-            # только в истории баланса, а users.balance не менялся (инцидент
-            # 12.09.2026: +73 070 ₽ в истории при балансе -73 670 ₽).
-            # Коммит выполняет middleware.
+            # Flush обязателен до возврата: add_transaction меняет user.balance
+            # в памяти, не отправляя UPDATE в БД.
+            await self.db.flush()
+
+            # Если после пополнения баланс клиента покрывает задолженность (balance >= 0)
+            # или платеж был целевым за конкретную аренду:
+            # переводим аренду(ы) из статуса COMPLETED_WITH_DEBT в COMPLETED
+            await self._resolve_completed_with_debt_rentals(
+                user_id=user_id,
+                user_balance=user_to_update.balance,
+                target_rental_id=rental_id
+            )
+
             await self.db.flush()
             return UserOut.model_validate(user_to_update)
 
@@ -203,6 +220,39 @@ class UserService:
             # Логируем и возвращаем общую ошибку сервера
             logging.error(f"Ошибка при обработке платежа для пользователя ID={user_id}: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Внутренняя ошибка при обработке платежа.")
+
+    async def _resolve_completed_with_debt_rentals(
+        self, user_id: int, user_balance: Any, target_rental_id: Optional[int] = None
+    ) -> None:
+        """Переводит аренду(ы) из статуса COMPLETED_WITH_DEBT в COMPLETED при погашении долга."""
+        from api.models.rental import Rental
+        from shared.constants.order_status import OrderStatus
+        from sqlalchemy import update
+        from api.services.financial_service import to_decimal
+
+        if target_rental_id:
+            stmt = (
+                update(Rental)
+                .where(
+                    Rental.id == target_rental_id,
+                    Rental.user_id == user_id,
+                    Rental.status == OrderStatus.COMPLETED_WITH_DEBT.value
+                )
+                .values(status=OrderStatus.COMPLETED.value)
+            )
+            await self.db.execute(stmt)
+
+        balance_dec = to_decimal(user_balance)
+        if balance_dec >= 0:
+            stmt_all = (
+                update(Rental)
+                .where(
+                    Rental.user_id == user_id,
+                    Rental.status == OrderStatus.COMPLETED_WITH_DEBT.value
+                )
+                .values(status=OrderStatus.COMPLETED.value)
+            )
+            await self.db.execute(stmt_all)
 
     async def get_balance_history_for_user(self, user_id: int, skip: int, limit: int) -> Tuple[List[BalanceHistory], int]:
         """Получает пагинированную историю баланса для указанного пользователя."""
@@ -227,6 +277,13 @@ class UserService:
                     amount=amount,
                     operation_type=operation_type,
                     description=f"{description} (оператор: {current_user.full_name})"
+                )
+                await self.db.flush()
+
+                # Если после корректировки баланс пользователя >= 0, переводим долги в completed
+                await self._resolve_completed_with_debt_rentals(
+                    user_id=user_id,
+                    user_balance=user_to_adjust.balance
                 )
             
             # Явно коммитим транзакцию
@@ -388,6 +445,9 @@ class UserService:
             new_balance = await self.balance_history_repo.get_user_balance_sum(user_id)
             user_to_update.balance = new_balance
             
+            # Если баланс стал >= 0, переводим долги в completed
+            await self._resolve_completed_with_debt_rentals(user_id, new_balance)
+
             # НЕ коммитим транзакцию - это делает middleware
             logging.info(f"Запись истории баланса #{history_id} удалена. Баланс пользователя #{user_id} пересчитан.")
 

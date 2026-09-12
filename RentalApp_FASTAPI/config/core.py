@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     )
     DISABLE_CSRF: bool = Field(default=False, description="Отключить CSRF защиту (для тестов)")
 
+    # ───────────────────────────── Фоновые задачи ─────────────────────────────
+    ENABLE_BACKGROUND_SCHEDULER: bool = Field(default=True, description="Включить фоновый планировщик задач")
+    OVERDUE_CHECK_INTERVAL_SECONDS: int = Field(default=86400, ge=10, description="Интервал проверки просроченных резервов (сек, по умолчанию 24ч)")
+
     # ───────────────────────────── Настройки окружения ─────────────────────────────
     DEBUG: bool = Field(default=False, description="Режим отладки")
     
@@ -173,6 +177,9 @@ class Settings(BaseSettings):
                     problems.append(f"{name}: должен содержать минимум 32 символа")
                 elif len(set(raw)) < 16:
                     problems.append(f"{name}: должен содержать минимум 16 уникальных символов")
+
+        if not self.DEBUG and self.CORS_ALLOW_WILDCARD:
+            problems.append("CORS_ALLOW_WILDCARD: значение True недопустимо при DEBUG=False (production)")
 
         if problems:
             raise ValueError(

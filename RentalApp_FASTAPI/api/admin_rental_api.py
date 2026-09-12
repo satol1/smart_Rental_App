@@ -12,7 +12,8 @@ from api.services.order.rental_service import RentalLifecycleService
 from shared.schemas.rental_schema import (
     RentalOut, RentalListResponse,
     RentalReturnRequest, RentalCreateFromScratchRequest,
-    AdminRentalUpdate, RentalRevertRequest
+    AdminRentalUpdate, RentalRevertRequest,
+    RentalAddItemsRequest
 )
 
 
@@ -90,6 +91,22 @@ async def return_rental(
     returned_rental_orm = await service.return_rental(rental_id, request, current_user)
     # Обогащаем данные перед отправкой клиенту
     enriched_rental = await query_service.enrich_rental_with_dynamic_fields(returned_rental_orm)
+    return enriched_rental
+
+
+@router.post("/{rental_id}/add-items", response_model=RentalOut)
+@inject
+async def add_equipment_to_rental(
+        rental_id: int,
+        request: RentalAddItemsRequest,
+        current_user: User = Depends(require_manager),
+        _csrf: None = Depends(validate_csrf_dependency),
+        service: RentalLifecycleService = Depends(Provide[Container.rental_lifecycle_service]),
+        query_service: RentalQueryService = Depends(Provide[Container.rental_query_service])
+):
+    """Добавить оборудование в активную аренду."""
+    updated_rental_orm = await service.add_equipment_to_rental(rental_id, request, current_user)
+    enriched_rental = await query_service.enrich_rental_with_dynamic_fields(updated_rental_orm)
     return enriched_rental
 
 

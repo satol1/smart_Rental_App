@@ -15,6 +15,7 @@ from shared.schemas.dashboard_schema import TodayFocusItem
 from api.services.financial_service import FinancialService
 from api.repositories.dashboard_repository import DashboardRepository
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 from .base import BaseDashboardService
 
 
@@ -33,7 +34,7 @@ class FocusService(BaseDashboardService):
     
     async def get_pickups_today(self) -> List[TodayFocusItem]:
         """Получает активные резервации для выдачи (не просроченные и не выданные)."""
-        today = date.today()
+        today = get_business_today()
         
         reservations = await self.dashboard_repo.get_today_pickups(today)
 
@@ -53,7 +54,7 @@ class FocusService(BaseDashboardService):
 
     async def get_returns_today(self) -> List[TodayFocusItem]:
         """Получает аренды на сегодня для возврата."""
-        today = date.today()
+        today = get_business_today()
         
         rentals = await self.dashboard_repo.get_today_returns(today)
 
@@ -72,7 +73,7 @@ class FocusService(BaseDashboardService):
 
     async def get_overdue_rentals(self) -> List[TodayFocusItem]:
         """Получает просроченные аренды."""
-        today = date.today()
+        today = get_business_today()
         
         rentals = await self.dashboard_repo.get_overdue_rentals(today)
 

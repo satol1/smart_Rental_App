@@ -11,6 +11,32 @@ from api.models.rental import Rental
 from shared.constants.order_status import OrderStatus
 
 
+def get_interval_overlap_filter(model, start_date: date, end_date: date, custom_end_date=None):
+    """
+    Формирует условие пересечения периодов с поддержкой как многодневных,
+    так и однодневных заказов (start_date == end_date).
+    custom_end_date: опциональная колонка или выражение даты окончания (по умолчанию model.end_date).
+    """
+    from sqlalchemy import and_, or_
+    end_col = custom_end_date if custom_end_date is not None else model.end_date
+    return or_(
+        and_(
+            end_col > start_date,
+            model.start_date < end_date,
+        ),
+        and_(
+            model.start_date == end_col,
+            model.start_date >= start_date,
+            model.start_date <= end_date,
+        ),
+        and_(
+            start_date == end_date,
+            model.start_date <= start_date,
+            end_col >= start_date,
+        ),
+    )
+
+
 class AvailabilityQueryService(AvailabilityBaseService):
     """
     Сервис для работы с SQL-запросами и фильтрами.
@@ -62,25 +88,13 @@ class AvailabilityQueryService(AvailabilityBaseService):
         end_date: date,
         exclude_reservation_id: Optional[int] = None
     ):
-        """
-        Создает подзапрос для резервирований.
-        
-        Args:
-            start_date: Дата начала периода
-            end_date: Дата окончания периода
-            exclude_reservation_id: ID резервирования для исключения
-            
-        Returns:
-            Подзапрос для резервирований
-        """
         from api.models.reservation import reservation_equipment_association
         
         subquery = (
             select(reservation_equipment_association.c.equipment_id)
             .join(Reservation, reservation_equipment_association.c.reservation_id == Reservation.id)
             .filter(
-                Reservation.end_date > start_date,
-                Reservation.start_date < end_date,
+                get_interval_overlap_filter(Reservation, start_date, end_date),
                 Reservation.status == OrderStatus.ACTIVE
             )
         )
@@ -96,26 +110,31 @@ class AvailabilityQueryService(AvailabilityBaseService):
         end_date: date,
         exclude_rental_id: Optional[int] = None
     ):
-        """
-        Создает подзапрос для аренд.
-        
-        Args:
-            start_date: Дата начала периода
-            end_date: Дата окончания периода
-            exclude_rental_id: ID аренды для исключения
-            
-        Returns:
-            Подзапрос для аренд
-        """
         from api.models.rental import rental_equipment_association
+        from sqlalchemy import case, and_
+
+        effective_end_date = case(
+            (
+                and_(
+                    rental_equipment_association.c.status == 'returned',
+                    rental_equipment_association.c.actual_return_date.is_not(None)
+                ),
+                rental_equipment_association.c.actual_return_date
+            ),
+            else_=Rental.end_date
+        )
         
         subquery = (
             select(rental_equipment_association.c.equipment_id)
             .join(Rental, rental_equipment_association.c.rental_id == Rental.id)
             .filter(
-                Rental.end_date > start_date,
-                Rental.start_date < end_date,
-                Rental.status.in_([OrderStatus.ACTIVE, OrderStatus.OVERDUE])
+                get_interval_overlap_filter(Rental, start_date, end_date, custom_end_date=effective_end_date),
+                Rental.status.in_([OrderStatus.ACTIVE, OrderStatus.OVERDUE]),
+                # Если позиция возвращена до или в день начала запрашиваемого интервала — она доступна
+                ~(
+                    (rental_equipment_association.c.status == 'returned') &
+                    (rental_equipment_association.c.actual_return_date <= start_date)
+                )
             )
         )
         

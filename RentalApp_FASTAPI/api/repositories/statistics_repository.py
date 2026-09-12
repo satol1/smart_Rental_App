@@ -1,7 +1,7 @@
 # api/repositories/statistics_repository.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, cast, Date
 from datetime import date, timedelta
 from typing import List, Optional
 
@@ -11,7 +11,9 @@ from api.models.reservation import Reservation
 from api.models.rental import Rental
 from api.models.accessory import Accessory
 from api.models.association import Association
+from api.models.payment import Payment
 from shared.constants.order_status import OrderStatus
+from shared.utils.date_utils import get_business_today
 
 
 class StatisticsRepository:
@@ -27,7 +29,7 @@ class StatisticsRepository:
     
     async def get_active_users_count(self, days: int = 30) -> int:
         """Получает количество активных пользователей за указанный период."""
-        cutoff_date = date.today() - timedelta(days=days)
+        cutoff_date = get_business_today() - timedelta(days=days)
         
         # Пользователи с активными резервациями
         active_reservations_query = select(User.id).join(
@@ -76,29 +78,25 @@ class StatisticsRepository:
         return int(result.scalar_one())
     
     async def get_revenue_today(self) -> float:
-        """Получает доход за сегодня."""
-        today = date.today()
+        """Получает доход (выручку) за сегодня по фактически поступившим платежам."""
+        today = get_business_today()
         result = await self.db.execute(
-            select(func.coalesce(func.sum(Rental.final_cost), 0)).filter(
-                and_(
-                    Rental.status == OrderStatus.COMPLETED,
-                    func.date(Rental.actual_return_date) == today
-                )
+            select(func.coalesce(func.sum(Payment.amount), 0)).filter(
+                cast(Payment.payment_date, Date) == today
             )
         )
         return float(result.scalar_one())
     
     async def get_revenue_this_month(self) -> float:
-        """Получает доход за текущий месяц."""
-        today = date.today()
+        """Получает доход (выручку) за текущий месяц по фактически поступившим платежам."""
+        today = get_business_today()
         first_day_of_month = today.replace(day=1)
         
         result = await self.db.execute(
-            select(func.coalesce(func.sum(Rental.final_cost), 0)).filter(
+            select(func.coalesce(func.sum(Payment.amount), 0)).filter(
                 and_(
-                    Rental.status == OrderStatus.COMPLETED,
-                    Rental.actual_return_date >= first_day_of_month,
-                    Rental.actual_return_date <= today
+                    cast(Payment.payment_date, Date) >= first_day_of_month,
+                    cast(Payment.payment_date, Date) <= today
                 )
             )
         )
@@ -106,7 +104,7 @@ class StatisticsRepository:
     
     async def get_occupancy_rate(self) -> float:
         """Рассчитывает коэффициент загруженности оборудования."""
-        today = date.today()
+        today = get_business_today()
         
         # Получаем общее количество оборудования
         total_result = await self.db.execute(select(func.count(Equipment.id)))
@@ -169,7 +167,7 @@ class StatisticsRepository:
     
     async def get_active_reservations_count(self) -> int:
         """Получает количество активных резервов."""
-        today = date.today()
+        today = get_business_today()
         result = await self.db.execute(
             select(func.count(Reservation.id)).filter(
                 and_(
@@ -189,7 +187,7 @@ class StatisticsRepository:
     
     async def get_overdue_rentals_count(self) -> int:
         """Получает количество просроченных аренд."""
-        today = date.today()
+        today = get_business_today()
         result = await self.db.execute(
             select(func.count(Rental.id)).filter(
                 and_(

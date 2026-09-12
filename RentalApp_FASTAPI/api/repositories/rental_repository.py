@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any
 import logging
 
 from .rental_base_repository import RentalBaseRepository
@@ -80,6 +80,7 @@ class RentalRepository(RentalBaseRepository):
         recalculated_cost: float, 
         recalculated_discount: float, 
         new_start_date, 
+        new_end_date=None,
         prepayment_amount: float = 0.0,
         promo_code: Optional[str] = None
     ) -> Rental:
@@ -87,7 +88,7 @@ class RentalRepository(RentalBaseRepository):
         return self._command_repo.create_rental_from_reservation(
             reservation, manager, deposit, notes, 
             recalculated_cost, recalculated_discount, 
-            new_start_date, prepayment_amount, promo_code
+            new_start_date, new_end_date, prepayment_amount, promo_code
         )
 
     def create_rental_instance(
@@ -121,9 +122,28 @@ class RentalRepository(RentalBaseRepository):
         """Добавляет аксессуары к аренде асинхронно без lazy loading."""
         await self._command_repo.add_accessories_to_rental_async(rental, selected_accessories)
 
-    def finalize_rental_return(self, rental: Rental, return_date, notes: Optional[str], credit: float, surcharge: float = 0.0):
+    def finalize_rental_return(
+        self, 
+        rental: Rental, 
+        return_date, 
+        notes: Optional[str], 
+        credit: float, 
+        surcharge: float = 0.0, 
+        has_debt: bool = False,
+        deposit_status: Optional[str] = None,
+        deposit_refunded_amount: Optional[Any] = None,
+        deposit_retained_amount: Optional[Any] = None,
+        deposit_notes: Optional[str] = None
+    ):
         """Завершает возврат аренды."""
-        self._command_repo.finalize_rental_return(rental, return_date, notes, credit, surcharge)
+        self._command_repo.finalize_rental_return(
+            rental, return_date, notes, credit, surcharge, 
+            has_debt=has_debt,
+            deposit_status=deposit_status,
+            deposit_refunded_amount=deposit_refunded_amount,
+            deposit_retained_amount=deposit_retained_amount,
+            deposit_notes=deposit_notes
+        )
 
     def update_rental_instance(self, rental: Rental, update_data: dict):
         """Обновляет экземпляр аренды."""
@@ -179,23 +199,32 @@ class RentalRepository(RentalBaseRepository):
         Returns:
             Список аренд, пересекающихся с периодом
         """
-        from sqlalchemy import select, and_, exists
+        from sqlalchemy import select, and_, or_, exists
         from sqlalchemy.orm import selectinload
         from api.models.rental import rental_equipment_association
         from shared.constants.order_status import OrderStatus
+        from api.services.availability.queries import get_interval_overlap_filter
         
-        # ОПТИМИЗАЦИЯ: Используем EXISTS вместо ANY для лучшей производительности
+        # ОПТИМИЗАЦИЯ: Используем EXISTS с проверкой статуса позиции в rental_equipment:
+        # если позиция уже возвращена и actual_return_date <= start_date, она свободна
         query = select(Rental).options(
-            selectinload(Rental.equipment)
+            selectinload(Rental.equipment),
+            selectinload(Rental.rental_items)
         ).filter(
-            Rental.end_date > start_date,
-            Rental.start_date < end_date,
+            get_interval_overlap_filter(Rental, start_date, end_date),
             Rental.status.in_([OrderStatus.ACTIVE, OrderStatus.OVERDUE])
         ).where(
             exists().where(
                 and_(
                     rental_equipment_association.c.rental_id == Rental.id,
-                    rental_equipment_association.c.equipment_id.in_(equipment_ids)
+                    rental_equipment_association.c.equipment_id.in_(equipment_ids),
+                    or_(
+                        rental_equipment_association.c.status != "returned",
+                        and_(
+                            rental_equipment_association.c.status == "returned",
+                            rental_equipment_association.c.actual_return_date > start_date
+                        )
+                    )
                 )
             )
         )

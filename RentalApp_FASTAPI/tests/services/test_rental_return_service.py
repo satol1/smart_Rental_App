@@ -331,7 +331,7 @@ class TestRentalReturnService:
         assert credit == 0.0
         assert surcharge == surcharge_amount
         rental_return_service.financial_service.calculate_overdue_surcharge.assert_called_once_with(
-            sample_rental, actual_return_date
+            sample_rental, actual_return_date, equipment_ids=None
         )
 
     @pytest.mark.asyncio
@@ -357,7 +357,7 @@ class TestRentalReturnService:
             sample_rental.start_date, sample_rental.end_date
         )
         rental_return_service.financial_service.calculate_early_return_credit.assert_called_once_with(
-            sample_rental, actual_return_date, planned_days
+            sample_rental, actual_return_date, planned_days, equipment_ids=None
         )
 
     @pytest.mark.asyncio

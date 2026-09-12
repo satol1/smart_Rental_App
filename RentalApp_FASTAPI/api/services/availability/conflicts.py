@@ -67,8 +67,25 @@ class AvailabilityConflictsService(AvailabilityBaseService):
         
         # Обработка аренд
         for rental in overlapping_rentals:
+            items_by_eq_id = {}
+            rental_items = getattr(rental, 'rental_items', None)
+            if rental_items and isinstance(rental_items, (list, tuple, set)):
+                for item in rental_items:
+                    items_by_eq_id[item.equipment_id] = item
+
             for equipment in rental.equipment:
                 if equipment.id in equipment_ids:
+                    item = items_by_eq_id.get(equipment.id)
+                    # Если позиция уже сдана, и фактический возврат состоялся до или в дату начала периода,
+                    # оборудование свободно для нового заказа
+                    if item and item.status == "returned" and item.actual_return_date and item.actual_return_date <= start_date:
+                        continue
+
+                    # Если позиция сдана досрочно, но в пределах запрашиваемого интервала, конфликт длится до даты сдачи
+                    conflict_end_date = rental.end_date
+                    if item and item.status == "returned" and item.actual_return_date and item.actual_return_date < rental.end_date:
+                        conflict_end_date = item.actual_return_date
+
                     if equipment.id not in conflicts:
                         conflicts[equipment.id] = []
                     
@@ -76,7 +93,7 @@ class AvailabilityConflictsService(AvailabilityBaseService):
                         'rental',
                         rental.id,
                         rental.start_date,
-                        rental.end_date,
+                        conflict_end_date,
                         rental.user_id
                     )
                     conflicts[equipment.id].append(conflict_dict)
