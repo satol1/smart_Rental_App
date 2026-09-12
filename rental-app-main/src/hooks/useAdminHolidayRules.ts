@@ -30,6 +30,7 @@ interface HolidayRuleListResponse {
 
 const HOLIDAY_RULES_KEY = ["holidayRules"];
 const HOLIDAYS_QUERY_KEY = ["holidays"];
+const CALENDAR_GRID_KEY = ["calendar-grid"];
 
 // 1. Хук для получения списка правил
 export function useGetHolidayRules() {
@@ -58,6 +59,7 @@ export function useCreateWeeklyRule() {
             toast.success("Правило для еженедельных выходных успешно создано!");
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
+            void queryClient.invalidateQueries({ queryKey: CALENDAR_GRID_KEY });
         },
         onError: (error) => {
             toast.error(getApiErrorMessage(error, "Ошибка при создании правила"));
@@ -75,6 +77,7 @@ export function useImportPublicHolidays() {
             toast.success("Государственные праздники успешно импортированы!");
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
+            void queryClient.invalidateQueries({ queryKey: CALENDAR_GRID_KEY });
         },
         onError: (error) => {
             toast.error(getApiErrorMessage(error, "Ошибка при импорте праздников"));
@@ -92,6 +95,7 @@ export function useDeleteHolidayRule() {
             toast.success("Правило и связанные с ним выходные удалены.");
             void queryClient.invalidateQueries({ queryKey: HOLIDAY_RULES_KEY });
             void queryClient.invalidateQueries({ queryKey: HOLIDAYS_QUERY_KEY });
+            void queryClient.invalidateQueries({ queryKey: CALENDAR_GRID_KEY });
         },
         onError: (error) => {
             toast.error(getApiErrorMessage(error, "Ошибка при удалении правила"));

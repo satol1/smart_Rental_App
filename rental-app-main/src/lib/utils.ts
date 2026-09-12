@@ -52,6 +52,13 @@ export function calculateDayCount(
  * Принимает Date или строку, возвращает строку в формате '2024-05-21'
  * Используется для API и input[type="date"]
  */
+/** Завтрашняя дата на момент вызова (дефолты форм и сброс диалогов) */
+export function tomorrowFromNow(): Date {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+}
+
 export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "";
   const d = typeof date === "string" ? new Date(date) : date;

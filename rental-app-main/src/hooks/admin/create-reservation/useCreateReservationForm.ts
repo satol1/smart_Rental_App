@@ -21,15 +21,24 @@ const createSchema = z.object({
 
 export type CreateReservationFormData = z.infer<typeof createSchema>;
 
-const todayDate = new Date();
-const tomorrowDate = new Date();
-tomorrowDate.setDate(todayDate.getDate() + 1);
+/**
+ * Даты по умолчанию для формы: сегодня/завтра на момент монтирования хука.
+ * (Модульные константы застывали бы на дне загрузки модуля — после полуночи
+ * долгоживущая вкладка предлагала вчерашний день; этап 5.6 аудита.)
+ */
+function getDefaultDateRange() {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    return { today, tomorrow };
+}
 
 /**
  * Хук для управления формой создания резерва.
  * Содержит всю логику, связанную с react-hook-form.
  */
 export const useCreateReservationForm = () => {
+    const { today: todayDate, tomorrow: tomorrowDate } = getDefaultDateRange();
     const form = useForm<CreateReservationFormData>({
         resolver: zodResolver(createSchema), 
         mode: "onChange",

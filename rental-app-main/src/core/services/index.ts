@@ -10,7 +10,6 @@ export {
   shouldShowCookieBanner
 } from './cookieConsentManager';
 export { AvailabilityService } from './AvailabilityService';
-export { PromoCodeService } from './PromoCodeService';
 export { UserService } from './UserService';
 export { AccessoryService } from './AccessoryService';
 export { CalendarService } from './CalendarService';
@@ -30,11 +29,6 @@ export type {
     EquipmentListResponse,
     EquipmentFilterParams
 } from './EquipmentService';
-
-export type {
-    PromoCodeValidationResult,
-    PromoCodeFilterOptions
-} from './PromoCodeService';
 
 export type {
     UserCreateInput,

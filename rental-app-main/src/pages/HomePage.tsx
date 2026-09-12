@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 // Хуки
 import { useReservationManagement } from "@/hooks/useReservationManagement";
 import { useDateStore } from "@/store/dateStore";
-import { useHolidayStore } from "@/store/holidayStore";
+import { useHolidays } from "@/hooks/useHolidays";
 import { useViewModeStore } from "@/store/viewModeStore"; // ✅ ИМПОРТ ХРАНИЛИЩА РЕЖИМА ОТОБРАЖЕНИЯ
 import { useEquipmentData } from "@/hooks/data/useEquipmentData";
 import { useAppFilters } from "@/hooks/features/useAppFilters";
@@ -44,7 +44,7 @@ export default function HomePage() {
     
     // Получаем нужные данные и функции из хранилищ
     const { setRange, initializeDates, startDate, endDate } = useDateStore();
-    const { holidays } = useHolidayStore();
+    const { data: holidays = [] } = useHolidays();
     const { viewMode } = useViewModeStore(); // ✅ ПОЛУЧАЕМ РЕЖИМ ОТОБРАЖЕНИЯ ИЗ ХРАНИЛИЩА
     const [datesInitialized, setDatesInitialized] = useState(false);
 

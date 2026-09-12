@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "test:e2e": "playwright test",
-    "gen:api": "openapi-typescript ../RentalApp_FASTAPI/openapi.json -o src/types/api/schema.d.ts"
+    "gen:api": "openapi-typescript ../RentalApp_FASTAPI/openapi.json -o src/types/api/schema.d.ts",
+    "check:api-types": "node scripts/check-api-types.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

@@ -1,6 +1,6 @@
 // src/contexts/CreateReservationProvider.tsx
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useCreateReservationDialog } from "@/hooks/admin/create-reservation/useCreateReservationDialog";
 import { CreateReservationContext, type CreateReservationContextValue } from "./CreateReservationContext";
 
@@ -18,8 +18,9 @@ export const CreateReservationProvider: React.FC<CreateReservationProviderProps>
     // Используем существующий хук для получения всей логики
     const dialogData = useCreateReservationDialog({ isOpen, onClose });
 
-    // Создаем значение контекста
-    const contextValue: CreateReservationContextValue = {
+    // Значение контекста мемоизировано (этап 5.6): пересоздание объекта на каждом
+    // рендере роняло мемоизацию потребителей контекста
+    const contextValue: CreateReservationContextValue = useMemo(() => ({
         step: dialogData.step,
         setStep: dialogData.setStep,
         form: dialogData.form,
@@ -44,7 +45,7 @@ export const CreateReservationProvider: React.FC<CreateReservationProviderProps>
         handleNextStep: dialogData.handleNextStep,
         onSubmit: dialogData.onSubmit,
         handleCloseDialog: dialogData.handleCloseDialog,
-    };
+    }), [dialogData]);
 
     return (
         <CreateReservationContext.Provider value={contextValue}>

@@ -11,7 +11,7 @@ import { useMyRentals } from "@/hooks/useMyRentals";
 import MyRentalsList from "@/components/rental/MyRentalsList";
 import { ClipboardList, Truck } from "lucide-react";
 import OrderToolbar from "@/components/shared/OrderToolbar";
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters } from "@/store/orderFilterStore";
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
 import { useAutoLoaderForItem } from "@/hooks/useAutoLoaderForItem";
 import { SkeletonList } from "@/components/ui/skeleton-list";
@@ -34,20 +34,23 @@ export default function MyReservationsPage() {
     const locationState = location.state as MyReservationsLocationState | null;
     const continueEditingReservationId = locationState?.continueEditing;
 
-    const searchQuery = useOrderFilterStore(state => state.searchQuery);
-    const statusFilter = useOrderFilterStore(state => state.statusFilter);
-    const sortOption = useOrderFilterStore(state => state.sortOption);
-    const setStatusFilter = useOrderFilterStore(state => state.setStatusFilter);
-
     const toolbarContext = useMemo(() => {
         return activeTab === 'reservations' ? 'user-reservations' : 'user-rentals';
     }, [activeTab]);
 
-    const apiParams = useMemo(() => ({
-        search: searchQuery || undefined,
-        status: (statusFilter === 'all' || statusFilter === 'hide-completed') ? undefined : (statusFilter || undefined),
-        sort: sortOption
-    }), [searchQuery, statusFilter, sortOption]);
+    // Фильтры изолированы по контексту активной вкладки (этап 5.6)
+    const { setStatusFilter } = useOrderFilters(toolbarContext);
+
+    // Запрос аренд (уходит всегда, правила хуков) должен жить параметрами СВОЕЙ
+    // вкладки, а не активной: раньше фильтры резервов утекали в фоновый запрос аренд
+    const rentalsFilters = useOrderFilters('user-rentals');
+    const rentalsParams = useMemo(() => ({
+        search: rentalsFilters.searchQuery || undefined,
+        status: (rentalsFilters.statusFilter === 'all' || rentalsFilters.statusFilter === 'hide-completed')
+            ? undefined
+            : (rentalsFilters.statusFilter || undefined),
+        sort: rentalsFilters.sortOption
+    }), [rentalsFilters.searchQuery, rentalsFilters.statusFilter, rentalsFilters.sortOption]);
 
     // Данные для аренд по-прежнему загружаются здесь
     const {
@@ -55,7 +58,7 @@ export default function MyReservationsPage() {
         fetchNextPage: fetchNextRentalPage,
         hasNextPage: hasNextRentalPage,
         isFetchingNextPage: isFetchingNextRentalPage
-    } = useMyRentals(apiParams, 10);
+    } = useMyRentals(rentalsParams, 10);
 
     // ❌ Логика загрузки резервов отсюда УДАЛЕНА
 

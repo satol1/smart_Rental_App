@@ -2,89 +2,51 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import type {
+    ApiDashboardSummary,
+    ApiKpiData,
+    ApiActivityFeedItem,
+    ApiTodayFocusItem,
+    ApiPopularEquipmentItem,
+} from "@/types/api/schemas";
 
-// Типы данных для дашборда
-export interface KpiData {
-    // --- Существующие поля ---
-    total_users: number;
-    active_users: number;
-    total_equipment: number;
-    total_reservations: number;
-    revenue_today: number;
-    revenue_this_month: number;
-    occupancy_rate: number;
-    avg_rental_duration: number;
+/**
+ * Типы дашборда выводятся из сгенерированной схемы (npm run gen:api).
+ * Уточнения поверх схемы: user_client_status сужен к фактическим значениям бэкенда,
+ * type ленты — к известным видам событий (виджеты имеют fallback на неизвестные).
+ */
+export type ActivityType =
+    | 'reservation_created'
+    | 'reservation_cancelled'
+    | 'rental_started'
+    | 'rental_completed'
+    | 'user_registered'
+    | 'equipment_added';
 
-    // +++ НОВЫЕ ПОЛЯ +++
-    active_reservations: number;
-    total_rentals: number;
-    active_rentals: number;
-    overdue_rentals: number;
-    total_accessories: number;
-    total_associations: number;
-}
+export type KpiData = ApiKpiData;
+export type PickupReturnItem = Omit<ApiTodayFocusItem, "user_client_status"> & {
+    user_client_status?: 'new' | 'vip' | null;
+};
+export type OverdueRentalItem = PickupReturnItem;
+export type ActivityFeedItem = Omit<ApiActivityFeedItem, "type"> & {
+    type: ActivityType | (string & {});
+};
+export type PopularEquipmentItem = ApiPopularEquipmentItem;
 
-export interface DashboardSummary {
+export type DashboardSummary = Omit<ApiDashboardSummary,
+    "pickups_today" | "returns_today" | "overdue_rentals" | "recent_activity"
+> & {
     pickups_today: PickupReturnItem[];
     returns_today: PickupReturnItem[];
     overdue_rentals: OverdueRentalItem[];
-    kpi: KpiData;
     recent_activity: ActivityFeedItem[];
-    popular_equipment: PopularEquipmentItem[];
-}
-
-export interface PickupReturnItem {
-    id: number;
-    user_name: string;
-    user_phone: string | null;
-    user_telegram: string | null;
-    user_status: string;
-    user_balance: number;
-    equipment_list: string[];
-    user_id: number;
-    order_type: string;
-    scheduled_time: string | null;
-    start_date?: string;
-    user_client_status?: 'new' | 'vip' | null;
-    is_pending_pickup: boolean;
-}
-
-export interface OverdueRentalItem {
-    id: number;
-    user_name: string;
-    user_phone: string | null;
-    user_telegram: string | null;
-    user_status: string;
-    user_balance: number;
-    equipment_list: string[];
-    user_id: number;
-    order_type: string;
-    due_date: string | null;
-    days_overdue: number | null;
-    user_client_status?: 'new' | 'vip' | null;
-}
-
-export interface ActivityFeedItem {
-    id: number;
-    type: 'reservation_created' | 'reservation_cancelled' | 'rental_started' | 'rental_completed' | 'user_registered' | 'equipment_added';
-    description: string;
-    timestamp: string;
-    user_name?: string;
-    equipment_name?: string;
-}
-
-export interface PopularEquipmentItem {
-    equipment_id: number;
-    equipment_name: string;
-    rental_count: number;
-    revenue: number;
-}
+};
 
 export const useDashboardData = () => {
     return useQuery({
         queryKey: ['admin', 'dashboardSummary'],
         queryFn: async (): Promise<DashboardSummary> => {
-            const response = await api.get('/admin/dashboard-summary');
+            const response = await api.get<DashboardSummary>('/admin/dashboard-summary');
             return response.data;
         },
         staleTime: 5 * 60 * 1000, // 5 минут

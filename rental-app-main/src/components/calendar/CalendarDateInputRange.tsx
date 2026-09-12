@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle } from 'lucide-react';
 import { useDateStore } from '@/store/dateStore';
 import { useDateRange } from '@/hooks/useDateRange';
-import { useHolidayStore } from '@/store/holidayStore';
+import { useHolidays } from '@/hooks/useHolidays';
 import { useSandboxCalculatorStore } from '@/store/sandboxCalculatorStore';
 import { useUnifiedDateValidation } from '@/hooks/useUnifiedDateValidation';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ export default function CalendarDateInputRange({ onRangeChange, className, compa
   const { t } = useTranslation();
   const inputId = useId();
   const { startDate, endDate, setRange } = useDateStore();
-  const { holidays } = useHolidayStore();
+  const { data: holidays = [] } = useHolidays();
   const { syncWithDateStore } = useSandboxCalculatorStore();
   const { startDateError, endDateError, isRangeValid, suggestedStartDate, suggestedEndDate } = useUnifiedDateValidation({
     startDate, endDate, validateStartDate: true, validateEndDate: true,

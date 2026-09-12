@@ -494,7 +494,8 @@ class TestAutoExtensionAvailabilityGuard:
 
         rental = Rental(id=7, user_id=1, start_date=date.today(),
                         end_date=holiday_date, status=OrderStatus.ACTIVE)
-        eq = Mock(); eq.id = 10
+        eq = Mock()
+        eq.id = 10
         rental.equipment = [eq]
         rental_repo.get_by_id_with_details = AsyncMock(return_value=rental)
 
@@ -523,7 +524,8 @@ class TestAutoExtensionAvailabilityGuard:
 
         rental = Rental(id=7, user_id=1, start_date=date.today(),
                         end_date=holiday_date, status=OrderStatus.ACTIVE)
-        eq = Mock(); eq.id = 10
+        eq = Mock()
+        eq.id = 10
         rental.equipment = [eq]
         rental_repo.get_by_id_with_details = AsyncMock(return_value=rental)
         rental_repo.update_rental_end_date = AsyncMock(return_value=True)

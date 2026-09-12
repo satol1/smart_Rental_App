@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { useDateStore } from "./dateStore";
-import { useHolidayStore } from "./holidayStore";
+import { getCachedHolidays } from "@/hooks/useHolidays";
 import { api } from "@/lib/api";
 import type { DurationDiscount, DiscountListResponse } from "@/types/discount";
 
@@ -87,7 +87,7 @@ export const useSandboxCalculatorStore = create<SandboxCalculatorStore>((set, ge
 
     setDaysFromSlider: (days: number) => {
         const dateStore = useDateStore.getState();
-        const { holidays } = useHolidayStore.getState();
+        const holidays = getCachedHolidays();
 
         // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
         // Теперь эта функция только передает данные в dateStore

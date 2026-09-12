@@ -16,27 +16,26 @@ import type {
 const PROMO_CODES_QUERY_KEY = ["admin", "promocodes"];
 
 /**
- * Хук для получения списка всех промокодов.
+ * Хук для получения страницы промокодов (пагинация, этап 5.4: limit=100 без
+ * пагинации скрывал 101-й и следующие коды).
  */
-export function useAdminPromoCodes() {
-    // +++ НАЧАЛО ИЗМЕНЕНИЙ: Полностью исправленный хук +++
-    return useQuery<PromoCodeListResponse, Error, PromoCodeOut[]>({
-        queryKey: PROMO_CODES_QUERY_KEY,
+export const PROMO_CODES_PAGE_SIZE = 50;
+
+export function useAdminPromoCodes(page: number = 1) {
+    const skip = (page - 1) * PROMO_CODES_PAGE_SIZE;
+
+    return useQuery<PromoCodeListResponse, Error, { items: PromoCodeOut[]; total: number }>({
+        queryKey: [...PROMO_CODES_QUERY_KEY, page],
         queryFn: async () => {
-            // 1. Указываем, что API вернет объект PromoCodeListResponse
-            // limit=100 — максимум бэкенда: без него список молча обрезается до 10
             const response = await api.get<PromoCodeListResponse>("/promocodes/", {
-                params: { skip: 0, limit: 100 },
+                params: { skip, limit: PROMO_CODES_PAGE_SIZE },
             });
-            // 2. Возвращаем весь объект { items: [...], total: ... }
             return response.data;
         },
-        // 3. С помощью опции `select` извлекаем только массив `items`.
-        //    Компонент, использующий хук, получит уже готовый массив.
-        select: (data) => data.items,
+        select: (data) => ({ items: data.items, total: data.total }),
+        placeholderData: (prev) => prev, // не мигает таблица при смене страницы
         staleTime: 5 * 60 * 1000, // 5 минут
     });
-    // +++ КОНЕЦ ИЗМЕНЕНИЙ +++
 }
 
 /**

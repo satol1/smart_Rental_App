@@ -72,9 +72,9 @@ export default function FocusItem({ item, type, onClick }: FocusItemProps) {
         >
             <div className="flex justify-between items-start">
                 {/* Левая часть - информация о пользователе */}
-                <UserInfo 
+                <UserInfo
                     userName={item.user_name}
-                    userPhone={item.user_phone}
+                    userPhone={item.user_phone ?? null}
                     user_telegram={item.user_telegram}
                     userStatus={item.user_status}
                     userBalance={item.user_balance}

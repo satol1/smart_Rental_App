@@ -6,16 +6,18 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters, type OrderContext } from "@/store/orderFilterStore";
 import { PeriodService } from "@/core/services/PeriodService";
 import type { PeriodType } from "@/types/period";
 
 interface PeriodFilterProps {
   className?: string;
+  /** Контекст фильтров (этап 5.6): периоды резервов и аренд изолированы */
+  context?: OrderContext;
 }
 
-export function PeriodFilter({ className }: PeriodFilterProps) {
-  const { periodType, periodOffset, setPeriodType, setPeriodOffset } = useOrderFilterStore();
+export function PeriodFilter({ className, context = "admin-reservations" }: PeriodFilterProps) {
+  const { periodType, periodOffset, setPeriodType, setPeriodOffset } = useOrderFilters(context);
 
   const periodOptions = useMemo(() => PeriodService.getPeriodOptions(), []);
   const navigation = useMemo(() =>
@@ -115,8 +117,8 @@ export function PeriodFilter({ className }: PeriodFilterProps) {
 /**
  * Компактная версия фильтра для использования в ограниченном пространстве
  */
-export function PeriodFilterCompact({ className }: PeriodFilterProps) {
-  const { periodType, periodOffset, setPeriodType, setPeriodOffset } = useOrderFilterStore();
+export function PeriodFilterCompact({ className, context = "admin-reservations" }: PeriodFilterProps) {
+  const { periodType, periodOffset, setPeriodType, setPeriodOffset } = useOrderFilters(context);
 
   const periodOptions = useMemo(() => PeriodService.getPeriodOptions(), []);
 

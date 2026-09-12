@@ -168,6 +168,10 @@ jobs:
       - name: Lint (eslint)
         run: npx eslint src --max-warnings=0
 
+      # Этап 5.1 аудита 2026-09-12: новые сервисы — только на сгенерированных типах API
+      - name: API types usage check
+        run: npm run check:api-types
+
       - name: Build (vite)
         run: npm run build
 

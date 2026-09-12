@@ -18,7 +18,6 @@ const mocks = vi.hoisted(() => ({
   resetHomePage: vi.fn(),
   syncWithDateStore: vi.fn(),
   refreshCalculator: vi.fn(),
-  fetchHolidays: vi.fn(),
   holidays: [new Date(2030, 5, 12)],
 }));
 
@@ -28,7 +27,7 @@ vi.mock('@/components/layout/UserNav', () => ({ default: () => <button>Личн�
 vi.mock('@/components/layout/ThemeSwitcher', () => ({ default: () => <button>Тема оформления</button> }));
 vi.mock('@/components/shared/ContactDialog', () => ({ ContactDialog: ({ open }: { open: boolean }) => open ? <div role="dialog" aria-label="Контакты" /> : null }));
 vi.mock('@/components/shared/AuthDialog', () => ({ default: ({ open }: { open: boolean }) => open ? <div role="dialog" aria-label="Вход" /> : null }));
-vi.mock('@/store/holidayStore', () => ({ useHolidayStore: () => ({ holidays: mocks.holidays, fetchHolidays: mocks.fetchHolidays }) }));
+vi.mock('@/hooks/useHolidays', () => ({ useHolidays: () => ({ data: mocks.holidays }) }));
 vi.mock('@/store/sandboxCalculatorStore', () => ({ useSandboxCalculatorStore: () => ({ isCalculatorVisible: false, syncWithDateStore: mocks.syncWithDateStore, refreshCalculator: mocks.refreshCalculator }) }));
 
 function Location() { return <output aria-label="Маршрут">{useLocation().pathname}</output>; }
@@ -106,7 +105,8 @@ describe('rental dates', () => {
     expect(screen.getByRole('button', { name: 'Следующий месяц' })).toBeInTheDocument();
     expect(screen.getAllByRole('grid')).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /selected|Today|next month|previous month/i })).not.toBeInTheDocument();
-    expect(mocks.fetchHolidays).toHaveBeenCalled();
+    // Выходные приходят из единого react-query слоя useHolidays (этап 5.5):
+    // замоканный праздник 2030-06-12 остаётся заблокированным (проверка выше)
   });
 
   it('switches between one and two months without resetting the viewed month or selected dates', async () => {

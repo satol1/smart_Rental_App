@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { invalidatePublicCatalog } from "@/lib/catalogInvalidation";
 import type { Accessory, AccessoryListResponse } from "@/types/accessory";
 import { AccessoryService } from "@/core/services";
 
@@ -56,6 +57,7 @@ export function useCreateAccessory() {
         mutationFn: (data: AccessoryPayload) => api.post<Accessory>("/accessories/", data),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
+            invalidatePublicCatalog(queryClient); // аксессуары видны в карточках каталога
             toast.success("Аксессуар успешно создан");
         },
         onError: (error) => {
@@ -72,6 +74,7 @@ export function useUpdateAccessory() {
             api.put<Accessory>(`/accessories/${id}`, data),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
+            invalidatePublicCatalog(queryClient); // аксессуары видны в карточках каталога
             toast.success("Аксессуар успешно обновлен");
         },
         onError: (error) => {
@@ -101,6 +104,7 @@ export function useDeleteAccessory() {
         mutationFn: (id: number) => api.delete(`/accessories/${id}`),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ["accessories"] });
+            invalidatePublicCatalog(queryClient); // аксессуары видны в карточках каталога
             toast.success("Аксессуар удален");
         },
         onError: (error) => {

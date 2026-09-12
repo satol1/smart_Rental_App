@@ -249,6 +249,14 @@ class Token(BaseModel):
     token_type: str
 
 
+class RegisterResponse(BaseModel):
+    """Ответ POST /auth/register — фактическая форма ответа auth_api.register."""
+    message: str
+    email: EmailStr
+    full_name: str
+    role: str
+
+
 class UserListResponse(BaseModel):
     items: List[UserOut]
     total: int

@@ -1,9 +1,9 @@
 // src/hooks/useReservations.ts
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ReservationService, type ReservationCreateInput, type ReservationUpdateInput } from "@/core/services/ReservationService";
-import type { Reservation } from "@/types/reservation";
+import type { Reservation, ReservationListResponse } from "@/types/reservation";
 import { handleQueryError, invalidateAvailability } from "@/lib/queryHelpers";
 import { useCurrentUser } from "./useProfile";
 import { toast } from "sonner";
@@ -11,6 +11,9 @@ import { transformAccessoryLinks } from "@/lib/utils";
 import { useReserveStore } from "@/store/reserveStore";
 
 const RESERVATIONS_KEY = ["reservations"];
+
+/** Размер страницы «Мои резервы» (infinite-пагинация, этап 5.4 аудита) */
+const MY_RESERVATIONS_PAGE_SIZE = 20;
 
 const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
     void queryClient.invalidateQueries({ queryKey: RESERVATIONS_KEY });
@@ -68,19 +71,32 @@ export function useReservations(params?: UseReservationsParams) {
     const navigate = useNavigate();
     const { clear: clearReserveStore } = useReserveStore.getState();
 
-    const reservationsQuery = useQuery<Reservation[], Error>({
-        queryKey: [...RESERVATIONS_KEY, params],
-        queryFn: async (): Promise<Reservation[]> => {
+    // Infinite-пагинация: раньше серверный hard-cap (limit<=100) молча обрезал
+    // старые резервы активного клиента; теперь страницы догружаются по скроллу.
+    // select уплощает страницы — потребители работают с плоским Reservation[].
+    const reservationsQuery = useInfiniteQuery<ReservationListResponse, Error, Reservation[], readonly unknown[], number>({
+        queryKey: [...RESERVATIONS_KEY, "infinite", params],
+        queryFn: async ({ pageParam }) => {
             try {
-                return await ReservationService.getUserReservations(params);
+                return await ReservationService.getUserReservationsPage(
+                    params ?? {},
+                    pageParam * MY_RESERVATIONS_PAGE_SIZE,
+                    MY_RESERVATIONS_PAGE_SIZE,
+                );
             } catch (error) {
                 handleQueryError(error);
                 throw error;
             }
         },
+        initialPageParam: 0,
+        getNextPageParam: (lastPage: ReservationListResponse, allPages: ReservationListResponse[]) => {
+            const loaded = allPages.reduce((acc, page) => acc + page.items.length, 0);
+            return loaded < lastPage.total ? allPages.length : undefined;
+        },
         enabled: !!user,
         staleTime: 5 * 60 * 1000,
-        select: (data) => data?.map(transformAccessoryLinks) || [],
+        select: (data: InfiniteData<ReservationListResponse, number>) =>
+            data.pages.flatMap(page => page.items).map(transformAccessoryLinks),
     });
 
     const createReservation = useMutation({

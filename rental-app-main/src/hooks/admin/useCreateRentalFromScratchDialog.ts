@@ -9,9 +9,13 @@ import { useCreateReservationForm, type CreateReservationFormData } from "./crea
 import { usePromoCodeStore, ADMIN_CREATE_RENTAL_PROMO_SCOPE, EMPTY_PROMO_SCOPE_STATE } from "@/store/promoCodeStore";
 import type { RentalCreateFromScratchData } from "@/types/rental";
 
-const todayDate = new Date();
-const tomorrowDate = new Date();
-tomorrowDate.setDate(todayDate.getDate() + 1);
+
+/** Завтрашняя дата на момент вызова (сброс формы при закрытии диалога) */
+function tomorrowFromNow(): Date {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+}
 
 /**
  * ХУК-ОРКЕСТРАТОР ДЛЯ СОЗДАНИЯ АРЕНДЫ С НУЛЯ
@@ -160,8 +164,9 @@ export const useCreateRentalFromScratchDialog = ({ isOpen, onClose }: { isOpen: 
             reset({
                 equipment_ids: [], 
                 selected_accessories: {},
-                start_date: formatDate(todayDate), 
-                end_date: formatDate(tomorrowDate),
+                // Даты сброса вычисляются на момент закрытия диалога, а не загрузки модуля
+                start_date: formatDate(new Date()), 
+                end_date: formatDate(tomorrowFromNow()),
                 deposit_amount: 0,
                 prepayment_amount: 0,
                 notes_on_issue: ""

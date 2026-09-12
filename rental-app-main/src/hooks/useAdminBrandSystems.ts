@@ -5,8 +5,16 @@ import { BrandSystemService } from "@/core/services/BrandSystemService";
 import type { BrandSystemCreate, BrandSystemUpdate, BrandSystemListResponse } from "@/types/brandSystem";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { invalidatePublicCatalog, CATALOG_QUERY_KEYS } from "@/lib/catalogInvalidation";
 
 const QUERY_KEY = ["admin", "brandSystems"];
+
+/** Инвалидация админ-ключа + публичного фильтра брендов + каталога */
+function invalidateBrandSystems(queryClient: ReturnType<typeof useQueryClient>) {
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    void queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEYS.brandSystems });
+    invalidatePublicCatalog(queryClient);
+}
 
 export function useAdminBrandSystems() {
     return useQuery<BrandSystemListResponse, Error, BrandSystemListResponse["items"]>({
@@ -21,8 +29,8 @@ export function useCreateBrandSystem() {
     return useMutation({
         mutationFn: (data: BrandSystemCreate) => BrandSystemService.create(data),
         onSuccess: () => {
+            invalidateBrandSystems(queryClient);
             toast.success("Система бренда успешно создана");
-            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка создания")),
     });
@@ -33,8 +41,8 @@ export function useUpdateBrandSystem() {
     return useMutation({
         mutationFn: (vars: { id: number; data: BrandSystemUpdate }) => BrandSystemService.update(vars),
         onSuccess: () => {
+            invalidateBrandSystems(queryClient);
             toast.success("Система бренда успешно обновлена");
-            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка обновления")),
     });
@@ -45,8 +53,8 @@ export function useDeleteBrandSystem() {
     return useMutation({
         mutationFn: (id: number) => BrandSystemService.delete(id),
         onSuccess: () => {
+            invalidateBrandSystems(queryClient);
             toast.success("Система бренда удалена");
-            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка удаления")),
     });

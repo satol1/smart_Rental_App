@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { invalidatePublicCatalog } from "@/lib/catalogInvalidation";
 import type { Pack, PackCreateData, PackUpdateData } from "@/types/pack";
 
 // Получение списка всех пачек
@@ -29,6 +30,7 @@ export function useCreatePack() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
+            invalidatePublicCatalog(queryClient); // пачки видны в каталоге
             toast.success("Пачка успешно создана");
         },
         onError: (error) => {
@@ -48,6 +50,7 @@ export function useUpdatePack() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
+            invalidatePublicCatalog(queryClient); // пачки видны в каталоге
             toast.success("Пачка успешно обновлена");
         },
         onError: (error) => {
@@ -67,6 +70,7 @@ export function useDeletePack() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "packs"] });
+            invalidatePublicCatalog(queryClient); // пачки видны в каталоге
             toast.success("Пачка успешно удалена");
         },
         onError: (error) => {

@@ -4,20 +4,11 @@ import { api, baseApi } from "@/lib/api";
 import { getAccessToken, setAccessToken, clearAccessToken } from "@/core/services/tokenManager";
 import type { RegisterSchema } from "@/lib/validationSchemas";
 import type { UserOut } from "@/types/user";
+import type { ApiToken, ApiRegisterResponse } from "@/types/api/schemas";
 
-export interface LoginResponse {
-    access_token: string;
-    token_type: string;
-}
-
-export interface RegisterResponse {
-    id: number;
-    email: string;
-    full_name: string;
-    role: string;
-    is_active: boolean;
-    created_at: string;
-}
+// Контракт авторизации берём из сгенерированных типов (npm run gen:api)
+export type LoginResponse = ApiToken;
+export type RegisterResponse = ApiRegisterResponse;
 
 export interface AuthError {
     detail: string;

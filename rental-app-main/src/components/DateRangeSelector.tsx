@@ -7,7 +7,7 @@ import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ArrowRight, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
 import { useDateStore } from "@/store/dateStore";
 import { useSandboxCalculatorStore } from "@/store/sandboxCalculatorStore";
-import { useHolidayStore } from "@/store/holidayStore";
+import { useHolidays } from "@/hooks/useHolidays";
 import { DateService } from '@/core/services/DateService';
 import CalendarDateInputRange from '@/components/calendar/CalendarDateInputRange';
 import { useTranslation } from 'react-i18next';
@@ -56,13 +56,11 @@ export default function DateRangeSelector({ containerRef, collapsed: externalCol
     const lastChangeSource = useRef<'calendar' | 'slider' | 'manual' | null>(null);
     const [isAutoUpdating, setIsAutoUpdating] = useState(false);
 
-    const { holidays, fetchHolidays } = useHolidayStore();
-
-    useEffect(() => {
-        const firstDayToFetch = startOfMonth(addMonths(month, -1));
-        const lastDayToFetch = endOfMonth(addMonths(month, 2));
-        void fetchHolidays(firstDayToFetch, lastDayToFetch);
-    }, [month, fetchHolidays]);
+    // Выходные грузятся react-query по диапазону видимых месяцев (единый слой, этап 5.3)
+    const { data: holidays = [] } = useHolidays(
+        startOfMonth(addMonths(month, -1)),
+        endOfMonth(addMonths(month, 2)),
+    );
 
     // ✅ НОВОЕ: Синхронизируем калькулятор при изменении выходных дней
     useEffect(() => {

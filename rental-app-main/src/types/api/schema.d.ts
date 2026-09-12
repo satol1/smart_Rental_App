@@ -2710,6 +2710,23 @@ export interface components {
             /** Description */
             description: string;
         };
+        /**
+         * RegisterResponse
+         * @description Ответ POST /auth/register — фактическая форма ответа auth_api.register.
+         */
+        RegisterResponse: {
+            /** Message */
+            message: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /** Role */
+            role: string;
+        };
         /** RentalAccessoryDetail */
         RentalAccessoryDetail: {
             /** Equipment Id */
@@ -3312,7 +3329,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RegisterResponse"];
                 };
             };
             /** @description Validation Error */

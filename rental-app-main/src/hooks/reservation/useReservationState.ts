@@ -1,6 +1,6 @@
 // src/hooks/reservation/useReservationState.ts
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import type { Reservation } from "@/types/reservation";
 import type { Equipment } from "@/types/equipment";
 
@@ -45,6 +45,37 @@ export function useReservationState(
         localSelectedAccessories: initialValues.accessories,
     });
 
+    const [isCancelConfirmationVisible, setCancelConfirmationVisible] = useState(false);
+
+    // Ресинк с серверными данными (этап 5.6): useState инициализируется один раз,
+    // поэтому после мутации (PUT/обновление резерва в пропсе) вручную возвращаем
+    // форму к актуальным значениям. Ключ сравнивается ПО СОДЕРЖИМОМУ: фоновый
+    // refetch меняет идентичность объектов, но не данные — правки не затираются.
+    const resyncKey = useMemo(() => JSON.stringify({
+        id: reservation.id,
+        start: reservation.start_date,
+        end: reservation.end_date,
+        ids: reservation.equipment_ids,
+        acc: reservation.selected_accessories || {},
+        display: initialEquipmentForDisplay.map(eq => `${eq.id}:${eq.label}`),
+    }), [reservation, initialEquipmentForDisplay]);
+
+    const resyncState = useMemo(() => ({
+        startDate: initialValues.startDate,
+        endDate: initialValues.endDate,
+        originalEquipmentIds: initialValues.equipmentIds,
+        currentEquipmentDetails: initialValues.equipmentDetails,
+        newlyAddedEquipmentIds: new Set<number>() as ReadonlySet<number>,
+        localSelectedAccessories: initialValues.accessories,
+    }), [initialValues]);
+
+    useEffect(() => {
+        setState(resyncState);
+        setCancelConfirmationVisible(false);
+        // resyncKey — содержимое; resyncState пересобирается только с новыми данными
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [resyncKey]);
+
     // ✨ Вычисляем hasChanges через useMemo
     const hasChanges = useMemo(() => {
         const datesChanged =
@@ -62,8 +93,6 @@ export function useReservationState(
         return datesChanged || equipmentChanged || accessoriesChanged;
     }, [state, initialValues]);
 
-
-    const [isCancelConfirmationVisible, setCancelConfirmationVisible] = useState(false);
 
     const updateDates = useCallback((newStartDate: Date, newEndDate: Date) => {
         setState(prev => ({ ...prev, startDate: newStartDate, endDate: newEndDate }));

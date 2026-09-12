@@ -1,6 +1,6 @@
 // rental-app-main/src/components/MyReservationList.tsx
 
-import React from "react";
+import React, { useEffect } from "react";
 import SharedErrorState from "@/components/shared/ErrorState";
 import { motion } from "framer-motion";
 import ReservationCard from "./ReservationCard";
@@ -11,6 +11,7 @@ import type { RefObject } from "react";
 import EmptyStateWithActions from "./shared/EmptyStateWithActions";
 import { useEmptyStateActions } from "./shared/useEmptyStateActions";
 import { SkeletonList } from "@/components/ui/skeleton-list";
+import { InfiniteScrollTrigger } from "@/components/shared/InfiniteScrollTrigger";
 import { listItem, staggerContainer } from "@/lib/motion";
 import { formatDateEuropean } from "@/lib/utils";
 
@@ -39,6 +40,9 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
         isLoading,
         isError,
         refetch,
+        hasNextPage,
+        fetchNextPage,
+        isFetchingNextPage,
         deletingId,
         itemToRemove,
         reservationToCancel,
@@ -56,10 +60,22 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
     // Хук для действий в пустом состоянии
     const { goToEquipmentSelection, goToHowItWorks } = useEmptyStateActions();
 
+    // Клиентский фильтр скрыл всю страницу, но хвост есть — форсируем догрузку
+    // (InfiniteScrollTrigger не смонтирован при пустом видимом списке)
+    useEffect(() => {
+        if (reservationsWithNames.length === 0 && hasNextPage && !isFetchingNextPage && !isLoading) {
+            void fetchNextPage();
+        }
+    }, [reservationsWithNames.length, hasNextPage, isFetchingNextPage, isLoading, fetchNextPage]);
+
     if (isLoading) return <LoadingState />;
     if (isError) return <SharedErrorState message="Ошибка загрузки данных" onRetry={refetch} compact />;
 
-    if (reservationsWithNames.length === 0) {
+    // Пустое состояние — только когда догружать больше нечего: при клиентском
+    // фильтре «скрыть завершённые» страница может целиком скрыться, а хвост
+    // страниц — остаться (infinite-пагинация). Тогда рендерим список (пустой) с
+    // триггером догрузки ниже, иначе пользователь навсегда увидит «Нет резервов».
+    if (reservationsWithNames.length === 0 && !hasNextPage) {
         return (
             <EmptyStateWithActions
                 icon={FileText}
@@ -76,6 +92,16 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
                     variant: "outline"
                 }}
             />
+        );
+    }
+
+    if (reservationsWithNames.length === 0 && hasNextPage) {
+        // Страница скрыта фильтром — догружаем следующую (триггер смонтирован ниже по коду не будет,
+        // поэтому форсируем догрузку здесь)
+        return (
+            <div role="status" aria-label="Загрузка резервов">
+                <SkeletonList count={3} columns="single" />
+            </div>
         );
     }
 
@@ -121,6 +147,13 @@ const MyReservationListComponent = (props: MyReservationListProps) => {
                     </motion.div>
                 ))}
             </motion.div>
+
+            {/* Догрузка следующих страниц резервов (infinite-пагинация) */}
+            <InfiniteScrollTrigger
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+            />
 
             <ConfirmItemRemovalDialog
                 open={!!itemToRemove}

@@ -4,6 +4,7 @@ import type { UserOut } from "./user";
 import type { Accessory } from "./accessory";
 import type { Equipment } from "./equipment";
 import type { OrderStatus } from '@/constants/statusConstants';
+import type { ApiAdminReservationOut } from "@/types/api/schemas";
 
 export interface AccessoryLink {
     equipment_id: number;
@@ -51,21 +52,20 @@ export interface ReservationItem {
 }
 */
 
-export interface AdminReservationOut {
-    id: number;
-    user_id: number;
-    equipment_ids: number[];
-    start_date: string;
-    end_date: string;
+/**
+ * Админ-резерв из API. База — сгенерированная схема (codegen), поверх — уточнения:
+ * статус расширен до OrderStatus приложения, аксессуары приведены к прикладному типу,
+ * добавлено write-only поле selected_accessories (в ответ его нет, но фронт его
+ * достраивает после GET для формы редактирования).
+ */
+export type AdminReservationOut = Omit<ApiAdminReservationOut,
+    "status" | "user_info" | "accessory_links"
+> & {
     status: OrderStatus;
-    selected_accessories?: Record<number, number[]>;
-    accessory_links?: AccessoryLink[];
     user_info: UserOut;
-    total_cost?: number;
-    discount_amount?: number;
-    promo_code?: string | null;
-    rental_id?: number | null;
-}
+    accessory_links?: AccessoryLink[];
+    selected_accessories?: Record<number, number[]>;
+};
 
 export interface AdminReservationListResponse {
     items: AdminReservationOut[];

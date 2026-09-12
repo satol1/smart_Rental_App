@@ -51,6 +51,7 @@ class TestAuthAPI:
         mock_user.email = "test@example.com"
         mock_user.full_name = "Test User"
         mock_user.is_active = True
+        mock_user.role = "user"  # обязателен: response_model=RegisterResponse
 
         mock_auth_service.create_user.return_value = mock_user
 

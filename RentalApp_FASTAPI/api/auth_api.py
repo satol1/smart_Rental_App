@@ -5,7 +5,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from shared.schemas.user_schema import UserCreate, Token
+from shared.schemas.user_schema import UserCreate, Token, RegisterResponse
 from datetime import timedelta
 from api.services.auth_service import AuthService
 from dependency_injector.wiring import inject, Provide
@@ -87,7 +87,7 @@ async def get_csrf_token(
     )
     return {"csrf_token": signed_token}
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 @inject
 async def register_user(

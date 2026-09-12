@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useOrderFilterStore, type SortOption, type OrderContext } from '@/store/orderFilterStore';
+import { useOrderFilters, type SortOption, type OrderContext } from '@/store/orderFilterStore';
 import { isHideCompletedFilterActive } from '@/lib/filterUtils';
 
 interface OrderToolbarProps {
@@ -24,9 +24,9 @@ const sortOptions: Array<[SortOption, string]> = [
 export default function OrderToolbar({ context, showHideCompletedCheckbox, embedded = false }: OrderToolbarProps) {
     const { t } = useTranslation();
     const id = useId();
-    const { searchQuery, statusFilter, sortOption, setSearchQuery, setStatusFilter, setSortOption, getDefaultStatusFilter } = useOrderFilterStore();
+    const { searchQuery, statusFilter, sortOption, setSearchQuery, setStatusFilter, setSortOption, getDefaultStatusFilter } = useOrderFilters(context);
     useEffect(() => {
-        const defaultFilter = getDefaultStatusFilter(context);
+        const defaultFilter = getDefaultStatusFilter();
         if (!statusFilter || statusFilter === 'hide-completed') setStatusFilter(defaultFilter);
     }, [context, statusFilter, setStatusFilter, getDefaultStatusFilter]);
 
@@ -51,7 +51,7 @@ export default function OrderToolbar({ context, showHideCompletedCheckbox, embed
             ) : (
                 <div className="min-w-0 space-y-2">
                     <Label htmlFor={id + '-status'}>{t('ordersDesign.status')}</Label>
-                    <Select value={statusFilter || getDefaultStatusFilter(context)} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter || getDefaultStatusFilter()} onValueChange={setStatusFilter}>
                         <SelectTrigger id={id + '-status'} className="w-full lg:w-48"><SelectValue /></SelectTrigger>
                         <SelectContent>{statuses.map(status => <SelectItem key={status} value={status}>{t('ordersDesign.' + status)}</SelectItem>)}</SelectContent>
                     </Select>

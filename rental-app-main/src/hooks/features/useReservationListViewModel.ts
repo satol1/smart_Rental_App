@@ -10,7 +10,7 @@ import { useDateStore } from "@/store/dateStore";
 import { ReservationService } from "@/core/services";
 import type { Equipment } from "@/types/equipment";
 import type { ReservationWithNames } from "@/types/reservation";
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
 
 // Интерфейс опций теперь не нужен, так как хук не принимает данные извне
@@ -20,6 +20,10 @@ export interface ReservationListViewModelResult {
     isLoading: boolean;
     isError: boolean;
     refetch: () => void;
+    /** Infinite-пагинация «Мои резервы» (этап 5.4) */
+    hasNextPage: boolean;
+    fetchNextPage: () => void;
+    isFetchingNextPage: boolean;
     deletingId: number | null;
     itemToRemove: { reservationId: number; equipmentId: number } | null;
     /** Резерв, для которого открыт диалог подтверждения полной отмены */
@@ -42,7 +46,7 @@ export interface ReservationListViewModelResult {
  */
 export const useReservationListViewModel = (): ReservationListViewModelResult => {
     // 1. Получаем параметры фильтрации из zustand store (поиск — с debounce)
-    const { searchQuery, statusFilter, sortOption } = useOrderFilterStore();
+    const { searchQuery, statusFilter, sortOption } = useOrderFilters("user-reservations");
     const debouncedSearch = useDebounce(searchQuery, 350);
     const apiParams = useMemo(() => ({
         search: debouncedSearch || undefined,
@@ -52,7 +56,14 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
 
     // 2. Хук теперь сам вызывает useReservations для получения данных
     const { reservationsQuery } = useReservations(apiParams);
-    const { data: reservationsData = [], isLoading: isLoadingReservations, isError: isReservationsError } = reservationsQuery;
+    const {
+        data: reservationsData = [],
+        isLoading: isLoadingReservations,
+        isError: isReservationsError,
+        hasNextPage,
+        fetchNextPage,
+        isFetchingNextPage,
+    } = reservationsQuery;
 
     // Остальная логика остается почти без изменений
     const { data: allEquipment = [], isLoading: isLoadingEquipment, isError: isEquipmentError } = useAllEquipment();
@@ -166,6 +177,9 @@ export const useReservationListViewModel = (): ReservationListViewModelResult =>
 
     return {
         refetch: () => { void reservationsQuery.refetch(); },
+        hasNextPage,
+        fetchNextPage: () => { void fetchNextPage(); },
+        isFetchingNextPage,
         reservationsWithNames,
         equipmentMap,
         isLoading: isLoadingReservations || isLoadingEquipment,

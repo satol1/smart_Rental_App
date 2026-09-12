@@ -1,7 +1,7 @@
 // src/components/admin/PromoCodeTable.tsx
 
-import { useState } from "react";
-import { useAdminPromoCodes, useDeletePromoCode } from "@/hooks/useAdminPromoCodes";
+import { useEffect, useState } from "react";
+import { useAdminPromoCodes, useDeletePromoCode, PROMO_CODES_PAGE_SIZE } from "@/hooks/useAdminPromoCodes";
 import { PromoCodeDialog } from "./PromoCodeDialog";
 import type { PromoCodeOut } from "@/types/promo_code";
 import { formatDateEuropean } from "@/lib/utils";
@@ -17,7 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Ticket } from "lucide-react";
 
 export default function PromoCodeTable() {
-    const { data: promoCodes = [], isLoading, error } = useAdminPromoCodes();
+    const [currentPage, setCurrentPage] = useState(1);
+    const { data: promoCodesPage, isLoading, error, isFetching } = useAdminPromoCodes(currentPage);
     const deleteMutation = useDeletePromoCode();
 
     const [search, setSearch] = useState("");
@@ -25,6 +26,17 @@ export default function PromoCodeTable() {
     const [editingPromoCode, setEditingPromoCode] = useState<PromoCodeOut | null>(null);
     const [deletingPromoCode, setDeletingPromoCode] = useState<PromoCodeOut | null>(null);
 
+    const promoCodes = promoCodesPage?.items ?? [];
+    const totalPromoCodes = promoCodesPage?.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(totalPromoCodes / PROMO_CODES_PAGE_SIZE));
+
+    // Удаление последнего кода на последней странице уводило currentPage за
+    // диапазон (пустое состояние при наличии кодов) — возвращаем на последнюю валидную
+    useEffect(() => {
+        setCurrentPage((prev) => (prev > totalPages ? totalPages : prev));
+    }, [totalPages]);
+
+    // Поиск работает по текущей странице (полный серверный поиск у промокодов отсутствует)
     const filteredPromoCodes = promoCodes.filter(pc =>
         pc.code.toLowerCase().includes(search.toLowerCase()) ||
         pc.description?.toLowerCase().includes(search.toLowerCase())
@@ -57,7 +69,7 @@ export default function PromoCodeTable() {
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Поиск по коду или описанию..."
+                        placeholder="Поиск по коду или описанию (в пределах страницы)..."
                         aria-label="Поиск по коду или описанию промокода"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -70,7 +82,7 @@ export default function PromoCodeTable() {
             </div>
 
             {sortedItems.length > 0 ? (
-                <div className="border rounded-md overflow-x-auto">
+                <div className={`border rounded-md overflow-x-auto transition-opacity ${isFetching ? "opacity-60" : ""}`}>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -118,6 +130,30 @@ export default function PromoCodeTable() {
                     <p className="text-sm text-muted-foreground mt-1">
                         {search ? "Попробуйте изменить поисковый запрос." : "Добавьте первый промокод, чтобы он появился в списке."}
                     </p>
+                </div>
+            )}
+
+            {sortedItems.length > 0 && (
+                <div className={`flex items-center justify-end space-x-2 py-4 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
+                    <span className="text-sm text-muted-foreground">
+                        Страница {currentPage} из {totalPages} · всего {totalPromoCodes}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Назад
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Вперед
+                    </Button>
                 </div>
             )}
 

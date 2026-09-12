@@ -5,7 +5,7 @@ import { useReserveStore } from "@/store/reserveStore";
 import { useDateStore } from "@/store/dateStore";
 import { useSandboxCalculatorStore } from "@/store/sandboxCalculatorStore";
 import { usePromoCodeStore, RESERVE_PROMO_SCOPE } from "@/store/promoCodeStore";
-import { useHolidayStore } from "@/store/holidayStore";
+import { useHolidays } from "@/hooks/useHolidays";
 import { DateService } from "@/core/services/DateService";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -45,8 +45,8 @@ export const useEquipmentCardViewModel = (options: EquipmentCardOptions): Equipm
     // Карточки каталога подписываются ТОЛЬКО на процент промокода скоупа резерва:
     // иначе каждый keystroke в поле промокода ре-рендерил бы все карточки каталога
     const promoCodePercentage = usePromoCodeStore((s) => s.scopes[RESERVE_PROMO_SCOPE]?.promoCodePercentage ?? 0);
-    // Из стора праздников нужна только дата — селектором, без подписки на isLoading и прочее
-    const holidays = useHolidayStore((s) => s.holidays);
+    // Из праздников нужны только даты (единый react-query слой, этап 5.3)
+    const { data: holidays = [] } = useHolidays();
 
     // Используем переданные даты или даты из стора
     // (finalStatus рассчитан ниже; даты потребуются при расширении ViewModel)

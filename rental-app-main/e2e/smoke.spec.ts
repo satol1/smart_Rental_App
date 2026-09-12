@@ -180,6 +180,37 @@ test.describe('Smoke e2e (каталог -> вход -> профиль -> рез
       await expect(reservationTitle).toBeVisible({ timeout: 15_000 });
       await expect(page.getByText(SMOKE_EQUIPMENT_NAME).first()).toBeVisible();
 
+      // 5a. Редактирование резерва (этап 5.7 аудита): сдвигаем дату окончания
+      //     и сохраняем — карточка должна показать обновлённый диапазон
+      await test.step('резерв: редактирование даты окончания', async () => {
+        await page
+          .getByRole('button', { name: 'Редактировать', exact: true })
+          .first()
+          .click();
+
+        // Инпут даты окончания (label «Окончание:» в EditableDateRange)
+        const endInput = page.locator('input[type="date"]').last();
+        await expect(endInput).toBeVisible();
+        const newEnd = isoDateWithOffset(4);
+        await endInput.fill(newEnd);
+
+        const saveButton = page.getByRole('button', { name: 'Сохранить', exact: true });
+        await expect(saveButton).toBeEnabled({ timeout: 10_000 });
+        await saveButton.click();
+
+        // Карточка возвращается в режим просмотра с новой датой окончания
+        // (formatDateEuropean: ДД.ММ.ГГГГ)
+        const [yy, mm, dd] = newEnd.split('-');
+        const europeanDate = `${dd}.${mm}.${yy}`;
+        await expect(
+          page.getByText(europeanDate).first(),
+        ).toBeVisible({ timeout: 20_000 });
+        // Режим редактирования закрыт
+        await expect(
+          page.getByRole('button', { name: 'Сохранить', exact: true }),
+        ).toHaveCount(0);
+      });
+
       // 6. Отмена резерва: кнопка «Отменить» в карточке -> диалог подтверждения
       await page.getByRole('button', { name: 'Отменить', exact: true }).click();
 

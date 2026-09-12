@@ -18,7 +18,7 @@ import { useAdminReservationSelectionStore } from "@/store/adminReservationSelec
 import { AdminReservationToolbar } from "@/components/admin/AdminReservationToolbar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import OrderToolbar from "@/components/shared/OrderToolbar";
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters } from "@/store/orderFilterStore";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { transformAccessoryLinks } from "@/lib/utils";
 import { useRentalReceiptStore } from "@/store/rentalReceiptStore";
@@ -37,13 +37,15 @@ export default function AllReservationsManagementPage() {
     const { isOpen, rentalData, closeReceipt } = useRentalReceiptStore();
 
     // Получаем параметры фильтрации из стора (поиск — с debounce)
-    const rawSearchQuery = useOrderFilterStore(state => state.searchQuery);
+    const {
+        searchQuery: rawSearchQuery,
+        statusFilter,
+        periodType,
+        periodOffset,
+        setSearchQuery,
+        setStatusFilter,
+    } = useOrderFilters("admin-reservations");
     const searchQuery = useDebounce(rawSearchQuery, 350);
-    const statusFilter = useOrderFilterStore(state => state.statusFilter);
-    const periodType = useOrderFilterStore(state => state.periodType);
-    const periodOffset = useOrderFilterStore(state => state.periodOffset);
-    const setSearchQuery = useOrderFilterStore(state => state.setSearchQuery);
-    const setStatusFilter = useOrderFilterStore(state => state.setStatusFilter);
 
     // Обработка состояния, переданного при навигации
     useEffect(() => {
@@ -143,7 +145,7 @@ export default function AllReservationsManagementPage() {
                     <div className="flex-1">
                         <OrderToolbar context="admin-reservations" embedded />
                     </div>
-                    <PeriodFilter />
+                    <PeriodFilter context="admin-reservations" />
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)} className="w-full md:w-auto">
                     <Plus className="mr-2 h-4 w-4" />

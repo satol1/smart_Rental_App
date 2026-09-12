@@ -9,7 +9,7 @@ import MyRentalCard from "./MyRentalCard";
 import { Truck } from "lucide-react";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { SkeletonList } from '@/components/ui/skeleton-list';
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters } from "@/store/orderFilterStore";
 import { applyHideCompletedFilter } from "@/lib/filterUtils";
 import type { RefObject } from "react";
 import EmptyStateWithActions from "../shared/EmptyStateWithActions";
@@ -58,7 +58,7 @@ const MyRentalsListComponent = ({
     rentalsData: propRentalsData 
 }: MyRentalsListProps) => {
     const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useMyRentals({}, 10);
-    const { statusFilter } = useOrderFilterStore();
+    const { statusFilter } = useOrderFilters("user-rentals");
 
     // Используем данные из пропсов или загружаем их самостоятельно
     const allRentals = useMemo(() => {

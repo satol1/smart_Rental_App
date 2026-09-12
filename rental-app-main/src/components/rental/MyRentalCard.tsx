@@ -148,7 +148,7 @@ const MyRentalCard = forwardRef<HTMLDivElement, MyRentalCardProps>(({ rental, hi
                             </div>
                         );
                     }
-                    if (rental.status === 'active' && rental.days_remaining !== null) {
+                    if (rental.status === 'active' && rental.days_remaining != null) {
                         const daysLeft = rental.days_remaining;
                         if (daysLeft <= 1) {
                             return (

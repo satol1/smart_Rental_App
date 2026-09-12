@@ -4,6 +4,7 @@ import type { UserOut } from "./user";
 import type { Equipment } from "./equipment";
 import type { Accessory } from "./accessory";
 import type { OrderStatus } from '@/constants/statusConstants';
+import type { ApiRentalOut } from "@/types/api/schemas";
 
 export interface RentalAccessoryDetail {
     equipment_id: number;
@@ -16,37 +17,20 @@ export interface RentalReturnRequest {
     accessories_returned_confirmation: boolean;
 }
 
-export interface AdminRentalOut {
-    id: number;
-    user_id: number;
-    created_by_id: number;
-    reservation_id: number | null;
-    start_date: string;
-    end_date: string;
-    actual_return_date: string | null;
+/**
+ * Аренда из API. База — сгенерированная схема RentalOut (codegen), поверх —
+ * уточнения приложения: статус сужен до union OrderStatus, вложенное
+ * оборудование/аксессуары приведены к прикладным типам (они надмножество схемных).
+ */
+export type AdminRentalOut = Omit<ApiRentalOut,
+    "status" | "user" | "created_by" | "equipment" | "accessory_links"
+> & {
     status: OrderStatus;
-    total_cost: number;
-    discount_amount: number;
-    promo_code: string | null;
-    final_cost: number | null;
-    deposit_amount: number;
-    prepayment_amount: number;
-    accessories_cost: number;
-    remaining_amount: number;
-    notes_on_issue: string | null;
-    notes_on_return: string | null;
-    created_at: string;
-    updated_at: string;
     user: UserOut;
     created_by: UserOut;
     equipment: Equipment[];
-    // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
     accessory_links: RentalAccessoryDetail[];
-    // -------------------------
-    days_remaining: number | null;
-    overdue_days: number | null;
-    overdue_surcharge: number | null;
-}
+};
 
 export interface AdminRentalListResponse {
     items: AdminRentalOut[];

@@ -33,7 +33,9 @@ export function useHolidays(startDate: Date, endDate: Date) {
 
     // +++ НАЧАЛО ИЗМЕНЕНИЙ: Полностью исправленный хук +++
     return useQuery<HolidayListResponse, Error, HolidayWithDate[]>({
-        queryKey: [HOLIDAYS_QUERY_KEY, formattedStart, formattedEnd],
+        // "admin" в ключе: публичный useHolidays кладёт в ["holidays", ...] Date[],
+        // этот хук — HolidayListResponse; при совпадении дат кэши перезаписывали бы друг друга
+        queryKey: [HOLIDAYS_QUERY_KEY, "admin", formattedStart, formattedEnd],
         // Запрос уходит в HolidayService (единая точка доступа к API)
         queryFn: () => HolidayService.getHolidayList(formattedStart, formattedEnd, 100),
         // С помощью `select` извлекаем массив items и преобразуем даты
@@ -56,6 +58,7 @@ export function useCreateHoliday() {
         onSuccess: () => {
             toast.success("Выходной день успешно добавлен");
             void queryClient.invalidateQueries({ queryKey: [HOLIDAYS_QUERY_KEY] });
+            void queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
         onError: (error) => {
             if (error.response?.status === 409) {
@@ -77,6 +80,7 @@ export function useDeleteHoliday() {
         onSuccess: () => {
             toast.success("Выходной день удален");
             void queryClient.invalidateQueries({ queryKey: [HOLIDAYS_QUERY_KEY] });
+            void queryClient.invalidateQueries({ queryKey: ["calendar-grid"] });
         },
         onError: (error: unknown) => {
             toast.error(getHolidayDeleteErrorMessage(error));

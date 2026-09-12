@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/queryHelpers";
+import { invalidatePublicCatalog, CATALOG_QUERY_KEYS } from "@/lib/catalogInvalidation";
 // +++ НАЧАЛО ИЗМЕНЕНИЙ: Импортируем тип для ответа с пагинацией +++
 import type { Association, AssociationCreate, AssociationUpdate, AssociationListResponse } from "@/types/association";
 // +++ КОНЕЦ ИЗМЕНЕНИЙ +++
@@ -34,6 +35,8 @@ export function useCreateAssociation() {
         mutationFn: (data: AssociationCreate) => api.post<Association>("/associations/", data),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
+            void queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEYS.associations });
+            invalidatePublicCatalog(queryClient);
             toast.success("Ассоциация успешно создана");
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка создания")),
@@ -47,6 +50,8 @@ export function useUpdateAssociation() {
             api.put<Association>(`/associations/${id}`, data),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
+            void queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEYS.associations });
+            invalidatePublicCatalog(queryClient);
             toast.success("Ассоциация успешно обновлена");
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка обновления")),
@@ -59,6 +64,8 @@ export function useDeleteAssociation() {
         mutationFn: (id: number) => api.delete(`/associations/${id}`),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ADMIN_ASSOCIATIONS_KEY });
+            void queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEYS.associations });
+            invalidatePublicCatalog(queryClient);
             toast.success("Ассоциация удалена");
         },
         onError: (e) => toast.error(getApiErrorMessage(e, "Ошибка удаления")),

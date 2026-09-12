@@ -6,7 +6,7 @@ import { useFilterStore } from "@/store/filterStore";
 import { useDateStore } from "@/store/dateStore";
 import { useReserveStore } from "@/store/reserveStore";
 import { useViewModeStore } from "@/store/viewModeStore";
-import { useHolidayStore } from "@/store/holidayStore";
+import { useHolidays } from "@/hooks/useHolidays";
 import { usePromoCodeStore, RESERVE_PROMO_SCOPE } from "@/store/promoCodeStore";
 
 /**
@@ -20,7 +20,7 @@ export const useHomePageReset = () => {
     const viewModeStore = useViewModeStore();
     // Действие стора промокодов получаем селектором — без подписки на чужие скоупы
     const clearPromoCodeAction = usePromoCodeStore((s) => s.clearPromoCode);
-    const { holidays } = useHolidayStore();
+    const { data: holidays = [] } = useHolidays();
 
     const resetHomePage = useCallback(() => {
         // Сбрасываем поиск

@@ -9,9 +9,13 @@ import { useCreateReservationForm, type CreateReservationFormData } from "./useC
 import { usePromoCodeStore, ADMIN_CREATE_RESERVATION_PROMO_SCOPE } from "@/store/promoCodeStore";
 import { USER_STATUS } from "@/constants/userStatusConstants";
 
-const todayDate = new Date();
-const tomorrowDate = new Date();
-tomorrowDate.setDate(todayDate.getDate() + 1);
+
+/** Завтрашняя дата на момент вызова (сброс формы при закрытии диалога) */
+function tomorrowFromNow(): Date {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+}
 
 /**
  * УПРОЩЕННЫЙ ХУК-ОРКЕСТРАТОР
@@ -112,8 +116,9 @@ export const useCreateReservationDialog = ({ isOpen, onClose }: { isOpen: boolea
             reset({
                 equipment_ids: [], 
                 selected_accessories: {},
-                start_date: formatDate(todayDate), 
-                end_date: formatDate(tomorrowDate),
+                // Даты сброса вычисляются на момент закрытия диалога, а не загрузки модуля
+                start_date: formatDate(new Date()), 
+                end_date: formatDate(tomorrowFromNow()),
             });
             setEquipmentSearch("");
             setUserSearch("");

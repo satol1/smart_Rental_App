@@ -1,6 +1,6 @@
 // src/contexts/ReservationEditProvider.tsx
 
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useReservationEditState } from "@/hooks/reservation/useReservationEditState";
 import { useReservationData } from "@/hooks/reservation/useReservationData";
 import { useEditReservation } from "@/hooks/useEditReservation";
@@ -87,7 +87,7 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
     }, [state.hasChanges, promoCodeChanged]);
 
     // Функция сохранения изменений
-    const saveChanges = async (confirmAdjustment: boolean = false): Promise<boolean> => {
+    const saveChangesImpl = async (confirmAdjustment: boolean = false): Promise<boolean> => {
         if (!finalHasChanges && !confirmAdjustment) {
             toast.info("Нет изменений для сохранения.");
             return false;
@@ -151,10 +151,29 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
         }
     };
 
+    // latest-ref: saveChangesImpl зависит от состояния формы и пересоздаётся каждый
+    // рендер; стабильная обёртка нужна, чтобы контекст и его потребители не
+    // мемоизировались впустую (no-op мемоизация — находка аудита этапа 5)
+    const saveChangesRef = useRef(saveChangesImpl);
+    useEffect(() => {
+        saveChangesRef.current = saveChangesImpl;
+    });
+    const saveChanges = useCallback(
+        (confirmAdjustment: boolean = false) => saveChangesRef.current(confirmAdjustment),
+        [],
+    );
+
     // Обработчики событий
-    const handleConfirmHolidayAdjustment = () => { void saveChanges(true); };
+    const handleConfirmHolidayAdjustment = useCallback(() => { void saveChanges(true); }, [saveChanges]);
     const { setReservationId } = useReserveStore.getState();
-    const cancelEdit = () => { stateActions.clearReserveStoreAndReset(); onFinishEditing(); };
+    const cancelEdit = useCallback(() => {
+        stateActions.clearReserveStoreAndReset();
+        onFinishEditing();
+    }, [stateActions, onFinishEditing]);
+    const handleSaveChanges = useCallback(() => saveChanges(false), [saveChanges]);
+    const handleFullCancellation = useCallback(async () => {
+        if (onFullCancellation) await onFullCancellation();
+    }, [onFullCancellation]);
 
     // Подготовка состояния для UI
     const editStateForUI = useMemo(() => ({
@@ -163,8 +182,11 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
         newlyAddedEquipmentIdsAsArray: Array.from(state.newlyAddedEquipmentIds)
     }), [state, finalHasChanges]);
 
-    // Создание значения контекста
-    const contextValue: ReservationEditContextValue = {
+    // Значение контекста мемоизировано (этап 5.6): иначе каждый рендер провайдера
+    // пересоздавал объект и ронял мемоизацию всех потребителей контекста
+    const handleCancelHolidayAdjustment = useCallback(() => stateActions.setHolidayConflict(null), [stateActions]);
+
+    const contextValue: ReservationEditContextValue = useMemo(() => ({
         reservationId: reservation.id,
         reservationCreatedAt: reservation.created_at,
         editState: editStateForUI,
@@ -179,15 +201,13 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
         isAdminContext,
         startEdit: () => setReservationId(reservation.id),
         cancelEdit,
-        saveChanges: () => saveChanges(false),
+        saveChanges: handleSaveChanges,
         equipmentMap,
         allEquipment,
         updateDates: stateActions.updateDates,
         addEquipmentItems: stateActions.addEquipmentItems,
         removeEquipmentItem: stateActions.removeEquipmentItem,
-        handleConfirmFullCancellation: async () => {
-            if (onFullCancellation) await onFullCancellation();
-        },
+        handleConfirmFullCancellation: handleFullCancellation,
         handleCloseCancellationDialog: () => {
             // Логика закрытия диалога отмены
         },
@@ -201,9 +221,19 @@ export const ReservationEditProvider: React.FC<ReservationEditProviderProps> = (
         toggleAccessory: stateActions.toggleAccessory,
         holidayConflict: state.holidayConflict,
         confirmHolidayAdjustment: handleConfirmHolidayAdjustment,
-        cancelHolidayAdjustment: () => stateActions.setHolidayConflict(null),
+        cancelHolidayAdjustment: handleCancelHolidayAdjustment,
         isHolidayValid,
-    };
+    }), [
+        reservation.id, reservation.created_at,
+        editStateForUI, availabilityMap, hasConflicts,
+        editApiMutation.isPending, isCheckingAvailability, isCalculatingPrice,
+        isAdminContext, setReservationId, cancelEdit, handleSaveChanges,
+        equipmentMap, allEquipment,
+        stateActions, state.localSelectedAccessories, state.holidayConflict,
+        handleFullCancellation, handleConfirmHolidayAdjustment, handleCancelHolidayAdjustment,
+        financials, priceDetails, promoCode, setPromoCode, applyPromoCode, removePromoCode,
+        isHolidayValid,
+    ]);
 
     return (
         <ReservationEditContext.Provider value={contextValue}>

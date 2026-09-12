@@ -106,19 +106,23 @@ export class ReservationService {
     }
 
     /**
-     * Получает список резервов пользователя
+     * Получает страницу резервов пользователя (для infinite-пагинации «Мои резервы»)
      */
-    static async getUserReservations(params?: { search?: string; status?: string; sort?: string }): Promise<Reservation[]> {
-        // Указываем, что ожидаем объект с пагинацией
+    static async getUserReservationsPage(
+        params: { search?: string; status?: string; sort?: string },
+        skip: number,
+        limit: number,
+    ): Promise<ReservationListResponse> {
         const response = await api.get<ReservationListResponse>("/reservations/", {
-            params: params ? {
+            params: {
                 search: params.search,
                 status: params.status,
-                sort: params.sort
-            } : undefined
+                sort: params.sort,
+                skip,
+                limit,
+            }
         });
-        // Возвращаем только массив items
-        return response.data.items;
+        return response.data;
     }
 
     /**

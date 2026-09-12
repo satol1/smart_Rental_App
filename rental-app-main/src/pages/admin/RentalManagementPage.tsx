@@ -11,7 +11,7 @@ import CreateRentalFromScratchDialog from "@/components/admin/CreateRentalFromSc
 import RentalReceiptDialog from "@/components/admin/RentalReceiptDialog";
 import type { AdminRentalOut } from "@/types/rental";
 import OrderToolbar from "@/components/shared/OrderToolbar";
-import { useOrderFilterStore } from "@/store/orderFilterStore";
+import { useOrderFilters } from "@/store/orderFilterStore";
 import { useDebounce } from "@/hooks/useDebounce";
 import { InfiniteScrollTrigger } from '@/components/shared/InfiniteScrollTrigger';
 import { useHighlightLogic } from "@/hooks/useHighlightLogic";
@@ -26,7 +26,7 @@ export default function RentalManagementPage() {
     const [isCreateRentalOpen, setCreateRentalOpen] = useState(false);
 
     // Получаем параметры фильтрации из стора (поиск — с debounce)
-    const { searchQuery: rawSearchQuery, statusFilter, periodType, periodOffset } = useOrderFilterStore();
+    const { searchQuery: rawSearchQuery, statusFilter, periodType, periodOffset } = useOrderFilters("admin-rentals");
     const searchQuery = useDebounce(rawSearchQuery, 350);
     
     // Получаем состояние диалога бланка аренды
@@ -80,7 +80,7 @@ export default function RentalManagementPage() {
                     <div className="flex-1">
                         <OrderToolbar context="admin-rentals" embedded />
                     </div>
-                    <PeriodFilter />
+                    <PeriodFilter context="admin-rentals" />
                 </div>
                 <Button onClick={() => setCreateRentalOpen(true)} className="w-full md:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
