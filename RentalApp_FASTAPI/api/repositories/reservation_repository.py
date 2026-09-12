@@ -86,6 +86,16 @@ class ReservationRepository(ReservationBaseRepository):
     ) -> Tuple[List[Reservation], int]:
         return await self._filter_repo.get_paginated_for_admin(skip, limit, status, search_query, reservation_id, period_type, period_offset)
 
+    async def count_for_admin(
+        self,
+        status: Optional[str] = None,
+        search_query: Optional[str] = None,
+        reservation_id: Optional[int] = None,
+        period_type: Optional[str] = None,
+        period_offset: int = 0
+    ) -> int:
+        return await self._filter_repo.count_for_admin(status, search_query, reservation_id, period_type, period_offset)
+
     # Делегируем методы из ReservationAvailabilityRepository
     async def get_reservations_for_availability_check(
         self, 
