@@ -28,10 +28,15 @@ def client():
 
 @pytest.fixture
 def csrf_headers(client):
-    """CSRF-пара для запросов к auth-эндпоинтам."""
-    response = client.get("/api/auth/csrf-token")
-    assert response.status_code == 200
-    return {"X-CSRF-Token": response.json()["csrf_token"]}
+    """CSRF-пара для запросов к auth-эндпоинтам.
+
+    Общий conftest-хелпер пере-выставляет Secure-cookie без флага Secure
+    (httpx не возвращает Secure по http) — иначе double-submit падает 403.
+    """
+    from tests.conftest import get_csrf_headers
+    headers = get_csrf_headers(client)
+    assert headers, "csrf-защита должна быть включена в этих тестах"
+    return headers
 
 
 @pytest.fixture

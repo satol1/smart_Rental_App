@@ -21,6 +21,8 @@ services:
       interval: 15s  # Увеличено для экономии ресурсов
       timeout: 10s
       retries: 3
+    networks:
+      - internal
     restart: unless-stopped
     deploy:
       resources:
@@ -62,6 +64,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - internal
     restart: unless-stopped
     deploy:
       resources:
@@ -108,6 +112,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - edge
+      - internal
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
@@ -150,6 +157,8 @@ services:
     command: python scripts/run_diagnostics.py
     profiles:
       - diagnostics
+    networks:
+      - internal
     deploy:
       resources:
         limits:
@@ -174,6 +183,8 @@ services:
       - SSL_EMAIL=
     depends_on:
       - backend
+    networks:
+      - edge
     restart: unless-stopped
     healthcheck:
       # 127.0.0.1, не localhost (иначе IPv6 ::1); http достаточно для dev-конфига
@@ -194,7 +205,7 @@ services:
 
   # Certbot для автоматического получения SSL сертификатов
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v2.11.0  # пин версии, синхронно с основным compose (этап 6.4)
     volumes:
       - ./letsencrypt:/etc/letsencrypt
       - ./ssl:/etc/nginx/ssl
@@ -224,11 +235,17 @@ services:
 
   # Сервис для автоматических бэкапов (опциональный)
   db-backup:
-    image: postgres:15-alpine
+    # Свой образ с openssl (шифрование 3-2-1) — см. docker/db-backup.Dockerfile
+    build:
+      context: ./docker
+      dockerfile: db-backup.Dockerfile
+    image: rental-db-backup:latest
     volumes:
       - ./db_backup:/backups
       - uploads_data:/uploads:ro
       - ./scripts/backup_loop.sh:/backup_loop.sh:ro
+      # 3-2-1 (этап 6.2): при необходимости смонтируйте внешний носитель
+      # - /mnt/external-backups:/external
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -237,12 +254,17 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
       - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY:-}
+      - EXTERNAL_BACKUP_DIR=${EXTERNAL_BACKUP_DIR:-}
     profiles:
       - backup
     depends_on:
       db:
         condition: service_healthy
-    # Планировщик бэкапов (scripts/backup_loop.sh): дамп БД + архив uploads + ротация
+    networks:
+      - internal
+    # Планировщик бэкапов (scripts/backup_loop.sh): дамп БД + архив uploads +
+    # шифрование + внешний носитель + ротация
     restart: unless-stopped
     command: ["sh", "/backup_loop.sh"]
     deploy:
@@ -253,6 +275,36 @@ services:
         reservations:
           cpus: '0.02'  # Минимум 2% CPU
           memory: 32M  # Минимум 32 MB RAM
+
+  # Регулярный тест-рестор (этап 6.2): см. docker-compose.yml
+  backup-restore-test:
+    image: rental-db-backup:latest
+    build:
+      context: ./docker
+      dockerfile: db-backup.Dockerfile
+    volumes:
+      - ./db_backup:/backups:ro
+      - ./scripts/backup_restore_test.sh:/backup_restore_test.sh:ro
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_HOST=db
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY:-}
+    profiles:
+      - backup-test
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+    command: ["sh", "/backup_restore_test.sh"]
+
+# Сегментация сетей (этап 6.3 аудита 2026-09-12): см. docker-compose.yml
+networks:
+  edge: {}
+  internal: {}
 
 volumes:
   postgres_data:

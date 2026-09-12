@@ -16,24 +16,16 @@ vi.mock('sonner', () => ({
 const toastError = vi.mocked(toast.error);
 
 describe('handleQueryError', () => {
+    // Этап 6.6 аудита: единый канал ошибок — queryFn пробрасывает ошибку в
+    // inline ErrorState, тоста из handleQueryError больше нет (только лог)
     beforeEach(() => {
         vi.clearAllMocks();
         vi.spyOn(console, 'error').mockImplementation(() => { });
     });
 
-    it('показывает сообщение Error', () => {
+    it('НЕ показывает тост (ошибку запроса рендерит inline ErrorState)', () => {
         handleQueryError(new Error('Сервер недоступен'));
-        expect(toastError).toHaveBeenCalledWith('Сервер недоступен');
-    });
-
-    it('показывает строку как есть', () => {
-        handleQueryError('Просто строка ошибки');
-        expect(toastError).toHaveBeenCalledWith('Просто строка ошибки');
-    });
-
-    it('для неизвестного формата показывает стандартное сообщение', () => {
-        handleQueryError({ weird: true });
-        expect(toastError).toHaveBeenCalledWith('Неизвестная ошибка запроса');
+        expect(toastError).not.toHaveBeenCalled();
     });
 
     it('логирует ошибку в консоль', () => {

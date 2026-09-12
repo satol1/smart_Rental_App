@@ -5,7 +5,7 @@
 """
 
 import logging
-import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from config.core import settings
 
@@ -16,12 +16,19 @@ log_file_path.parent.mkdir(parents=True, exist_ok=True)
 # Базовая настройка логирования
 handlers = [logging.StreamHandler()]
 
-# Добавляем файловый хендлер только если файл может быть создан
+# Файловый хендлер с ротацией (этап 6.5 аудита): без ротации app.log рос
+# бесконечно в writable-слое контейнера. 10 МБ × 5 файлов = до 60 МБ на логи.
 try:
-    # Проверяем, можем ли мы создать файл
     if not log_file_path.exists():
         log_file_path.touch()
-    handlers.append(logging.FileHandler(log_file_path, encoding="utf-8"))
+    handlers.append(
+        RotatingFileHandler(
+            log_file_path,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,
+            encoding="utf-8",
+        )
+    )
 except (OSError, PermissionError):
     # Если не можем создать файл, используем только консоль
     pass

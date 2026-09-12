@@ -175,8 +175,8 @@ class TestRefreshTokenDenylist:
         client = TestClient(app)
         client.cookies.set("refresh_token", refresh_token, path="/")
 
-        csrf_response = client.get("/api/auth/csrf-token")
-        headers = {"X-CSRF-Token": csrf_response.json()["csrf_token"]}
+        from tests.conftest import get_csrf_headers
+        headers = get_csrf_headers(client)
 
         response = client.post("/api/auth/logout", headers=headers)
 
@@ -194,8 +194,8 @@ class TestRefreshTokenDenylist:
         client = TestClient(app)
         client.cookies.set("refresh_token", refresh_token, path="/")
 
-        csrf_response = client.get("/api/auth/csrf-token")
-        headers = {"X-CSRF-Token": csrf_response.json()["csrf_token"]}
+        from tests.conftest import get_csrf_headers
+        headers = get_csrf_headers(client)
 
         logout_response = client.post("/api/auth/logout", headers=headers)
         assert logout_response.status_code == 200
@@ -203,8 +203,8 @@ class TestRefreshTokenDenylist:
         # Cookie удалена локально, но если клиент сохранил токен и шлёт его снова —
         # denylist должен отклонить его даже при наличии новой CSRF-пары.
         client.cookies.set("refresh_token", refresh_token, path="/")
-        csrf_response = client.get("/api/auth/csrf-token")
-        headers = {"X-CSRF-Token": csrf_response.json()["csrf_token"]}
+        from tests.conftest import get_csrf_headers
+        headers = get_csrf_headers(client)
 
         refresh_response = client.post("/api/auth/refresh", headers=headers)
 

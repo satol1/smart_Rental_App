@@ -372,6 +372,20 @@ def csrf_protection_enabled() -> bool:
     return _os.getenv("DISABLE_CSRF", "false").lower() != "true"
 
 
+def _reissue_csrf_cookie_without_secure(client, response) -> None:
+    """Этап 6.6 аудита: csrf-cookie теперь Secure (DEBUG=false, как в проде).
+
+    httpx не возвращает Secure-cookie по http://testserver, а тесты ходят по
+    http. Пере-выставляем ту же cookie без флага Secure — double-submit
+    (cookie + заголовок) по-прежнему проверяется сервером полноценно.
+    """
+    for header in response.headers.get_list("set-cookie"):
+        if header.startswith("fastapi-csrf-token="):
+            value = header.split(";", 1)[0].split("=", 1)[1]
+            client.cookies.set("fastapi-csrf-token", value, path="/")
+            return
+
+
 def get_csrf_headers(client) -> Dict[str, str]:
     """Получает CSRF-токен через GET /api/auth/csrf-token и возвращает заголовки.
 
@@ -383,6 +397,7 @@ def get_csrf_headers(client) -> Dict[str, str]:
         return {}
     response = client.get("/api/auth/csrf-token")
     response.raise_for_status()
+    _reissue_csrf_cookie_without_secure(client, response)
     return {"X-CSRF-Token": response.json()["csrf_token"]}
 
 
@@ -392,4 +407,5 @@ async def get_csrf_headers_async(client) -> Dict[str, str]:
         return {}
     response = await client.get("/api/auth/csrf-token")
     response.raise_for_status()
+    _reissue_csrf_cookie_without_secure(client, response)
     return {"X-CSRF-Token": response.json()["csrf_token"]}

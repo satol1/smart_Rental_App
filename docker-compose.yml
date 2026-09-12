@@ -1,5 +1,10 @@
 # S_PROJECT_DOCKER/docker-compose.yml
 # Основная конфигурация для продакшена с SSL (без ограничений ресурсов)
+#
+# Сегментация сетей (этап 6.3 аудита 2026-09-12):
+#   edge    — только frontend и backend (публичный контур);
+#   internal — backend и данные (db, redis, бэкапы, диагностика).
+# RCE в контейнере фронтенда больше не даёт прямого доступа к db/redis.
 
 services:
   db:
@@ -21,6 +26,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - internal
     restart: unless-stopped
     # Без ограничений ресурсов для основной конфигурации
 
@@ -37,6 +44,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - internal
     restart: unless-stopped
     # Без ограничений ресурсов для основной конфигурации
 
@@ -75,6 +84,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - edge
+      - internal
     restart: unless-stopped
     # Без ограничений ресурсов для основной конфигурации
     healthcheck:
@@ -110,6 +122,8 @@ services:
     command: python scripts/run_diagnostics.py
     profiles:
       - diagnostics
+    networks:
+      - internal
     # Без ограничений ресурсов для основной конфигурации
         
   frontend:
@@ -130,6 +144,8 @@ services:
       - SSL_EMAIL=${SSL_EMAIL}
     depends_on:
       - backend
+    networks:
+      - edge
     restart: unless-stopped
     # Без ограничений ресурсов для основной конфигурации
     healthcheck:
@@ -165,11 +181,19 @@ services:
 
   # Сервис для автоматических бэкапов (опциональный)
   db-backup:
-    image: postgres:15-alpine
+    # Свой образ: postgres:15-alpine не содержит openssl, нужного для
+    # шифрования дампов 3-2-1 (этап 6.2) — см. docker/db-backup.Dockerfile
+    build:
+      context: ./docker
+      dockerfile: db-backup.Dockerfile
+    image: rental-db-backup:latest
     volumes:
       - ./db_backup:/backups
       - uploads_data:/uploads:ro
       - ./scripts/backup_loop.sh:/backup_loop.sh:ro
+      # Правило 3-2-1 (этап 6.2 аудита): раскомментируйте и укажите путь
+      # внешнего носителя (внешний диск/NFS-маунт/rclone-маунт на хосте)
+      # - /mnt/external-backups:/external
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -179,16 +203,60 @@ services:
       # Раз в сутки; устаревшие бэкапы старше 14 дней удаляются
       - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
       - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}
+      # Шифрование дампов (aes-256-cbc): ключ из .env; пусто = без шифрования
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY:-}
+      # Каталог внешнего носителя ВНУТРИ контейнера (см. volume выше)
+      - EXTERNAL_BACKUP_DIR=${EXTERNAL_BACKUP_DIR:-}
     profiles:
       - backup
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - internal
     # Планировщик бэкапов (скрипт в scripts/backup_loop.sh): дамп БД + архив
-    # uploads + ротация. Запуск: docker compose --profile backup up -d db-backup
+    # uploads + шифрование + копия на внешний носитель + ротация.
+    # Запуск: docker compose --profile backup up -d db-backup
     restart: unless-stopped
     command: ["sh", "/backup_loop.sh"]
     # Без ограничений ресурсов для основной конфигурации
+
+  # Регулярный тест-рестор (этап 6.2): восстанавливает свежайший дамп в
+  # одноразовую базу и проверяет ключевые таблицы. Запуск по расписанию хоста:
+  #   docker compose --profile backup-test run --rm backup-restore-test
+  backup-restore-test:
+    image: rental-db-backup:latest
+    build:
+      context: ./docker
+      dockerfile: db-backup.Dockerfile
+    volumes:
+      - ./db_backup:/backups:ro
+      - ./scripts/backup_restore_test.sh:/backup_restore_test.sh:ro
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_HOST=db
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY:-}
+      - EXTERNAL_BACKUP_DIR=${EXTERNAL_BACKUP_DIR:-}
+    profiles:
+      - backup-test
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+    # Одноразовый запуск (restart не нужен)
+    command: ["sh", "/backup_restore_test.sh"]
+
+networks:
+  # Публичный контур: только frontend и backend
+  edge: {}
+  # Внутренний контур: backend, БД, redis, бэкапы
+  internal: {}
+  # certbot остаётся в default-сети в одиночестве: ему сети не нужны
+  # (ACME-challenge пишется в общий bind-mount ./ssl)
 
 volumes:
   postgres_data:

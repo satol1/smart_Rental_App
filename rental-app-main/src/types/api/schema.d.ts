@@ -114,7 +114,11 @@ export interface paths {
         put?: never;
         /**
          * Refresh Token Endpoint
-         * @description Обновляет access-токен по refresh-токену из httpOnly cookie.
+         * @description Ротирует refresh-токен и обновляет access-токен (этап 6.1 аудита).
+         *
+         *     Каждый вызов выдаёт НОВЫЙ refresh (новый jti) в httpOnly cookie, старый
+         *     отправляется в denylist. Повторное использование старого токена (кража
+         *     cookie) отзывает все сессии пользователя.
          */
         post: operations["refresh_token_endpoint_api_auth_refresh_post"];
         delete?: never;

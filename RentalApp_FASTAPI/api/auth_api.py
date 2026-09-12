@@ -3,6 +3,7 @@
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.schemas.user_schema import UserCreate, Token, RegisterResponse
@@ -82,7 +83,9 @@ async def get_csrf_token(
         key=CSRF_COOKIE_KEY,
         value=signed_token,
         httponly=False,  # фронтенд читает cookie и шлёт значение в заголовке
-        secure=False,    # TLS терминируется на nginx, бэкенд видит http
+        # TLS терминируется на nginx, но браузер работает по https: флаг Secure
+        # обязателен в проде (DEBUG=false) — как у refresh-cookie (этап 6.5 аудита)
+        secure=not settings.DEBUG,
         samesite="lax",
     )
     return {"csrf_token": signed_token}
@@ -109,6 +112,22 @@ async def register_user(
     }
 
 
+def _set_refresh_cookie(resp, token: str, request: Request) -> None:
+    """Выставляет httpOnly refresh-cookie (единые параметры для login и ротации)."""
+    from api.services.auth_service import REFRESH_TOKEN_EXPIRE_DAYS
+
+    resp.set_cookie(
+        key="refresh_token",
+        value=token,
+        httponly=True,
+        secure=not settings.DEBUG,
+        samesite="lax",
+        max_age=int(timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS).total_seconds()),
+        path="/",
+        domain=_resolve_cookie_domain(request),
+    )
+
+
 @router.post("/token", response_model=Token)
 @limiter.limit("5/minute")
 @inject
@@ -132,21 +151,8 @@ async def login(
     refresh_token = auth_service.create_refresh_token({"sub": user.email})
 
     # Устанавливаем httpOnly refresh cookie и возвращаем JSON корректным способом
-    secure_cookie = not settings.DEBUG
-    # Вычисляем домен безопасным образом (без domain для localhost/IP)
-    cookie_domain = _resolve_cookie_domain(request)
-    from fastapi.responses import JSONResponse
     resp = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
-    resp.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=secure_cookie,
-        samesite="lax",
-        max_age=int(timedelta(days=14).total_seconds()),
-        path="/",
-        domain=cookie_domain
-    )
+    _set_refresh_cookie(resp, refresh_token, request)
     return resp
 
 
@@ -159,7 +165,12 @@ async def refresh_token_endpoint(
         auth_service: AuthService = Depends(Provide[Container.auth_service]),
         csrf_protect: CsrfProtect = Depends()
 ):
-    """Обновляет access-токен по refresh-токену из httpOnly cookie."""
+    """Ротирует refresh-токен и обновляет access-токен (этап 6.1 аудита).
+
+    Каждый вызов выдаёт НОВЫЙ refresh (новый jti) в httpOnly cookie, старый
+    отправляется в denylist. Повторное использование старого токена (кража
+    cookie) отзывает все сессии пользователя.
+    """
     # Валидируем CSRF-токен: при ошибке CsrfProtectError -> 403 (обработчик в main_api)
     await _validate_csrf(request, csrf_protect)
 
@@ -167,14 +178,11 @@ async def refresh_token_endpoint(
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh токен отсутствует")
 
-    # verify_refresh_token проверяет подпись, type="refresh" и denylist (logout)
-    payload = await auth_service.verify_refresh_token(refresh_token)
-    subject = payload.get("sub")
-    if not subject:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Некорректный refresh токен")
-
+    new_refresh, subject = await auth_service.rotate_refresh_token(refresh_token)
     new_access = auth_service.create_access_token({"sub": subject})
-    return {"access_token": new_access, "token_type": "bearer"}
+    resp = JSONResponse(content={"access_token": new_access, "token_type": "bearer"})
+    _set_refresh_cookie(resp, new_refresh, request)
+    return resp
 
 
 @router.post("/logout", status_code=200)

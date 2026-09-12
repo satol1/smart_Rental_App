@@ -30,12 +30,15 @@ def client():
 
 @pytest.fixture
 def csrf_headers(client):
-    """Валидная пара (cookie + заголовок), полученная через GET /auth/csrf-token."""
-    response = client.get("/api/auth/csrf-token")
-    assert response.status_code == 200
-    payload = response.json()
-    assert "csrf_token" in payload
-    return {"X-CSRF-Token": payload["csrf_token"]}
+    """Валидная пара (cookie + заголовок), полученная через GET /auth/csrf-token.
+
+    Общий conftest-хелпер пере-выставляет Secure-cookie без флага Secure
+    (httpx не возвращает Secure-cookie по http://testserver).
+    """
+    from tests.conftest import get_csrf_headers
+    headers = get_csrf_headers(client)
+    assert headers, "csrf-защита должна быть включена в этих тестах"
+    return headers
 
 
 def _make_refresh_token(sub: str = "csrf_test@example.com") -> str:

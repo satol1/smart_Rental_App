@@ -3,6 +3,7 @@
 import secrets
 import logging
 import time
+import uuid
 import contextvars
 import asyncio
 
@@ -279,7 +280,12 @@ class DIContainerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
         self.request_count += 1
-        request_id = self.request_count
+        # Уникальный request-id для корреляции (этап 6.5): сквозной счётчик
+        # процесса утекал метрику трафика и совпадал между рестартами.
+        # Входящий X-Request-ID переиспользуется только при валидном формате
+        # (8-64 символа [A-Za-z0-9-]): иначе клиент мог бы спуфить/переполнять логи.
+        incoming_id = request.headers.get("X-Request-ID", "")
+        request_id = incoming_id if 8 <= len(incoming_id) <= 64 and all(c.isalnum() or c == "-" for c in incoming_id) else uuid.uuid4().hex
         
         # Пропускаем простые эндпоинты, которые не требуют DI
         if request.url.path in ["/health", "/docs", "/openapi.json", "/redoc"]:
@@ -413,6 +419,12 @@ app.include_router(all_routes, prefix="/api")
 # Статическая раздача загруженных изображений.
 # Монтируется ПОСЛЕ include_router: иначе mount перехватит POST/DELETE
 # /api/uploads/images до роутера и вернёт 405.
+#
+# ПОЛИТИКА ДОСТУПА (этап 6.5 аудита 2026-09-12, осознанное решение):
+# изображения отдаются анонимно и бессрочно. Имена генерирует бэкенд
+# (uuid4.hex — см. image_service), перебор/листинг каталога невозможны;
+# публичный доступ нужен самим карточкам каталога. Мутации
+# (POST/DELETE /api/uploads/images) требуют менеджерскую роль + CSRF.
 from fastapi.staticfiles import StaticFiles
 app.mount(
     "/api/uploads/images",

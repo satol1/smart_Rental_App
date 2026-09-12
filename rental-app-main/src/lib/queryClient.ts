@@ -1,5 +1,6 @@
 // src/lib/queryClient.ts
 import { QueryClient, type QueryCacheNotifyEvent, Query } from "@tanstack/react-query"
+import { isAxiosError } from "axios"
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -24,8 +25,16 @@ queryClient.getQueryCache().subscribe((event: QueryCacheNotifyEvent) => {
     }
 })
 
+/**
+ * 401 определяем по СТАТУСУ ответа, а не по подстроке "401" в message
+ * (этап 6.6 аудита): текст ошибки менялся с бэкендом и молча ломал логаут.
+ */
 function isUnauthorizedError(error: unknown): boolean {
-    return error instanceof Error && error.message.includes("401")
+    if (isAxiosError(error)) {
+        return error.response?.status === 401
+    }
+    // Не-axios ошибки: fallback на прежнюю эвристику (интерсепторы оборачивают)
+    return error instanceof Error && /\b401\b/.test(error.message)
 }
 
 function handleUnauthorized() {

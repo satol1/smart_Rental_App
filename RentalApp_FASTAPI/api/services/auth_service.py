@@ -19,9 +19,17 @@ from api.services.security_audit_service import SecurityAuditService
 from api.services.brute_force_protection_service import BruteForceProtectionService
 from api.services.token_denylist_service import TokenDenylistService, get_token_denylist
 
+logger = logging.getLogger(__name__)
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# Access живёт коротко (этап 6.1 аудита 2026-09-12): утечка access-токена
+# ограничена окном в 15 минут; сессию держит ротируемый refresh.
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 14
+# Grace-период повторного использования refresh (этап 6.1, митигация self-DoS):
+# гонка параллельных refresh из нескольких вкладок — это не кража, все сессии
+# пользователя за неё не отзываем
+REUSE_GRACE_SECONDS = 30
 
 
 class AuthService:
@@ -40,8 +48,10 @@ class AuthService:
         self.user_repo = user_repo
         self.security_audit_service = security_audit_service
         self.brute_force_protection = brute_force_protection
-        # In-memory denylist; позже заменяется на Redis-хранилище
-        self.token_denylist = token_denylist or get_token_denylist()
+        # In-memory denylist; позже заменяется на Redis-хранилище.
+        # ВАЖНО: сравнение строго с None — пустой denylist имеет __len__ и
+        # выглядит falsy, из-за чего `or` молча подменял его глобальным синглтоном
+        self.token_denylist = token_denylist if token_denylist is not None else get_token_denylist()
 
     async def create_user(self, user_data: UserCreate) -> User:
         import logging
@@ -177,8 +187,10 @@ class AuthService:
     def create_refresh_token(self, data: dict, expires_delta: timedelta = None) -> str:
         """Создание JWT refresh-токена (type=refresh, уникальный jti для denylist)."""
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
-        to_encode.update({"exp": expire, "type": "refresh", "jti": uuid.uuid4().hex})
+        now = datetime.now(timezone.utc)
+        expire = now + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+        # iat нужен fence-механизму отзыва всех сессий (iat < fence => отозван)
+        to_encode.update({"exp": expire, "iat": now, "type": "refresh", "jti": uuid.uuid4().hex})
         return jwt.encode(to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM)
 
     async def verify_refresh_token(self, token: str) -> dict:
@@ -227,4 +239,73 @@ class AuthService:
             return False
         await self.token_denylist.deny(jti, expires_at=float(exp))
         return True
+
+    async def rotate_refresh_token(self, token: str) -> tuple[str, str]:
+        """Ротация refresh-токена (этап 6.1 аудита 2026-09-12).
+
+        Проверяет старый токен, отзывает его (jti -> denylist) и выдаёт новый
+        с новым jti. Повторное использование уже отозванного jti (признак кражи
+        cookie) отзывает ВСЕ сессии пользователя (user fence) и отклоняет запрос.
+
+        Возвращает (новый_refresh_токен, subject). Бросает HTTPException 401.
+        """
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY.get_secret_value(), algorithms=[ALGORITHM])
+        except InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Недействительный или просроченный refresh токен")
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Недействительный тип токена")
+
+        subject = payload.get("sub")
+        if not subject:
+            raise HTTPException(status_code=401, detail="Некорректный refresh токен")
+
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+
+        # Reuse уже ротированного/отозванного токена: отзываем все сессии пользователя
+        if jti and await self.token_denylist.is_denied(jti):
+            # Grace: повторное использование СРАЗУ после ротации — почти наверняка
+            # гонка мульти-вкладок (два JS-контекста, одна cookie). Отклоняем без
+            # отзыва всех сессий; прошедшее время оцениваем по моменту отзыва jti.
+            denied_at = await self.token_denylist.get_denied_at(jti)
+            now_ts = datetime.now(timezone.utc).timestamp()
+            if denied_at is not None and (now_ts - denied_at) <= REUSE_GRACE_SECONDS:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Refresh токен уже использован (повторите запрос с новой cookie)",
+                )
+
+            # iat в JWT целочисленный: забор округляется ВВЕРХ до целой секунды,
+            # чтобы отозвать и токены, выданные в секунду инцидента (строгая
+            # интерпретация «revoke all sessions»)
+            fence_at = float(int(now_ts) + 1)
+            # TTL забора — срок самого длинного возможного refresh-токена, а не exp
+            # конкретного украденного: дочерние токены ротации живут дольше родителя
+            fence_ttl = now_ts + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+            await self.token_denylist.set_user_fence(subject, fence_at, fence_ttl)
+            # Пишем в приложение-лог, а не в security-audit (БД): путь авторизации
+            # не должен зависеть от доступности audit-таблицы/сессии БД
+            logger.warning(
+                "Reuse refresh-токена (user=%s, jti=%s): все сессии пользователя отозваны",
+                subject, jti,
+            )
+            raise HTTPException(
+                status_code=401,
+                detail="Refresh токен уже использован: все сессии пользователя отозваны",
+            )
+
+        # Fence: токены, выданные до глобального отзыва сессий, недействительны
+        fence = await self.token_denylist.get_user_fence(subject)
+        if fence is not None:
+            iat = payload.get("iat")
+            if not iat or float(iat) < fence:
+                raise HTTPException(status_code=401, detail="Сессия пользователя отозвана")
+
+        # Отзываем старый токен и выпускаем новый (новый jti)
+        if jti and exp:
+            await self.token_denylist.deny(jti, expires_at=float(exp))
+        new_refresh = self.create_refresh_token({"sub": subject})
+        return new_refresh, subject
 

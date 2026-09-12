@@ -1,7 +1,5 @@
 // src/lib/queryHelpers.ts
-import { toast } from "sonner"
 import type { QueryClient } from "@tanstack/react-query"
-import i18n from "@/i18n"
 
 /**
  * Инвалидация всех кэшей занятости оборудования.
@@ -14,14 +12,13 @@ export function invalidateAvailability(queryClient: QueryClient) {
     void queryClient.invalidateQueries({ queryKey: ["equipment-availability"] })
 }
 
+/**
+ * Логирование ошибок queryFn (этап 6.6 аудита: единый канал ошибок).
+ * Тост здесь НЕ показываем: все вызовы стоят в queryFn, который пробрасывает
+ * ошибку дальше — её рендерит inline ErrorState страницы (второй тост
+ * дублировал ошибку на каждом падении запроса). Тосты остаются у мутаций.
+ */
 export function handleQueryError(error: unknown) {
-    const message =
-        error instanceof Error
-            ? error.message
-            : typeof error === "string"
-                ? error
-                : i18n.t("errors.unknownQuery")
-    toast.error(message)
     console.error("[Query error]", error)
 }
 
