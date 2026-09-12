@@ -13,6 +13,13 @@ export default {
   theme: {
     extend: {
       fontFamily: { sans: ['var(--font-sans)'] },
+      // Дополнительные ступени микро-типографики и дисплейного заголовка.
+      // Строки без line-height: как произвольные значения, которые они заменяют.
+      fontSize: {
+        '2xs': '0.6875rem',
+        '3xs': '0.625rem',
+        '4.5xl': '2.75rem',
+      },
       borderRadius: {
         sm: '0.375rem',
         md: 'var(--radius-control)',
@@ -48,7 +55,6 @@ export default {
         'danger-soft': color('danger-soft'), 'info-soft': color('info-soft'),
         reserved: { DEFAULT: color('reserved'), soft: color('reserved-soft'), foreground: color('reserved-foreground') },
         collection: { sky: color('collection-sky'), mint: color('collection-mint'), amber: color('collection-amber') },
-        'photo-surface': color('photo-surface'),
         border: color('border'), input: color('input'), ring: color('ring'), overlay: color('overlay'),
         brand: { DEFAULT: color('brand'), ink: color('brand-ink'), paper: color('brand-paper') },
         gray: scale('neutral'), slate: scale('neutral'), zinc: scale('neutral'),

@@ -75,9 +75,9 @@ export default function EquipmentAccessoriesSelector({
                     control={control}
                     name="accessory_ids"
                     render={({ field }) => (
-                        <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-4 bg-slate-50">
+                        <div className="space-y-2 max-h-48 overflow-y-auto rounded-md border p-4 bg-neutral-50">
                             {filteredAccessories.map((accessory: Accessory) => (
-                                <div key={accessory.id} className="flex items-center justify-between hover:bg-slate-100 p-2 rounded">
+                                <div key={accessory.id} className="flex items-center justify-between hover:bg-neutral-100 p-2 rounded">
                                     <div className="flex items-center gap-2">
                                         <Checkbox
                                             id={`accessory-${accessory.id}`}

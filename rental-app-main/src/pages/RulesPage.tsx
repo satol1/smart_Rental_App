@@ -9,7 +9,7 @@ export default function RulesPage() {
       <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
         {/* Заголовок страницы */}
         <div className="mb-10 max-w-3xl">
-          <h1 className="text-3xl sm:text-[2.75rem] font-semibold leading-tight text-foreground mb-4">
+          <h1 className="text-3xl sm:text-4.5xl font-semibold leading-tight text-foreground mb-4">
             Наши правила
           </h1>
           <p className="text-base sm:text-lg leading-relaxed text-muted-foreground max-w-2xl">

@@ -205,7 +205,7 @@ export default function AuthForm({ onSuccess, embedded = false }: AuthFormProps 
                 />
 
                 {/* Формальные прямые ссылки на правовые разделы сайта */}
-                <div className="pt-2 text-[11px] text-muted-foreground/80 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                <div className="pt-2 text-2xs text-muted-foreground/80 flex flex-wrap items-center gap-x-2.5 gap-y-1">
                     <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline text-primary/80">
                         Политика конфиденциальности
                     </a>

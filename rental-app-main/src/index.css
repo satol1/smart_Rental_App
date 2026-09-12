@@ -27,6 +27,12 @@
     --brand: 201 71% 38%;
     --brand-ink: var(--foreground);
     --brand-paper: var(--card);
+    /* Блик primary-кнопок (.btn-sheen): светлый оттенок бренда; в .dark наследуется */
+    --brand-sheen: 201 85% 78%;
+    /* Фото-зона карточек оборудования: всегда чистый белый (фото с белым фоном),
+       сознательно НЕ переопределяется в .dark. В css нельзя @apply bg-white —
+       глобальное .dark .bg-white протекает; используйте var(--surface-photo). */
+    --surface-photo: 0 0% 100%;
     --blue-50: 200 39% 97%;
     --blue-100: 200 39% 94%;
     --blue-200: 201 39% 87%;
@@ -104,7 +110,6 @@
     --collection-sky: 201 56% 82%;
     --collection-mint: 146 36% 81%;
     --collection-amber: 36 66% 83%;
-    --photo-surface: 40 20% 96%;
     --pastel-sky: var(--info-soft);
     --pastel-sky-fg: 201 62% 29%;
     --pastel-mint: var(--success-soft);
@@ -146,23 +151,53 @@
 
   .dark {
     color-scheme: dark;
-    --photo-surface: 210 8% 12%;
+    --brand: 201 62% 61%;
+    --brand-ink: var(--foreground);
+    --brand-paper: var(--card);
     --blue-50: 201 16% 14%;
     --blue-100: 201 22% 18%;
     --blue-200: 201 22% 26%;
     --blue-300: 201 22% 38%;
+    --blue-400: 201 32% 48%;
+    --blue-500: 201 48% 58%;
+    --blue-600: 201 62% 66%;
+    --blue-700: 201 68% 74%;
+    --blue-800: 201 70% 82%;
+    --blue-900: 201 72% 90%;
+    --blue-950: 201 75% 95%;
     --sage-50: 145 16% 14%;
     --sage-100: 145 22% 18%;
     --sage-200: 145 22% 26%;
     --sage-300: 145 22% 38%;
+    --sage-400: 145 26% 48%;
+    --sage-500: 145 32% 58%;
+    --sage-600: 145 38% 66%;
+    --sage-700: 145 42% 74%;
+    --sage-800: 145 45% 82%;
+    --sage-900: 145 48% 90%;
+    --sage-950: 145 50% 95%;
     --sand-50: 35 16% 14%;
     --sand-100: 35 22% 18%;
     --sand-200: 35 22% 26%;
     --sand-300: 35 22% 38%;
+    --sand-400: 35 26% 48%;
+    --sand-500: 35 34% 58%;
+    --sand-600: 36 42% 66%;
+    --sand-700: 36 50% 74%;
+    --sand-800: 36 58% 82%;
+    --sand-900: 36 64% 90%;
+    --sand-950: 36 68% 95%;
     --red-50: 5 16% 14%;
     --red-100: 5 22% 18%;
     --red-200: 5 22% 26%;
     --red-300: 5 22% 38%;
+    --red-400: 5 36% 48%;
+    --red-500: 4 48% 58%;
+    --red-600: 4 58% 66%;
+    --red-700: 4 64% 74%;
+    --red-800: 4 68% 82%;
+    --red-900: 4 72% 90%;
+    --red-950: 4 76% 95%;
     --background: 210 8% 9%;
     --foreground: 40 12% 94%;
     --card: 210 7% 12%;
@@ -181,6 +216,7 @@
     --border: 210 6% 24%;
     --input: 210 5% 42%;
     --ring: 201 62% 61%;
+    --overlay: 210 12% 6%;
     --success: 144 36% 70%;
     --success-soft: 145 24% 19%;
     --warning: 37 62% 71%;
@@ -193,13 +229,25 @@
     --collection-sky: 201 42% 27%;
     --collection-mint: 145 30% 25%;
     --collection-amber: 35 38% 25%;
+    --pastel-sky: var(--info-soft);
     --pastel-sky-fg: 201 64% 78%;
+    --pastel-mint: var(--success-soft);
+    --pastel-mint-fg: var(--success);
+    --pastel-amber: var(--warning-soft);
+    --pastel-amber-fg: var(--warning);
+    --pastel-coral: var(--danger-soft);
+    --pastel-coral-fg: var(--destructive);
+    --pastel-lavender: var(--secondary);
+    --pastel-lavender-fg: var(--secondary-foreground);
     --chart-1: 201 62% 61%;
     --chart-2: 143 28% 65%;
     --chart-3: 37 46% 65%;
     --chart-4: 210 14% 65%;
     --chart-5: 4 47% 64%;
     --shadow-color: 210 15% 2%;
+    --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.4);
+    --shadow-popover: 0 8px 28px -8px hsl(var(--shadow-color) / 0.6), 0 2px 6px hsl(var(--shadow-color) / 0.25);
+    --shadow-dialog: 0 24px 72px -20px hsl(var(--shadow-color) / 0.85);
     --shadow-button-hover: 0 6px 16px -6px hsl(var(--shadow-color) / 0.4);
     --neutral-50: 210 8% 10%;
     --neutral-100: 210 6% 16%;
@@ -277,7 +325,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(100deg, transparent 25%, hsl(201 85% 78% / 0.26) 50%, transparent 75%);
+    background: linear-gradient(100deg, transparent 25%, hsl(var(--brand-sheen) / 0.26) 50%, transparent 75%);
     opacity: 0;
     transform: translateX(-30%);
     transition: transform var(--duration-slow) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
@@ -437,12 +485,13 @@
     text-align: right;
   }
 
-  /* Единственный цветной элемент документа — фирменная плашка заголовка */
+  /* Единственный цветной элемент документа — фирменная плашка заголовка.
+     Цвет берётся из --brand (переопределён выше для печатного контекста). */
   .receipt-title {
     margin-top: 4pt;
     padding: 3pt 8pt;
     border-radius: 3pt;
-    background-color: #155e86;
+    background-color: hsl(var(--brand));
     color: #fff;
     text-align: center;
     print-color-adjust: exact;

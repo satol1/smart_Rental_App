@@ -172,6 +172,10 @@ jobs:
       - name: API types usage check
         run: npm run check:api-types
 
+      # Гейт дизайн-системы: CSS без цветовых литералов вне токен-файла
+      - name: Design tokens check
+        run: npm run check:design-tokens
+
       - name: Build (vite)
         run: npm run build
 

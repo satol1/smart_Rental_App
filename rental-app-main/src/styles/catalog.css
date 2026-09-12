@@ -20,7 +20,6 @@
   .collection-image-0 { left: 3%; top: 0; z-index: 3; }
   .collection-image-1 { left: 29%; top: 7%; z-index: 2; height: 85%; }
   .collection-image-2 { left: 57%; top: 13%; z-index: 1; height: 76%; width: 38%; }
-  .dark .collection-images { @apply isolate mx-4 my-3 overflow-hidden rounded-lg bg-photo-surface; }
   .collection-action { @apply relative z-10 flex items-center justify-between gap-3 px-6 pb-5 pt-3 text-sm font-medium; }
   .catalog-workspace { @apply scroll-mt-44 pb-40 pt-6 outline-none; }
   .catalog-workspace:focus-visible { @apply rounded-lg ring-2 ring-ring ring-offset-4; }
@@ -40,7 +39,11 @@
   .equipment-tile[data-selected='true'] .equipment-tile-body { @apply bg-info-soft; }
   .equipment-tile-title { @apply text-left text-base font-semibold leading-snug tracking-tight; }
   .equipment-tile-title:focus-visible { @apply rounded-sm outline-none ring-2 ring-ring ring-offset-2; }
-  .equipment-image { @apply relative flex w-full items-center justify-center overflow-hidden bg-white p-5; aspect-ratio: 4 / 3; }
+  /* background-color на токене, а не @apply bg-white: глобальное .dark .bg-white из index.css
+     при @apply протекает тёмной вариацией; var(--surface-photo) — белый в обеих темах */
+  .equipment-image { @apply relative flex w-full items-center justify-center overflow-hidden p-5; background-color: hsl(var(--surface-photo)); aspect-ratio: 4 / 3; }
+  /* В тёмной теме белый фон фото-заглушки утоплен в карточку и скруглён, чтобы белое пятно не упиралось в тёмный интерфейс острыми углами */
+  .dark .equipment-image { @apply mx-4 mt-4 w-auto rounded-lg; }
   .equipment-image img { @apply h-full w-full object-contain; }
   .equipment-tile-body { @apply flex flex-1 flex-col p-4 sm:p-5; }
   .equipment-tile-info { @apply flex-1; }

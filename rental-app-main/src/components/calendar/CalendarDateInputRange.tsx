@@ -72,7 +72,7 @@ export default function CalendarDateInputRange({ onRangeChange, className, compa
             {error && (
               <div
                 id={`${inputId}-${key}-error`}
-                className={cn('mt-1 text-xs text-destructive', compact && 'text-[11px] leading-tight')}
+                className={cn('mt-1 text-xs text-destructive', compact && 'text-2xs leading-tight')}
                 role="status"
               >
                 <p className="line-clamp-2">{error}</p>

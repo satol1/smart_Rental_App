@@ -18,7 +18,7 @@ interface AvailabilityStripProps {
 const statusSurfaces: Record<string, string> = {
   available: 'bg-success-soft text-success',
   reserved: 'bg-reserved-soft text-reserved-foreground',
-  rented: 'bg-reserved text-white dark:text-red-950',
+  rented: 'bg-reserved text-primary-foreground dark:text-destructive',
   unknown: 'bg-muted text-muted-foreground',
 };
 const statusPreview: Record<string, string> = {

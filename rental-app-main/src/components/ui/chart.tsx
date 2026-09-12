@@ -10,18 +10,20 @@ import { ResponsiveContainer } from "recharts";
 import { useThemeStore } from "@/store/themeStore";
 import { cn } from "@/lib/utils";
 
+// Fallback-значения = сырые hsl-тройки токенов из index.css (светлая тема);
+// readCssColor оборачивает их в hsl(...), поэтому они идентичны var(--chart-N).
 const FALLBACK_COLORS = [
-  "hsl(12 76% 61%)",
-  "hsl(173 58% 39%)",
-  "hsl(197 37% 24%)",
-  "hsl(43 74% 66%)",
-  "hsl(27 87% 67%)",
+  "201 71% 38%",
+  "145 22% 38%",
+  "34 45% 47%",
+  "210 12% 47%",
+  "3 39% 48%",
 ];
 
 /** Читает HSL-токен из :root (или .dark) и возвращает готовый цвет для recharts */
 function readCssColor(variableName: string, fallback: string): string {
   if (typeof window === "undefined" || typeof document === "undefined") {
-    return fallback;
+    return `hsl(${fallback})`;
   }
   const value = getComputedStyle(document.documentElement)
     .getPropertyValue(variableName)
@@ -50,7 +52,7 @@ export function useChartAxisColor(): string {
   const resolvedTheme = useThemeStore((s) => s.resolvedTheme);
   return React.useMemo(() => {
     void resolvedTheme;
-    return readCssColor("--muted-foreground", "hsl(0 0% 45%)");
+    return readCssColor("--muted-foreground", "210 5% 42%");
   }, [resolvedTheme]);
 }
 
@@ -59,7 +61,7 @@ export function useChartGridColor(): string {
   const resolvedTheme = useThemeStore((s) => s.resolvedTheme);
   return React.useMemo(() => {
     void resolvedTheme;
-    return readCssColor("--border", "hsl(0 0% 90%)");
+    return readCssColor("--border", "40 9% 86%");
   }, [resolvedTheme]);
 }
 

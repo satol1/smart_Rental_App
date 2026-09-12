@@ -26,7 +26,7 @@ interface CalendarCellProps {
 const statusSurfaces = {
   available: 'bg-success-soft',
   reserved: 'bg-reserved-soft text-reserved-foreground',
-  rented: 'bg-reserved text-white dark:text-red-950',
+  rented: 'bg-reserved text-primary-foreground dark:text-destructive',
 };
 
 export function CalendarCell({ cellData, equipment, isHighlighted, isUnderRepair, onSelect, onShowDetails, onNavigate, isActionAllowed }: CalendarCellProps) {

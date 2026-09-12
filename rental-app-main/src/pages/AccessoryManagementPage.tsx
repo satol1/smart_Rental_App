@@ -28,7 +28,7 @@ export default function AccessoryManagementPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <Paperclip className="w-8 h-8 text-purple-600" />
+                <Paperclip className="w-8 h-8 text-neutral-600" />
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">
                         Управление аксессуарами

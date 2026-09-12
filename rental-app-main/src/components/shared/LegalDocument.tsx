@@ -73,8 +73,8 @@ const SECTION_ICONS: Record<LegalIconName, LucideIcon> = {
 
 const CARD_ACCENT_CLASSES: Record<NonNullable<LegalCardsBlock["cards"][number]["accent"]>, string> = {
   primary: "w-4 h-4 text-primary",
-  emerald: "w-4 h-4 text-emerald-500",
-  sky: "w-4 h-4 text-sky-500",
+  emerald: "w-4 h-4 text-sage-500 dark:text-success",
+  sky: "w-4 h-4 text-blue-500",
 };
 
 /** Плейсхолдеры {ключ}, подставляемаемые из COMPANY_INFO — реквизиты в контенте не дублируются. */
@@ -186,7 +186,7 @@ function renderNote(block: LegalNoteBlock, key: string): ReactNode {
       key={key}
       className={cn(
         "pt-1 text-sm",
-        block.tone === "muted" ? "text-xs text-muted-foreground" : "font-medium text-amber-500",
+        block.tone === "muted" ? "text-xs text-muted-foreground" : "font-medium text-sand-500 dark:text-warning",
       )}
     >
       {renderInlineText(block.text, key)}
@@ -201,10 +201,10 @@ function renderCallout(block: LegalCalloutBlock, key: string): ReactNode {
     return (
       <div
         key={key}
-        className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-foreground sm:p-5"
+        className="rounded-lg border border-sand-500/30 bg-sand-500/10 p-4 text-sm text-foreground sm:p-5"
       >
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-sand-500 dark:text-warning" />
           <div>
             {block.title && <p className="mb-1 font-semibold">{renderInlineText(block.title, `${key}-t`)}</p>}
             <div className="space-y-2 text-muted-foreground">
