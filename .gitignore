@@ -69,48 +69,20 @@ exports/
 .cache/
 *.cache
 
-# Cursor IDE
-.cursor/
-
 # SSL сертификаты
 ssl/
 letsencrypt/
 
-# Временные скрипты
-combine_project*.py
-create_*_bundle.py
-
-# GigaIDE
-.gigaide/
-
 # Бенчмарки pytest
 .benchmarks/
-
-# Сгенерированные дампы проекта (контекст для ИИ)
-smart_project_*.md
-smart_react_code.md
 
 # Артефакты тестов и сборки фронтенда
 test_output.txt
 test-results*.json
 dist/
 
-# Корневые остатки npm (реальный фронтенд — в rental-app-main/)
-/package.json
-/package-lock.json
-/node_modules/
-
 # TypeScript incremental build cache
 *.tsbuildinfo
-
-# Playwright-cli временные сессии и скриншоты
-.playwright-cli/
-**/.playwright-cli/
-
-# Скриншоты и дампы тестирования бланков
-receipt-*.png
-*.tmp.html
-.receipt-dom*
 
 # Пользовательские загрузки бэкенда
 RentalApp_FASTAPI/uploads/*

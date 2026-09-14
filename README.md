@@ -26,7 +26,7 @@
 
 ## Процесс разработки (Spec-Driven)
 
-Проект использует [GitHub SpecKit](https://github.com/github/spec-kit): конституция — `.specify/memory/constitution.md`, функциональность начинается со спека (`/speckit.specify` → clarify → plan → tasks → implement). Программа модернизации `specs/001-platform-modernization/` завершена и влита (журнал — [Docs/CHANGELOG.md](Docs/CHANGELOG.md)). Правила разработки: [RULES.md](RULES.md).
+Проект использует [GitHub SpecKit](https://github.com/github/spec-kit): конституция — `.specify/memory/constitution.md`, функциональность начинается со спека (`/speckit.specify` → clarify → plan → tasks → implement). Программа модернизации `specs/001-platform-modernization/` завершена и влита (журнал — [Docs/CHANGELOG.md](Docs/CHANGELOG.md)). Правила разработки: [AGENTS.md](AGENTS.md).
 
 ## Архитектура
 
